@@ -2,31 +2,32 @@
 # folder-name/** -> label based on changed files in the PR
 
 feature:
-  - feature/*
+  - "feature/*"
 
 fix:
-  - fix/*
+  - "fix/*"
 
 chore:
-  - chore/*
+  - "chore/*"
 
 docs:
-  - docs/*
-  - docs/**
+  - "docs/*"
+  - "docs/**"
 
 refactor:
-  - refactor/*
+  - "refactor/*"
 
 test:
-  - test/*
-  - test/**
-  - backend/Cayeshni.Tests/**
+  - "test/*"
+  - "test/**"
+  - "backend/Cayeshni.Tests/**"
+  # todo: add frontend test folder later when we have frontend tests
 
 hotfix:
-  - hotfix/*
+  - "hotfix/*"
 
 frontend:
-  - frontend/**
+  - "frontend/**"
 
 backend:
-  - backend/**
+  - "backend/**"
