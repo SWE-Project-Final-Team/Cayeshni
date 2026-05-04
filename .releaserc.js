@@ -1,6 +1,8 @@
 module.exports = {
   branches: ["main"],
+
   plugins: [
+    // 1. Decide version bump
     [
       "@semantic-release/commit-analyzer",
       {
@@ -9,13 +11,43 @@ module.exports = {
           { type: "docs", release: false },
           { type: "refactor", release: false },
           { type: "test", release: false },
-          { type: "chore", release: false }
+          { type: "chore", release: false },
+          { type: "ci", release: false }
         ]
       }
     ],
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
+
+    // 2. Generate changelog
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        preset: "conventionalcommits",
+        presetConfig: {
+          types: [
+            { type: "feat", section: "Features" },
+            { type: "fix", section: "Bug Fixes" },
+            { type: "docs", section: "Documentation" },
+            { type: "refactor", section: "Refactoring" },
+            { type: "test", section: "Tests" },
+            { type: "chore", section: "Chores" },
+            { type: "ci", section: "CI/CD" }
+          ]
+        }
+      }
+    ],
+
+    // 3. Write CHANGELOG.md
+    [
+      "@semantic-release/changelog",
+      {
+        changelogFile: "CHANGELOG.md"
+      }
+    ],
+
+    // 4. Publish GitHub release
     "@semantic-release/github",
+
+    // 5. Commit changelog back to repo
     [
       "@semantic-release/git",
       {
