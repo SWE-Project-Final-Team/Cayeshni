@@ -1,3 +1,6 @@
+# branch-name/* -> label based on branch name
+# folder-name/** -> label based on changed files in the PR
+
 feature:
   - feature/*
 
@@ -18,3 +21,9 @@ test:
 
 hotfix:
   - hotfix/*
+
+frontend:
+  - frontend/**
+
+backend:
+  - backend/**
