@@ -1,0 +1,20 @@
+feature:
+  - feature/*
+
+fix:
+  - fix/*
+
+chore:
+  - chore/*
+
+docs:
+  - docs/*
+
+refactor:
+  - refactor/*
+
+test:
+  - test/*
+
+hotfix:
+  - hotfix/*

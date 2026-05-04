@@ -1,0 +1,25 @@
+name: PR Validation (main)
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title (Conventional Commits)
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Allow only develop or hotfix
+        run: |
+          SOURCE="${{ github.head_ref }}"
+
+          if [[ "$SOURCE" != "develop" && ! "$SOURCE" =~ ^hotfix/ ]]; then
+            echo "❌ Only 'develop' or 'hotfix/*' can merge into main"
+            exit 1
+          fi
+
+          echo "✅ Allowed branch for main"
