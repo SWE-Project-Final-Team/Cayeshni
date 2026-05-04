@@ -12,12 +12,15 @@ chore:
 
 docs:
   - docs/*
+  - docs/**
 
 refactor:
   - refactor/*
 
 test:
   - test/*
+  - test/**
+  - backend/Cayeshni.Tests/**
 
 hotfix:
   - hotfix/*
