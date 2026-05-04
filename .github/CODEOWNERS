@@ -1,0 +1,11 @@
+# Backend Team
+/backend/           @swe-project-final-team/backend
+
+# Frontend Team
+/frontend/          @swe-project-final-team/frontend
+
+# Documentation Team
+/docs/              @swe-project-final-team/docs
+
+# CI/CD Team
+/.github/workflows/ @swe-project-final-team/ci-cd
