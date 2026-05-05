@@ -18,7 +18,7 @@ jobs:
         run: |
           BRANCH="${{ github.head_ref }}"
 
-          if [[ ! "$BRANCH" =~ ^(feature/|fix/|chore/|docs/|refactor/|test/|hotfix/) and ! "$BRANCH" =~ ^main ]]; then
+          if [[ ! "$BRANCH" =~ ^(feature/|fix/|chore/|docs/|refactor/|test/|hotfix/) && ! "$BRANCH" =~ ^main ]]; then
             echo "❌ Invalid branch for develop: $BRANCH"
             echo "Allowed prefixes: feature/, fix/, chore/, docs/, refactor/, test/, hotfix/ or main"
             exit 1
