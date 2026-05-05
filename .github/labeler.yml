@@ -18,8 +18,10 @@ refactor:
   - head-branch: ['^refactor/']
 
 test:
-  - "test/**"
-  - "backend/Cayeshni.Tests/**"
+  - head-branch: ['^test/']
+  # todo: uncomment when test folders exist
+  # - "test/**"
+  # - "backend/Cayeshni.Tests/**"
   # todo: add frontend test folder later when we have frontend tests
 
 hotfix:
