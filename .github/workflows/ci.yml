@@ -32,9 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
 
-    # PR → main = always run
-    # PR → develop = only if backend changed
-    if: github.base_ref == 'main' || needs.changes.outputs.backend == 'true'
+    # Run only when backend files change; skip until backend/ project exists
+    if: needs.changes.outputs.backend == 'true'
 
     services:
       postgres:
@@ -79,7 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
 
-    if: github.base_ref == 'main' || needs.changes.outputs.frontend == 'true'
+    # Run only when frontend files change; skip until frontend/package.json exists
+    if: needs.changes.outputs.frontend == 'true'
 
     steps:
       - name: Checkout repository
