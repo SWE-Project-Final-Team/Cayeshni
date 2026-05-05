@@ -1,0 +1,8 @@
+{
+  "name": "cayeshni-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "echo \"No frontend tests yet\" && exit 0"
+  }
+}

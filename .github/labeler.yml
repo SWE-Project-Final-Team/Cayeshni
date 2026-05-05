@@ -1,34 +1,42 @@
-# head-branch: -> label based on PR branch name (regex)
-# folder-name/** -> label based on changed files in the PR
+# head-branch -> label based on PR branch name
+# changed-files -> label based on files changed in the PR
 
 feature:
-  - head-branch: ['^feature/']
+  - head-branch:
+      - "feature/*"
 
 fix:
-  - head-branch: ['^fix/']
+  - head-branch:
+      - "fix/*"
 
 chore:
-  - head-branch: ['^chore/']
+  - head-branch:
+      - "chore/*"
 
 docs:
-  - head-branch: ['^docs/']
-  - "docs/**"
+  - head-branch:
+      - "docs/*"
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
 
 refactor:
-  - head-branch: ['^refactor/']
+  - head-branch:
+      - "refactor/*"
 
 test:
-  - head-branch: ['^test/']
-  # todo: uncomment when test folders exist
-  # - "test/**"
-  # - "backend/Cayeshni.Tests/**"
-  # todo: add frontend test folder later when we have frontend tests
+  - head-branch:
+      - "test/*"
+  - changed-files:
+      - any-glob-to-any-file: "backend/Cayeshni.Tests/**"
 
 hotfix:
-  - head-branch: ['^hotfix/']
+  - head-branch:
+      - "hotfix/*"
 
 frontend:
-  - "frontend/**"
+  - changed-files:
+      - any-glob-to-any-file: "frontend/**"
 
 backend:
-  - "backend/**"
+  - changed-files:
+      - any-glob-to-any-file: "backend/**"
