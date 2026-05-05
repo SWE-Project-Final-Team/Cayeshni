@@ -40,3 +40,7 @@ frontend:
 backend:
   - changed-files:
       - any-glob-to-any-file: "backend/**"
+
+CI/CD:
+  - changed-files:
+      - any-glob-to-any-file: ".github/workflows/**"
