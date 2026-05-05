@@ -15,6 +15,8 @@ obj/
 .DS_Store
 Thumbs.db
 
-# Secrets / local config (optional)
-appsettings.*.json
-!appsettings.json
+# Secrets / local config
+.env
+.env.local
+.env.*.local
+!.env.example
