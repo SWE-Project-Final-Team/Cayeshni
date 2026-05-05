@@ -18,7 +18,7 @@ public class Group
     public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
 
     [Timestamp]
-    public byte[] RowVersion { get; set; } = Array.Empty<byte>(); 
+    public byte[]? RowVersion { get; set; } 
 
     public ICollection<GroupMember> Members { get; set; } = new List<GroupMember>();
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();

@@ -18,7 +18,7 @@ public class Transaction
     [MaxLength(500)]
     public string? Description { get; set; }
     [Timestamp]
-    public byte[]? RowVersion { get; set; } = Array.Empty<byte>();
+    public byte[]? RowVersion { get; set; }
 
     public Group Group { get; set; } = null!;
     public ICollection<TransactionMember> TransactionMembers { get; set; } = new List<TransactionMember>();
