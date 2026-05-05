@@ -1,20 +1,42 @@
+# head-branch -> label based on PR branch name
+# changed-files -> label based on files changed in the PR
+
 feature:
-  - feature/*
+  - head-branch:
+      - "feature/*"
 
 fix:
-  - fix/*
+  - head-branch:
+      - "fix/*"
 
 chore:
-  - chore/*
+  - head-branch:
+      - "chore/*"
 
 docs:
-  - docs/*
+  - head-branch:
+      - "docs/*"
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
 
 refactor:
-  - refactor/*
+  - head-branch:
+      - "refactor/*"
 
 test:
-  - test/*
+  - head-branch:
+      - "test/*"
+  - changed-files:
+      - any-glob-to-any-file: "backend/Cayeshni.Tests/**"
 
 hotfix:
-  - hotfix/*
+  - head-branch:
+      - "hotfix/*"
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: "frontend/**"
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: "backend/**"
