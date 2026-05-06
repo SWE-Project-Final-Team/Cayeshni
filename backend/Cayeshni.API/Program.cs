@@ -18,7 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     
     if (string.IsNullOrEmpty(connectionString))
     {
-        connectionString = "Host=localhost;Port=5432;Database=cayeshni;Username=postgres;Password=password";
+        connectionString = "Host=localhost;Port=5432;Database=cayeshni;Username=postgres;Password=postgres";
     }
     else
     {
@@ -27,7 +27,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             .Replace("${DB_PORT}", Environment.GetEnvironmentVariable("DB_PORT") ?? "5432")
             .Replace("${DB_NAME}", Environment.GetEnvironmentVariable("DB_NAME") ?? "cayeshni")
             .Replace("${DB_USER}", Environment.GetEnvironmentVariable("DB_USER") ?? "postgres")
-            .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "password");
+            .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres");
     }
     
     options.UseNpgsql(connectionString);
