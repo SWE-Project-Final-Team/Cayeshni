@@ -1,22 +1,27 @@
 ## Description
 
-<!-- One sentence summary -->
+Brief summary of the changes.
 
-## Type of change
+## Changes
 
-- [ ] feat — new feature
-- [ ] fix — bug fix
-- [ ] chore — maintenance / deps
-- [ ] docs — documentation only
-- [ ] refactor — no behaviour change
+- 
+- 
 
-## Checklist
+## Type
 
-- [ ] Code builds with no errors
-- [ ] Tests added / updated
-- [ ] No commented-out code left behind
-- [ ] Self-reviewed before requesting review
+- [ ] Feature
+- [ ] Bug fix
+- [ ] Maintenance
+- [ ] Documentation
+- [ ] Refactor
+- [ ] CI/CD
 
 ## Related issue
 
 Closes #
+
+## Checklist
+
+- [ ] Code builds
+- [ ] Tests added/updated
+- [ ] Self-reviewed
