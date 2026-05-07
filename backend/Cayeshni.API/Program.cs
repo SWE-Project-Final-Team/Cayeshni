@@ -2,9 +2,7 @@ using Cayeshni.Application;
 using Cayeshni.Infrastructure;
 using Scalar.AspNetCore;
 using Cayeshni.API.Extensions;
-using Microsoft.AspNetCore.DataProtection;
 using Cayeshni.Api.Middleware;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
@@ -14,12 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-// Add authentication and authorization services
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+// Add authentication and authorization services with JWT bearer tokens
+builder.Services.AddAuthenticationServices(builder.Configuration);
 
 // Add controllers and OpenAPI (Swagger/Scalar) services
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer(); // Required for OpenAPI generation
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
