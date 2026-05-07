@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Cayeshni.Infrastructure;
 
@@ -22,10 +23,24 @@ public static class DependencyInjection
             }));
     
         // Register Identity services
-        services.AddIdentityCore<AppUser>()
+        services.AddIdentityCore<AppUser>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+            options.User.RequireUniqueEmail = true;
+        })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders()
             .AddSignInManager();
+
+        // Data protection
+        var keyPath = configuration["DataProtection:KeysPath"] ?? "DataProtection-Keys";
+        if (!Directory.Exists(keyPath)) Directory.CreateDirectory(keyPath); // Ensure directory exists
+        services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyPath))
+                                    .SetApplicationName("Cayeshni");
               
         // Add other services like repositories, external API clients, etc.
 
