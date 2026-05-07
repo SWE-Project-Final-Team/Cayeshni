@@ -1,0 +1,214 @@
+classDiagram
+
+%% ─────────────────────────────────────────
+%%  ENUMERATIONS
+%% ─────────────────────────────────────────
+
+class Currency {
+    <<enumeration>>
+    USD
+    EUR
+    GBP
+    EGP
+    AED
+    SAR
+    JPY
+    CAD
+    AUD
+    CHF
+    CNY
+}
+
+class TransactionCategory {
+    <<enumeration>>
+    Transport
+    Food
+    Accommodation
+    Entertainment
+    Utilities
+    Shopping
+    Other
+}
+
+class FriendshipStatus {
+    <<enumeration>>
+    Pending
+    Friends
+    Blocked
+}
+
+class NotificationType {
+    <<enumeration>>
+    FriendRequestReceived
+    FriendRequestAccepted
+    GroupInviteReceived
+    GroupJoinApproved
+    GroupJoinDeclined
+    TransactionCreated
+    TransactionUpdated
+    PaymentReceived
+}
+
+%% ─────────────────────────────────────────
+%%  IDENTITY
+%% ─────────────────────────────────────────
+
+class IdentityUser {
+    <<abstract>>
+    +Id : string
+    +Email : string
+    +UserName : string
+    +PasswordHash : string
+    +EmailConfirmed : bool
+}
+
+class AppUser {
+    +Id : string
+    +Name : string
+    +CreatedAt : DateTime
+}
+
+%% ─────────────────────────────────────────
+%%  DOMAIN ENTITIES
+%% ─────────────────────────────────────────
+
+class Group {
+    +Id : Guid
+    +Name : string
+    +DefaultCurrency : Currency
+    +InviteToken : string
+    +CreatedById : string
+    +CreatedAt : DateTime
+    +RowVersion : byte[]
+}
+
+class GroupMember {
+    <<join table>>
+    +GroupId : Guid
+    +UserId : string
+    +JoinedAt : DateTime
+}
+
+class Friendship {
+    +UserIdA : string
+    +UserIdB : string
+    +Status : FriendshipStatus
+    +CreatedAt : DateTime
+    +UpdatedAt : DateTime
+}
+
+class Transaction {
+    +Id : Guid
+    +GroupId : Guid
+    +PaidByUserId : string
+    +TotalAmount : decimal
+    +Currency : Currency
+    +Category : TransactionCategory
+    +Description : string
+    +CreatedAt : DateTime
+    +RowVersion : byte[]
+}
+
+class TransactionMember {
+    <<split record>>
+    +TransactionId : Guid
+    +UserId : string
+    +AmountOwed : decimal
+}
+
+class Settlement {
+    +Id : Guid
+    +GroupId : Guid
+    +PayerUserId : string
+    +PayeeUserId : string
+    +Amount : decimal
+    +Currency : Currency
+    +Note : string
+    +CreatedAt : DateTime
+}
+
+class SettlementAllocation {
+    <<allocation record>>
+    +SettlementId : Guid
+    +TransactionId : Guid
+    +DebtorUserId : string
+    +AllocatedAmount : decimal
+}
+
+class Notification {
+    +Id : Guid
+    +Type : NotificationType
+    +RecipientId : string
+    +SenderUserId : string
+    +GroupId : Guid
+    +TransactionId : Guid
+    +SettlementId : Guid
+    +Text : string
+    +IsRead : bool
+    +CreatedAt : DateTime
+}
+
+%% ─────────────────────────────────────────
+%%  INHERITANCE
+%% ─────────────────────────────────────────
+
+IdentityUser <|-- AppUser : extends
+
+%% ─────────────────────────────────────────
+%%  COMPOSITION
+%%  Child lifecycle depends on parent
+%%  (child is deleted when parent is deleted)
+%% ─────────────────────────────────────────
+
+Group "1" *-- "0..*" GroupMember : has members
+Group "1" *-- "0..*" Transaction : has transactions
+Group "1" *-- "0..*" Settlement : has settlements
+Group "1" *-- "0..*" Notification : has notifications
+Transaction "1" *-- "1..*" TransactionMember : split into
+Transaction "1" *-- "0..*" SettlementAllocation : referenced by
+Settlement "1" *-- "1..*" SettlementAllocation : broken into
+
+%% ─────────────────────────────────────────
+%%  AGGREGATION
+%%  Child exists independently of parent
+%% ─────────────────────────────────────────
+
+AppUser "1" o-- "0..*" GroupMember : participates in
+AppUser "1" o-- "0..*" Group : administers
+AppUser "1" o-- "0..*" Transaction : pays for
+AppUser "1" o-- "0..*" TransactionMember : owes in
+AppUser "1" o-- "0..*" Settlement : sends
+AppUser "1" o-- "0..*" Settlement : receives
+AppUser "1" o-- "0..*" SettlementAllocation : debtor in
+AppUser "1" o-- "0..*" Notification : receives
+AppUser "1" o-- "0..*" Notification : triggers
+AppUser "1" o-- "0..*" Friendship : friend as A
+AppUser "1" o-- "0..*" Friendship : friend as B
+
+%% ─────────────────────────────────────────
+%%  ASSOCIATION
+%%  SettlementAllocation → TransactionMember
+%%  (composite FK link — not a lifecycle dependency)
+%% ─────────────────────────────────────────
+
+TransactionMember "1" --> "0..*" SettlementAllocation : covered by
+
+%% ─────────────────────────────────────────
+%%  DEPENDENCY
+%%  Optional references on Notification
+%% ─────────────────────────────────────────
+
+Notification "0..*" ..> "0..1" Transaction : optionally references
+Notification "0..*" ..> "0..1" Settlement : optionally references
+Notification "0..*" ..> "0..1" Group : optionally references
+
+%% ─────────────────────────────────────────
+%%  ENUM USAGE
+%% ─────────────────────────────────────────
+
+Transaction ..> Currency : uses
+Transaction ..> TransactionCategory : uses
+Settlement ..> Currency : uses
+Group ..> Currency : uses
+Friendship ..> FriendshipStatus : uses
+Notification ..> NotificationType : uses
