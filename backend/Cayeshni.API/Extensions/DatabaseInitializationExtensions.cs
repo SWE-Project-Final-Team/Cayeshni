@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.API.Extensions;
 
-public static class Data
+public static class DatabaseInitializationExtensions
 {
     public static async Task InitializeDatabaseAsync(this WebApplication app)
     {
