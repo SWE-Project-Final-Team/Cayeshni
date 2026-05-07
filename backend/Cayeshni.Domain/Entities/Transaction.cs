@@ -9,7 +9,7 @@ public class Transaction
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid GroupId { get; set; }
     [Required]
-    public string PaidByUserId { get; set; } = string.Empty;
+    public Guid PaidByUserId { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalAmount { get; set; }

@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Cayeshni.Infrastructure.Identity;
 using Cayeshni.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace Cayeshni.Infrastructure.Persistence;
 
-public class AppDbContext : IdentityDbContext<AppUser>
+public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options) { }
