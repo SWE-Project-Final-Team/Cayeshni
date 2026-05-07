@@ -3,6 +3,7 @@
 # https://docs.docker.com/go/compose-spec-reference/
 
 # Docker Compose configuration for Cayeshni API with PostgreSQL
+name: cayeshni-backend
 
 services:
   db:
@@ -20,7 +21,7 @@ services:
     ports:
       - "${DB_PORT}:5432"
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-cayeshni}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,17 +34,13 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-cayeshni}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - keys:/app/keys
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   db-data:
+  keys:
 

@@ -11,12 +11,13 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(IServiceProvider services)
     {
-        using var scope = services.CreateScope();
+        var db = services.GetRequiredService<AppDbContext>();
+        var userManager = services.GetRequiredService<UserManager<AppUser>>();
 
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-
-        await db.Database.MigrateAsync();
+        if (await db.Users.AnyAsync())
+        {
+            return; // DB has been seeded
+        }
 
         // ── USERS ───────────────────────────────
         var alice = await CreateUser(userManager, "alice@cayeshni.com", "Alice Johnson");

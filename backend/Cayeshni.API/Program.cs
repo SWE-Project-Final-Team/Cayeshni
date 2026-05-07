@@ -1,61 +1,50 @@
-using Microsoft.EntityFrameworkCore;
-using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
+using Cayeshni.Application;
+using Cayeshni.Infrastructure;
+using Scalar.AspNetCore;
+using Cayeshni.API.Extensions;
+using Microsoft.AspNetCore.DataProtection;
+using Cayeshni.Api.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddIdentityApiEndpoints<AppUser>()
-    .AddEntityFrameworkStores<AppDbContext>();
+// Add layer services
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 
+// Add authentication and authorization services
+builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
-// Configure DbContext with PostgreSQL
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        connectionString = "Host=localhost;Port=5432;Database=cayeshni;Username=postgres;Password=postgres";
-    }
-    else
-    {
-        connectionString = connectionString
-            .Replace("${DB_HOST}", Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost")
-            .Replace("${DB_PORT}", Environment.GetEnvironmentVariable("DB_PORT") ?? "5432")
-            .Replace("${DB_NAME}", Environment.GetEnvironmentVariable("DB_NAME") ?? "cayeshni")
-            .Replace("${DB_USER}", Environment.GetEnvironmentVariable("DB_USER") ?? "postgres")
-            .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "postgres");
-    }
-    
-    options.UseNpgsql(connectionString);
-});
+// Add controllers and OpenAPI (Swagger/Scalar) services
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Apply migrations and seed database
-using (var scope = app.Services.CreateScope())
+// Initialize database with migrations and seeding (seeding only in development if db is empty)
+await app.InitializeDatabaseAsync();
+
+if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await dbContext.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(scope.ServiceProvider);
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Error during database migration/seeding");
-        throw; // Re-throw for visibility
-    }
+    app.MapOpenApi(); // generates openapi.json
+
+    // Scalar UI
+    app.MapScalarApiReference(options =>
+        options.WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Axios));
+
+    // Swagger UI
+    app.UseSwaggerUI(options =>
+        options.SwaggerEndpoint("/openapi.json", "Cayeshni API"));
 }
 
-// Configure middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapGet("/", () => "This is Cayeshni API root endpoint.");
-app.MapIdentityApi<AppUser>();
+app.MapControllers();
+app.MapGet("/", () => "Cayeshni API");
 
 app.Run();
