@@ -1,21 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <ItemGroup>
-    <ProjectReference Include="..\Cayeshni.Application\Cayeshni.Application.csproj" />
-    <ProjectReference Include="..\Cayeshni.Infrastructure\Cayeshni.Infrastructure.csproj" />
+    <ProjectReference Include="..\Cayeshni.Application\Cayeshni.Application.csproj"/>
+    <ProjectReference Include="..\Cayeshni.Infrastructure\Cayeshni.Infrastructure.csproj"/>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7"/>
+    <PackageReference Include="DotNetEnv" Version="3.2.0"/>
   </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
 </Project>

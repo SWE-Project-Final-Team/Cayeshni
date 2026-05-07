@@ -7,8 +7,7 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
-        using var scope = serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var db = serviceProvider.GetRequiredService<AppDbContext>();
 
         await db.Database.MigrateAsync();
 
