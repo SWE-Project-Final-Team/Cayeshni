@@ -25,7 +25,7 @@ public class GroupTests
     {
         // Arrange
         var groupId = Guid.NewGuid();
-        var userId = "user-123";
+        var userId = Guid.NewGuid();
         var groupName = "Trip to Egypt";
 
         // Act
