@@ -7,9 +7,9 @@ public class Notification
     public Guid Id { get; set; } = Guid.NewGuid();
     public NotificationType Type { get; set; }
     [Required]
-    public string RecipientId { get; set; } = string.Empty;
+    public Guid RecipientId { get; set; }
     [Required]
-    public string SenderId { get; set; } = string.Empty;
+    public Guid SenderId { get; set; }
 
     public Guid? GroupId { get; set; }
     public Guid? TransactionId { get; set; }

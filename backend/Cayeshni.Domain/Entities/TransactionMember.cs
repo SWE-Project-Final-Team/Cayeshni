@@ -5,7 +5,7 @@ namespace Cayeshni.Domain.Entities;
 public class TransactionMember
 {
     public Guid TransactionId { get; set; }
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal AmountOwed { get; set; }
     public Transaction Transaction { get; set; } = null!;

@@ -8,9 +8,9 @@ public class Settlement
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid GroupId { get; set; }
     [Required]
-    public string PayerUserId { get; set; } = string.Empty;
+    public Guid PayerUserId { get; set; }
     [Required]
-    public string PayeeUserId { get; set; } = string.Empty;
+    public Guid PayeeUserId { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }

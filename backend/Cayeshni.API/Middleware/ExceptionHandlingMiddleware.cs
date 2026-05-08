@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Cayeshni.Application.Common.Exceptions;
 
 namespace Cayeshni.Api.Middleware;
 
@@ -6,11 +6,13 @@ public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
-    public ExceptionHandlingMiddleware (RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -19,39 +21,34 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (UnauthorizedException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status401Unauthorized, ex.Message);
+        }
+        catch (NotFoundException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status404NotFound, ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status400BadRequest, ex.Message);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception occured while processing request");
+            _logger.LogError(ex, "Unhandled exception");
 
-            await HandleExceptionAsync(context, ex);
+            var error = _env.IsDevelopment() ? ex.Message : "An unexpected error occurred.";
+            await WriteAsync(context, StatusCodes.Status500InternalServerError, error);
         }
     }
 
-    private static async Task HandleExceptionAsync(
-        HttpContext context,
-        Exception exception)
+    private static Task WriteAsync(HttpContext context, int statusCode, string errorMessage)
     {
+        context.Response.StatusCode  = statusCode;
         context.Response.ContentType = "application/json";
 
-        var statusCode = exception switch
-        {
-            KeyNotFoundException => StatusCodes.Status404NotFound,
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-            ArgumentException => StatusCodes.Status400BadRequest,
-            InvalidOperationException => StatusCodes.Status400BadRequest,
-            _ => StatusCodes.Status500InternalServerError
-        };
+        var response = new { status = statusCode, error = errorMessage };
 
-        context.Response.StatusCode = statusCode;
-
-        var response = new
-        {
-            status = statusCode,
-            error = exception.Message
-        };
-
-        var json = JsonSerializer.Serialize(response);
-
-        await context.Response.WriteAsync(json);
+        return context.Response.WriteAsJsonAsync(response);
     }
 }

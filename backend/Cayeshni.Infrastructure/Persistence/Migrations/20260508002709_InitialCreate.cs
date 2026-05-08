@@ -16,7 +16,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
@@ -30,9 +30,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    RefreshToken = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    RefreshTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -57,8 +59,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 name: "Friendships",
                 columns: table => new
                 {
-                    UserIdA = table.Column<string>(type: "text", nullable: false),
-                    UserIdB = table.Column<string>(type: "text", nullable: false),
+                    UserIdA = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserIdB = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -76,7 +78,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
                     DefaultCurrency = table.Column<int>(type: "integer", nullable: false),
                     InviteToken = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    CreatedById = table.Column<string>(type: "text", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true)
                 },
@@ -91,7 +93,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
@@ -112,7 +114,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
@@ -134,7 +136,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     ProviderKey = table.Column<string>(type: "text", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -151,8 +153,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    RoleId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -175,7 +177,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: true)
@@ -196,7 +198,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     GroupId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -216,8 +218,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PayerUserId = table.Column<string>(type: "text", nullable: false),
-                    PayeeUserId = table.Column<string>(type: "text", nullable: false),
+                    PayerUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PayeeUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -240,7 +242,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaidByUserId = table.Column<string>(type: "text", nullable: false),
+                    PaidByUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<int>(type: "integer", nullable: false),
                     Category = table.Column<int>(type: "integer", nullable: false),
@@ -264,8 +266,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
-                    RecipientId = table.Column<string>(type: "text", nullable: false),
-                    SenderId = table.Column<string>(type: "text", nullable: false),
+                    RecipientId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: true),
                     TransactionId = table.Column<Guid>(type: "uuid", nullable: true),
                     SettlementId = table.Column<Guid>(type: "uuid", nullable: true),
@@ -301,7 +303,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     AmountOwed = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -321,7 +323,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 {
                     SettlementId = table.Column<Guid>(type: "uuid", nullable: false),
                     TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DebtorUserId = table.Column<string>(type: "text", nullable: false),
+                    DebtorUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     AllocatedAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -376,7 +378,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
-                column: "NormalizedEmail");
+                column: "NormalizedEmail",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",

@@ -13,7 +13,7 @@ public class Group
     [Required, MaxLength(64)]
     public string InviteToken { get; set; } = Guid.NewGuid().ToString("N"); // N format for compact representation without hyphens
 
-    public string CreatedById { get; set; } = string.Empty;
+    public Guid CreatedById { get; set; }
 
     public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
 

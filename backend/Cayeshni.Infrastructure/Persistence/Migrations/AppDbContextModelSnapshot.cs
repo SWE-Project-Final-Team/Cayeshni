@@ -25,11 +25,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Cayeshni.Domain.Entities.Friendship", b =>
                 {
-                    b.Property<string>("UserIdA")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserIdA")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("UserIdB")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserIdB")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -60,9 +60,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("DefaultCurrency")
                         .HasColumnType("integer");
@@ -97,8 +96,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
@@ -129,13 +128,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("RecipientId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("SettlementId")
                         .HasColumnType("uuid");
@@ -190,13 +187,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("PayeeUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("PayeeUserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("PayerUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("PayerUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("note")
                         .HasMaxLength(300)
@@ -223,8 +218,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("DebtorUserId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("DebtorUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AllocatedAmount")
                         .HasColumnType("decimal(18,2)");
@@ -259,9 +254,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("PaidByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("PaidByUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -287,8 +281,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("AmountOwed")
                         .HasColumnType("decimal(18,2)");
@@ -302,8 +296,9 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Cayeshni.Infrastructure.Identity.AppUser", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
@@ -313,7 +308,9 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -330,7 +327,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -349,6 +347,13 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("RefreshToken")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -362,6 +367,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
+                        .IsUnique()
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
@@ -371,10 +377,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -397,7 +404,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -411,9 +418,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("text");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -422,7 +428,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -436,9 +442,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -447,7 +452,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text");
@@ -458,9 +463,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -469,13 +473,13 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("RoleId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -484,10 +488,10 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text");
@@ -598,16 +602,16 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
                     b.HasOne("Cayeshni.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -616,7 +620,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
                     b.HasOne("Cayeshni.Infrastructure.Identity.AppUser", null)
                         .WithMany()
@@ -625,9 +629,9 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -640,7 +644,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.HasOne("Cayeshni.Infrastructure.Identity.AppUser", null)
                         .WithMany()

@@ -7,8 +7,7 @@ public class SettlementAllocation
 {
     public Guid SettlementId { get; set; }
     public Guid TransactionId { get; set; }
-    [Required]
-    public string DebtorUserId { get; set; } = string.Empty;
+    public Guid DebtorUserId { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal AllocatedAmount { get; set; }
     public Settlement Settlement { get; set; } = null!;
