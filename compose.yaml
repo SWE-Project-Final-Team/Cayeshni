@@ -25,10 +25,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   server:
     build:
-      context: .
+      context: backend/
       target: final
     ports:
       - "8080:8080"
@@ -39,10 +44,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     
   frontend:
     build:
-      context: ../frontend/cayeshni
+      context: frontend/
     container_name: frontend
     restart: unless-stopped
     depends_on:
