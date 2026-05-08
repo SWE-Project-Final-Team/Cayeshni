@@ -20,3 +20,11 @@ Thumbs.db
 .env.local
 .env.*.local
 !.env.example
+
+# Frontend (Next.js / Node)
+frontend/cayeshni/node_modules/
+frontend/cayeshni/.next/
+frontend/cayeshni/out/
+frontend/cayeshni/coverage/
+frontend/cayeshni/.turbo/
+frontend/cayeshni/.vercel/
