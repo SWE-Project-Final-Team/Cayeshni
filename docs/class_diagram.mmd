@@ -55,11 +55,13 @@ class NotificationType {
 
 class IdentityUser {
     <<abstract>>
-    +Id : string
+    +Id : Guid
     +Email : string
     +UserName : string
     +PasswordHash : string
     +EmailConfirmed : bool
+    +RefreshToken
+    +RefreshTokenExpiry
 }
 
 class AppUser {
