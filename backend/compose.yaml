@@ -39,6 +39,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    
+  frontend:
+    build:
+      context: ../frontend/cayeshni
+    container_name: frontend
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   db-data:
