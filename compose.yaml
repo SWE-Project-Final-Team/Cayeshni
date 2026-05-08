@@ -58,6 +58,9 @@ services:
     restart: unless-stopped
     depends_on:
       - server
+    environment:
+      INTERNAL_API_URL: http://server:8080
+      NEXT_PUBLIC_API_URL: http://localhost:8080
     ports:
       - "3000:3000"
     logging:
