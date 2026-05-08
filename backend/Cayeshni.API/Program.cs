@@ -58,6 +58,18 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+var frontendOrigin = builder.Configuration["Frontend:Origin"] ?? "http://localhost:3000";
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(frontendOrigin)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Initialize database with migrations and seeding (seeding only in development if db is empty)
@@ -92,6 +104,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
