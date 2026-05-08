@@ -13,9 +13,13 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasMaxLength(100);
 
         builder.Property(u => u.CreatedAt)
-            .IsRequired();
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAdd(); 
 
-        builder.HasIndex(u => u.Email)
+        builder.Property(u => u.RefreshToken)
+            .HasMaxLength(256);
+
+        builder.HasIndex(u => u.NormalizedEmail)
             .IsUnique();
     }
 }

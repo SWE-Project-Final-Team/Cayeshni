@@ -1,4 +1,7 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
+using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,6 +11,9 @@ public static class AuthenticationExtensions
 {
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var jwtOptions = configuration.GetSection(JwtOptions.Section).Get<JwtOptions>()
+            ?? throw new InvalidOperationException("JWT configuration is missing.");
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -21,10 +27,13 @@ public static class AuthenticationExtensions
                 ValidateAudience            = true,
                 ValidateLifetime            = true,
                 ValidateIssuerSigningKey    = true,
-                ValidIssuer                 = configuration["Jwt:Issuer"],
-                ValidAudience               = configuration["Jwt:Audience"],
+                ValidIssuer                 = jwtOptions.Issuer,
+                ValidAudience               = jwtOptions.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
-                ClockSkew = TimeSpan.Zero // token expires exactly at token expiration time without additional tolerance
+                ClockSkew = TimeSpan.Zero, // token expires exactly at token expiration time without additional tolerance
+
+                NameClaimType = JwtRegisteredClaimNames.Sub,
+                RoleClaimType = ClaimTypes.Role
             };
         });
 

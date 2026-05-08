@@ -1,9 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Infrastructure.Persistence.Options;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cayeshni.Infrastructure.Services;
@@ -12,9 +13,9 @@ public class JwtService : IJwtService
 {
     private readonly JwtOptions _jwtOptions;
 
-    public JwtService(IOptions<JwtOptions> jwtOptions)
+    public JwtService(JwtOptions jwtOptions)
     {
-        _jwtOptions = jwtOptions.Value;
+        _jwtOptions = jwtOptions;
     }
 
     public string GenerateAccessToken(Guid userId, string email)
@@ -25,7 +26,7 @@ public class JwtService : IJwtService
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
         var token = new JwtSecurityToken(
@@ -37,5 +38,11 @@ public class JwtService : IJwtService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        return WebEncoders.Base64UrlEncode(bytes);
     }
 }

@@ -49,8 +49,12 @@ public static class DependencyInjection
         services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyPath))
                                     .SetApplicationName("Cayeshni");
               
-        // Configure JWT options from configuration
-        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));          
+        // get JWT options from configuration
+        var jwtOptions = configuration.GetSection(JwtOptions.Section).Get<JwtOptions>()
+            ?? throw new InvalidOperationException("JWT configuration is missing.");
+
+        // Register JwtOptions as singleton for direct injection
+        services.AddSingleton(jwtOptions);
 
         // Authentication services
         services.AddScoped<IIdentityService, IdentityService>();

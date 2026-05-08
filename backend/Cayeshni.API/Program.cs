@@ -25,6 +25,8 @@ var app = builder.Build();
 // Initialize database with migrations and seeding (seeding only in development if db is empty)
 await app.InitializeDatabaseAsync();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi(); // generates openapi.json
@@ -35,10 +37,9 @@ if (app.Environment.IsDevelopment())
 
     // Swagger UI
     app.UseSwaggerUI(options =>
-        options.SwaggerEndpoint("/openapi.json", "Cayeshni API"));
+        options.SwaggerEndpoint("/", "Cayeshni API"));
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
