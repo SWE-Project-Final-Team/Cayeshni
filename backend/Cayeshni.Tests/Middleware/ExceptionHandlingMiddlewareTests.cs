@@ -92,7 +92,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var body = await ReadBodyAsync(context);
         using var doc = JsonDocument.Parse(body);
-        return doc.RootElement.GetProperty("error").GetString();
+        return doc.RootElement.GetProperty("message").GetString();
     }
 
     private static async Task<string> ReadBodyAsync(HttpContext context)

@@ -1,6 +1,6 @@
 using System;
 using System.Security.Claims;
-using Cayeshni.API.Controller;
+using Cayeshni.API.Controllers;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
 using Cayeshni.Infrastructure.Identity;
@@ -44,26 +44,30 @@ public static class AuthTestHelpers
             new Logger<UserManager<AppUser>>(new LoggerFactory()));
     }
 
-    public static AppUser CreateUser(string refreshToken, DateTime expiry, string email = "x@test.com", string name = "X")
+    public static AppUser CreateUser(string email = "x@test.com", string name = "X")
         => new()
         {
             Id = Guid.NewGuid(),
             Email = email,
             UserName = email,
             Name = name,
-            RefreshToken = refreshToken,
-            RefreshTokenExpiry = expiry,
             SecurityStamp = Guid.NewGuid().ToString()
         };
 
     public static AuthController CreateController(IIdentityService identityService)
-        => new(new AuthService(identityService));
+    {
+        var controller = new AuthController(new AuthService(identityService), new Cayeshni.API.Services.CookieService(new Cayeshni.Infrastructure.Persistence.Options.JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) }));
+        controller.ControllerContext = CreateControllerContext();
+        return controller;
+    }
 
     public static ControllerContext CreateControllerContext(ClaimsPrincipal? user = null)
-        => new()
+    {
+        return new()
         {
             HttpContext = new DefaultHttpContext { User = user ?? new ClaimsPrincipal() }
         };
+    }
 
     public static ClaimsPrincipal PrincipalWithClaim(string type, string value)
         => new(new ClaimsIdentity(new[] { new Claim(type, value) }));

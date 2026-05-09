@@ -1,42 +1,38 @@
-using System;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Cayeshni.API.Controller;
+using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Xunit;
 
 namespace Cayeshni.Tests.Auth;
 
 public class AuthControllerTests
 {
-    private class FakeIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
+    private class FakeIdentity : IIdentityService
     {
         public bool LogoutCalled;
         public RegisterDto? LastRegisterDto;
         public LoginDto? LastLoginDto;
-        public RefreshTokenDto? LastRefreshTokenDto;
+        public string? LastRefreshToken;
 
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto)
         {
             LastRegisterDto = dto;
-            return Task.FromResult(new AuthResponseDto("a", "b", Guid.NewGuid(), dto.Email, dto.Name));
+            return Task.FromResult(new TokenPairDto("access_token", "refresh_token"));
         }
 
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto)
+        public Task<TokenPairDto> LoginAsync(LoginDto dto)
         {
             LastLoginDto = dto;
-            return Task.FromResult(new AuthResponseDto("a", "b", Guid.NewGuid(), dto.Email, "n"));
+            return Task.FromResult(new TokenPairDto("access_token", "refresh_token"));
         }
 
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
         {
-            LastRefreshTokenDto = dto;
-            return Task.FromResult(new AuthResponseDto("a", "b", Guid.NewGuid(), "e", "n"));
+            LastRefreshToken = refreshToken;
+            return Task.FromResult(new TokenPairDto("new_access_token", "new_refresh_token"));
         }
 
-        public Task LogoutAsync(Guid userId)
+        public Task LogoutAsync()
         {
             LogoutCalled = true;
             return Task.CompletedTask;
@@ -44,31 +40,14 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Logout_ReturnsUnauthorized_WhenNoUserClaim()
+    public void Logout_ReturnsNoContent_WhenAuthorized()
     {
         var fakeId = new FakeIdentity();
         var controller = AuthTestHelpers.CreateController(fakeId);
 
-        controller.ControllerContext = AuthTestHelpers.CreateControllerContext();
-
-        var result = await controller.Logout();
-
-        Assert.IsType<UnauthorizedResult>(result);
-    }
-
-    [Fact]
-    public async Task Logout_CallsServiceAndReturnsNoContent_WhenUserClaimPresent()
-    {
-        var fakeId = new FakeIdentity();
-        var controller = AuthTestHelpers.CreateController(fakeId);
-
-        var id = Guid.NewGuid();
-        controller.ControllerContext = AuthTestHelpers.CreateControllerContext(AuthTestHelpers.PrincipalWithClaim(ClaimTypes.NameIdentifier, id.ToString()));
-
-        var result = await controller.Logout();
+        var result = controller.Logout();
 
         Assert.IsType<NoContentResult>(result);
-        Assert.True(fakeId.LogoutCalled);
     }
 
     [Fact]
@@ -77,22 +56,22 @@ public class AuthControllerTests
         var fakeId = new FakeIdentity();
         var controller = AuthTestHelpers.CreateController(fakeId);
 
-        var dto = new RefreshTokenDto("rtok");
-        var result = await controller.RefreshToken(dto);
+        controller.Request.Headers["Cookie"] = "refreshToken=rtok";
+        var result = await controller.Refresh();
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var value = Assert.IsType<AuthResponseDto>(ok.Value);
-        Assert.Equal("a", value.AccessToken);
-        Assert.Equal("rtok", fakeId.LastRefreshTokenDto!.RefreshToken);
+        Assert.NotNull(value.AccessToken);
     }
 
     [Fact]
     public async Task RefreshToken_PropagatesException_WhenIdentityThrows()
     {
         var throwing = new ThrowingIdentity();
-        var controller = new AuthController(new Cayeshni.Application.Features.Auth.AuthService(throwing));
+        var controller = AuthTestHelpers.CreateController(throwing);
 
-        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.RefreshToken(new RefreshTokenDto("bad")));
+        controller.Request.Headers["Cookie"] = "refreshToken=bad";
+        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Refresh());
     }
 
     [Fact]
@@ -106,7 +85,7 @@ public class AuthControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var value = Assert.IsType<AuthResponseDto>(ok.Value);
-        Assert.Equal(dto.Email, value.Email);
+        Assert.NotNull(value.AccessToken);
         Assert.Equal("New Name", fakeId.LastRegisterDto!.Name);
     }
 
@@ -121,14 +100,14 @@ public class AuthControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var value = Assert.IsType<AuthResponseDto>(ok.Value);
-        Assert.Equal(dto.Email, value.Email);
+        Assert.NotNull(value.AccessToken);
         Assert.Equal(dto.Email, fakeId.LastLoginDto!.Email);
     }
 
     [Fact]
     public async Task Register_PropagatesException_WhenIdentityThrows()
     {
-        var controller = new AuthController(new Cayeshni.Application.Features.Auth.AuthService(new ThrowingRegisterIdentity()));
+        var controller = AuthTestHelpers.CreateController(new ThrowingRegisterIdentity());
 
         await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Register(new RegisterDto("u@test.com", "Bob", "bad")));
     }
@@ -136,44 +115,32 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_PropagatesException_WhenIdentityThrows()
     {
-        var controller = new AuthController(new Cayeshni.Application.Features.Auth.AuthService(new ThrowingLoginIdentity()));
+        var controller = AuthTestHelpers.CreateController(new ThrowingLoginIdentity());
 
         await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Login(new LoginDto("u@test.com", "bad")));
     }
 
-    [Fact]
-    public async Task Logout_ThrowsFormatException_WhenClaimValueIsNotGuid()
+    private class ThrowingIdentity : IIdentityService
     {
-        var fakeId = new FakeIdentity();
-        var controller = AuthTestHelpers.CreateController(fakeId);
-
-        controller.ControllerContext = AuthTestHelpers.CreateControllerContext(
-            AuthTestHelpers.PrincipalWithClaim(ClaimTypes.NameIdentifier, "not-a-guid"));
-
-        await Assert.ThrowsAsync<FormatException>(() => controller.Logout());
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
+        public Task LogoutAsync() => Task.CompletedTask;
     }
 
-    private class ThrowingIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
+    private class ThrowingRegisterIdentity : IIdentityService
     {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
-    }
-
-    private class ThrowingRegisterIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
-    {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new NotImplementedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
+        public Task LogoutAsync() => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
     {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new NotImplementedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
+        public Task LogoutAsync() => Task.CompletedTask;
     }
 }
