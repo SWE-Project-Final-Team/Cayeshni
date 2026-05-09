@@ -25,6 +25,10 @@ public class GroupService
     public Task JoinGroupAsync(Guid userId, JoinGroupDto dto)
         => _groupService.JoinGroupAsync(userId, dto);
 
+    public Task ExitGroupAsync(Guid userId, Guid groupId)
+        => _groupService.ExitGroupAsync(userId, groupId);
     public Task<List<GroupResponseDto>> GetUserGroupsAsync(Guid userId)
         => _groupService.GetUserGroupsAsync(userId);
+    public Task DeleteGroupAsync(Guid userId, GroupResponseDto group)
+        => _groupService.DeleteGroupAsync(userId, group);
 }

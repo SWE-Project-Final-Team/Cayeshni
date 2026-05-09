@@ -43,6 +43,19 @@ public class GroupController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("exit")]
+    public async Task<IActionResult> ExitGroup(Guid groupId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+            await _groupService.ExitGroupAsync(Guid.Parse(userId), groupId);
+        return Ok();
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<GroupResponseDto>>> GetMyGroups()
     {
@@ -54,5 +67,18 @@ public class GroupController : ControllerBase
 
         var result = await _groupService.GetUserGroupsAsync(Guid.Parse(userId));
         return Ok(result);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteGroup(GroupResponseDto group)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        await _groupService.DeleteGroupAsync(Guid.Parse(userId), group);
+        return Ok();
     }
 }

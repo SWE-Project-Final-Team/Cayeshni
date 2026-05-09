@@ -41,6 +41,23 @@ public class GroupManagementService : IGroupService
         );
     }
 
+    public async Task DeleteGroupAsync (Guid userId, GroupResponseDto group)
+    {
+        var entity = await _context.Groups
+            .Include(g => g.Members)
+            .FirstOrDefaultAsync(g => g.Id == group.Id)
+            ?? throw new NotFoundException(nameof(Group), group.Id);
+
+        if (entity.CreatedById != userId)
+            throw new ValidationException("Only the group creator can delete this group.");
+
+        // Remove all group members
+        _context.GroupMembers.RemoveRange(entity.Members);
+        
+        _context.Groups.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task JoinGroupAsync(Guid userId, JoinGroupDto dto)
     {
         var group = await _context.Groups
@@ -57,6 +74,39 @@ public class GroupManagementService : IGroupService
             GroupId = group.Id,
             UserId = userId
         });
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task ExitGroupAsync(Guid userId, Guid groupId)
+    {
+        var group = await _context.Groups
+            .Include(g => g.Members)
+            .FirstOrDefaultAsync(g => g.Id == groupId)
+            ?? throw new NotFoundException(nameof(Group), groupId);
+
+        var membership = group.Members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw new Exception("Membership not found.");
+
+        // Remove the member
+        _context.GroupMembers.Remove(membership);
+
+        // Check if this was the last member
+        if (group.Members.Count == 1)
+        {
+            // Delete the group if it's the last member
+            _context.Groups.Remove(group);
+        }
+        else if (group.CreatedById == userId)
+        {
+            // Transfer creator role to the next earliest joined member
+            var nextCreator = group.Members
+                .Where(m => m.UserId != userId)
+                .OrderBy(m => m.JoinedAt)
+                .First();
+            
+            group.CreatedById = nextCreator.UserId;
+        }
 
         await _context.SaveChangesAsync();
     }
