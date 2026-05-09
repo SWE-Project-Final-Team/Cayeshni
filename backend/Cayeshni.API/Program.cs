@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-// Add authentication and authorization services with JWT bearer tokens
+// Add authentication and authorization services (JWT, cookie handling, etc.)
 builder.Services.AddAuthenticationServices(builder.Configuration);
 
 // Add controllers and OpenAPI (Swagger/Scalar) services
@@ -37,7 +37,7 @@ if (app.Environment.IsDevelopment())
 
     // Swagger UI
     app.UseSwaggerUI(options =>
-        options.SwaggerEndpoint("/", "Cayeshni API"));
+        options.SwaggerEndpoint("/openapi/v1.json", "Cayeshni API"));
 }
 
 app.UseHttpsRedirection();

@@ -12,13 +12,10 @@ public record LoginDto(
 );
 
 public record AuthResponseDto(
-    string AccessToken,
-    string RefreshToken,
-    Guid   UserId,
-    string Email,
-    string Name
+    string AccessToken
 );
 
-public record RefreshTokenDto(
+public record TokenPairDto(
+    string AccessToken,
     string RefreshToken
 );
