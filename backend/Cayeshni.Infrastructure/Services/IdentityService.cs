@@ -2,9 +2,7 @@ using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
 using Cayeshni.Infrastructure.Identity;
-using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Infrastructure.Services;
 
@@ -12,22 +10,19 @@ public class IdentityService : IIdentityService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtService _jwtService;
-    private readonly JwtOptions _jwtOptions;
 
-    public IdentityService(UserManager<AppUser> userManager, IJwtService jwtService, JwtOptions jwtOptions)
+    public IdentityService(UserManager<AppUser> userManager, IJwtService jwtService)
     {
         _userManager = userManager;
         _jwtService = jwtService;
-        _jwtOptions = jwtOptions;
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<TokenPairDto> RegisterAsync(RegisterDto dto)
     {
         var existing = await _userManager.FindByEmailAsync(dto.Email);
         if (existing != null)
             throw new UnauthorizedException("Email already in use.");
 
-        // Map RegisterDto => AppUser
         var appUser = new AppUser
         {
             Email = dto.Email,
@@ -42,10 +37,10 @@ public class IdentityService : IIdentityService
             throw new UnauthorizedException(errors);
         }
 
-        return await IssueTokensAsync(appUser);
+        return IssueTokens(appUser.Id);
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    public async Task<TokenPairDto> LoginAsync(LoginDto dto)
     {
         var appUser = await _userManager.FindByEmailAsync(dto.Email)
             ?? throw new UnauthorizedException("Invalid email or password.");
@@ -54,54 +49,34 @@ public class IdentityService : IIdentityService
         if (!valid)
             throw new UnauthorizedException("Invalid email or password.");
 
-        return await IssueTokensAsync(appUser);
+        return IssueTokens(appUser.Id);
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+    public Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
     {
-        var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == dto.RefreshToken)
+        var userId = _jwtService.ValidateRefreshToken(refreshToken) 
             ?? throw new UnauthorizedException("Invalid refresh token.");
 
-        if (appUser.RefreshTokenExpiry < DateTime.UtcNow)
-        {
-            // Clear expired token
-            appUser.RefreshToken = null;
-            appUser.RefreshTokenExpiry = null;
-            await _userManager.UpdateAsync(appUser);
-
-            throw new UnauthorizedException("Refresh token has expired. Please log in again.");
-        }
-
-        return await IssueTokensAsync(appUser);
+        return Task.FromResult(IssueTokens(userId));
     }
 
-    public async Task LogoutAsync(Guid userId)
+    public Task LogoutAsync()
     {
-        var appUser = await _userManager.FindByIdAsync(userId.ToString())
-            ?? throw new NotFoundException(nameof(AppUser), userId);
-
-        appUser.RefreshToken = null;
-        appUser.RefreshTokenExpiry = null;
-        await _userManager.UpdateAsync(appUser);
+        // Since we're using stateless JWTs, there's no server-side session to clear.
+        // To "logout", the client should simply discard the tokens (by deleting cookie).
+        // cookie deleletion handled in the controller
+        // Future improvement: Implement token blacklisting to invalidate tokens on logout.
+        return Task.CompletedTask;
     }
 
-    // Helper function
-    private async Task<AuthResponseDto> IssueTokensAsync(AppUser appUser)
+    private TokenPairDto IssueTokens(Guid userId)
     {
-        var accessToken = _jwtService.GenerateAccessToken(appUser.Id, appUser.Email!);
-        var refreshToken = _jwtService.GenerateRefreshToken();
+        var accessToken = _jwtService.GenerateAccessToken(userId);
+        var refreshToken = _jwtService.GenerateRefreshToken(userId);
 
-        appUser.RefreshToken = refreshToken;
-        appUser.RefreshTokenExpiry = DateTime.UtcNow.Add(_jwtOptions.RefreshExpiry);
-
-        await _userManager.UpdateAsync(appUser);
-
-        return new AuthResponseDto (
+        return new TokenPairDto(
             AccessToken: accessToken,
-            RefreshToken: refreshToken,
-            UserId: appUser.Id,
-            Email: appUser.Email!,
-            Name: appUser.Name
+            RefreshToken: refreshToken
         );
     }
 }

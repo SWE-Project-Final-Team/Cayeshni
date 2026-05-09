@@ -16,66 +16,75 @@ namespace Cayeshni.Tests.Auth;
 
 public class IdentityServiceTests
 {
-    private static IJwtService FakeJwt() => new FakeJwtService();
-
     [Fact]
-    public async Task RefreshToken_Expired_ClearsTokenAndThrowsUnauthorized()
+    public async Task RefreshToken_ValidJwtToken_ReturnsNewTokens()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        var user = AuthTestHelpers.CreateUser("expired-token", DateTime.UtcNow.AddDays(-1));
+        var user = AuthTestHelpers.CreateUser("test@example.com");
         ctx.Users.Add(user);
         await ctx.SaveChangesAsync();
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
+        var options = new JwtOptions
+        {
+            Issuer = "test",
+            Audience = "test",
+            Secret = "super-secret-key-super-secret-key-super-secret-key",
+            Expiry = TimeSpan.FromMinutes(15),
+            RefreshExpiry = TimeSpan.FromDays(7)
+        };
 
-        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync(new RefreshTokenDto("expired-token")));
-        Assert.Contains("expired", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), new JwtService(options));
 
-        // reload user from db and assert token cleared
-        var refreshed = await ctx.Users.FirstAsync(u => u.Id == user.Id);
-        Assert.Null(refreshed.RefreshToken);
-        Assert.Null(refreshed.RefreshTokenExpiry);
+        var result = await svc.RegisterAsync(new RegisterDto("new@test.com", "New User", "Secret123!"));
+        var refreshedTokens = await svc.RefreshTokenAsync(result.RefreshToken);
+
+        Assert.NotNull(refreshedTokens.AccessToken);
+        Assert.NotNull(refreshedTokens.RefreshToken);
+        Assert.True(refreshedTokens.AccessToken != result.AccessToken);
     }
 
     [Fact]
-    public async Task RefreshToken_Valid_RotatesTokenAndPersistsNewValues()
+    public async Task RefreshToken_InvalidJwtToken_ThrowsUnauthorized()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        var oldExpiry = DateTime.UtcNow.AddDays(3);
-        var user = AuthTestHelpers.CreateUser("valid-token", oldExpiry);
+        var user = AuthTestHelpers.CreateUser("test@example.com");
         ctx.Users.Add(user);
         await ctx.SaveChangesAsync();
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
+        var options = new JwtOptions
+        {
+            Issuer = "test",
+            Audience = "test",
+            Secret = "super-secret-key-super-secret-key-super-secret-key",
+            Expiry = TimeSpan.FromMinutes(15),
+            RefreshExpiry = TimeSpan.FromDays(7)
+        };
 
-        var result = await svc.RefreshTokenAsync(new RefreshTokenDto("valid-token"));
+        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), new JwtService(options));
 
-        Assert.Equal("access", result.AccessToken);
-        Assert.Equal("refresh", result.RefreshToken);
-
-        var refreshed = await ctx.Users.FirstAsync(u => u.Id == user.Id);
-        Assert.Equal("refresh", refreshed.RefreshToken);
-        Assert.NotNull(refreshed.RefreshTokenExpiry);
-        Assert.True(refreshed.RefreshTokenExpiry > DateTime.UtcNow);
-        Assert.True(refreshed.RefreshTokenExpiry > oldExpiry.AddSeconds(-1));
+        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync("invalid-jwt-token"));
+        Assert.Contains("Invalid", ex.Message);
     }
 
     [Fact]
-    public async Task RefreshToken_InvalidToken_ThrowsUnauthorized()
+    public async Task RefreshToken_ExpiredJwtToken_ThrowsUnauthorized()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        ctx.Users.Add(AuthTestHelpers.CreateUser("different-token", DateTime.UtcNow.AddDays(1)));
-        await ctx.SaveChangesAsync();
+        var options = new JwtOptions
+        {
+            Issuer = "test",
+            Audience = "test",
+            Secret = "super-secret-key-super-secret-key-super-secret-key",
+            Expiry = TimeSpan.FromMinutes(15),
+            RefreshExpiry = TimeSpan.FromSeconds(1)
+        };
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
+        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), new JwtService(options));
+        var tokens = await svc.RegisterAsync(new RegisterDto("x@test.com", "X", "Secret123!"));
 
-        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync(new RefreshTokenDto("missing-token")));
-        Assert.Contains("Invalid refresh token", ex.Message, StringComparison.OrdinalIgnoreCase);
-    }
+        await Task.Delay(1200);
 
-    private class FakeJwtService : IJwtService
-    {
-        public string GenerateAccessToken(Guid userId, string email) => "access";
-        public string GenerateRefreshToken() => "refresh";
+        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync(tokens.RefreshToken));
+        Assert.Contains("Invalid", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

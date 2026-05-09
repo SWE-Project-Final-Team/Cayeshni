@@ -33,22 +33,34 @@ public sealed class ExceptionHandlingMiddleware
         {
             await WriteAsync(context, StatusCodes.Status400BadRequest, ex.Message);
         }
+        catch (ArgumentException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status400BadRequest, ex.Message);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
+            _logger.LogError(ex, "Unhandled exception. TraceId: {TraceId}", context.TraceIdentifier);
 
-            var error = _env.IsDevelopment() ? ex.Message : "An unexpected error occurred.";
-            await WriteAsync(context, StatusCodes.Status500InternalServerError, error);
+            var message = _env.IsDevelopment() ? ex.Message : "An unexpected error occurred.";
+
+            await WriteAsync( context, StatusCodes.Status500InternalServerError, message);
         }
     }
 
-    private static Task WriteAsync(HttpContext context, int statusCode, string errorMessage)
+    private Task WriteAsync(HttpContext context, int statusCode, string message)
     {
-        context.Response.StatusCode  = statusCode;
+        if (context.Response.HasStarted)
+            return Task.CompletedTask;
+
+        context.Response.Clear();
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        var response = new { status = statusCode, error = errorMessage };
-
-        return context.Response.WriteAsJsonAsync(response);
+        return context.Response.WriteAsJsonAsync(new
+        {
+            status = statusCode,
+            message,
+            traceId = context.TraceIdentifier
+        });
     }
 }

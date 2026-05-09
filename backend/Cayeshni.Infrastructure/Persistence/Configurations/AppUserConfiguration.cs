@@ -16,9 +16,6 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAdd(); 
 
-        builder.Property(u => u.RefreshToken)
-            .HasMaxLength(256);
-
         builder.HasIndex(u => u.NormalizedEmail)
             .IsUnique();
     }

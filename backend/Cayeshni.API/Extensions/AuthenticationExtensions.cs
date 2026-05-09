@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Cayeshni.API.Services;
 using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,9 @@ public static class AuthenticationExtensions
     {
         var jwtOptions = configuration.GetSection(JwtOptions.Section).Get<JwtOptions>()
             ?? throw new InvalidOperationException("JWT configuration is missing.");
+
+        // Register JwtOptions for injection into services like JwtService
+        services.AddSingleton(jwtOptions);
 
         services.AddAuthentication(options =>
         {
@@ -29,14 +33,18 @@ public static class AuthenticationExtensions
                 ValidateIssuerSigningKey    = true,
                 ValidIssuer                 = jwtOptions.Issuer,
                 ValidAudience               = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
                 ClockSkew = TimeSpan.Zero, // token expires exactly at token expiration time without additional tolerance
 
+                // Map "sub" claim to ClaimTypes.NameIdentifier for easier access in controllers
                 NameClaimType = JwtRegisteredClaimNames.Sub,
-                RoleClaimType = ClaimTypes.Role
+                RoleClaimType = ClaimTypes.Role // also map "role" claims to ClaimTypes.Role (i don't have roles yet but incase i add them in the future)
             };
         });
 
         services.AddAuthorization();
+
+        // Register CookieService
+        services.AddScoped<CookieService>();
     }
 }

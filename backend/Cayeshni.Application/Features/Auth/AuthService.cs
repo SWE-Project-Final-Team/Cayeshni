@@ -12,7 +12,7 @@ public class AuthService
         _identity = identity;
     }
 
-    public Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<TokenPairDto> RegisterAsync(RegisterDto dto)
     {
         var name = dto.Name.Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
@@ -20,10 +20,12 @@ public class AuthService
             throw new ValidationException("Name must be at least 3 characters.");
         }
 
-        return _identity.RegisterAsync(dto with { Name = name });
+        return await _identity.RegisterAsync(dto with { Name = name });
     }
 
-    public Task<AuthResponseDto> LoginAsync(LoginDto dto) => _identity.LoginAsync(dto);
-    public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => _identity.RefreshTokenAsync(dto);
-    public Task LogoutAsync(Guid userId) => _identity.LogoutAsync(userId);
+    public Task<TokenPairDto> LoginAsync(LoginDto dto) => _identity.LoginAsync(dto);
+    
+    public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => _identity.RefreshTokenAsync(refreshToken);
+
+    public Task LogoutAsync() => _identity.LogoutAsync();
 }
