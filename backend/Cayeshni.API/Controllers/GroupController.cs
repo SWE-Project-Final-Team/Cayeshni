@@ -81,4 +81,15 @@ public class GroupController : ControllerBase
         await _groupService.DeleteGroupAsync(Guid.Parse(userId), group);
         return Ok();
     }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateGroup(GroupResponseDto group)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+        if (userId is null)
+            return Unauthorized();
+        await _groupService.UpdateGroupAsync(Guid.Parse(userId), group);
+        return Ok();
+    }
 }

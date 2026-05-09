@@ -123,4 +123,17 @@ public class GroupManagementService : IGroupService
             ))
             .ToListAsync();
     }
+
+    public async Task UpdateGroupAsync(Guid userId, GroupResponseDto group)
+    {
+        var entity = await _context.Groups
+            .FirstOrDefaultAsync(g => g.Id == group.Id)
+            ?? throw new NotFoundException(nameof(Group), group.Id);
+
+        if (entity.CreatedById != userId)
+            throw new ValidationException("Only the group creator can update this group.");
+
+        entity.Name = group.Name;
+        await _context.SaveChangesAsync();
+    }
 }

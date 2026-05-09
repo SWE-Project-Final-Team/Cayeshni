@@ -31,4 +31,6 @@ public class GroupService
         => _groupService.GetUserGroupsAsync(userId);
     public Task DeleteGroupAsync(Guid userId, GroupResponseDto group)
         => _groupService.DeleteGroupAsync(userId, group);
+    public Task UpdateGroupAsync(Guid userId, GroupResponseDto group)
+        => _groupService.UpdateGroupAsync(userId, group);
 }
