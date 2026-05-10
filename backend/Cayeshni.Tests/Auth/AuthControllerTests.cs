@@ -1,6 +1,9 @@
 using System.Security.Claims;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cayeshni.Tests.Auth;
@@ -17,25 +20,45 @@ public class AuthControllerTests
         public Task<TokenPairDto> RegisterAsync(RegisterDto dto)
         {
             LastRegisterDto = dto;
-            return Task.FromResult(new TokenPairDto("access_token", "refresh_token"));
+            return Task.FromResult(new TokenPairDto(CreateAccessToken(emailConfirmed: false), "refresh_token"));
         }
 
         public Task<TokenPairDto> LoginAsync(LoginDto dto)
         {
             LastLoginDto = dto;
-            return Task.FromResult(new TokenPairDto("access_token", "refresh_token"));
+            return Task.FromResult(new TokenPairDto(CreateAccessToken(emailConfirmed: true), "refresh_token"));
         }
 
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
         {
             LastRefreshToken = refreshToken;
-            return Task.FromResult(new TokenPairDto("new_access_token", "new_refresh_token"));
+            return Task.FromResult(new TokenPairDto(CreateAccessToken(emailConfirmed: true), "new_refresh_token"));
         }
 
         public Task LogoutAsync()
         {
             LogoutCalled = true;
             return Task.CompletedTask;
+        }
+
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+
+        private static string CreateAccessToken(bool emailConfirmed)
+        {
+            var jwt = new JwtService(new JwtOptions
+            {
+                Issuer = "test-issuer",
+                Audience = "test-audience",
+                Secret = "super-secret-key-super-secret-key-super-secret-key",
+                Expiry = TimeSpan.FromMinutes(15),
+                RefreshExpiry = TimeSpan.FromDays(7)
+            });
+
+            return jwt.GenerateAccessToken(Guid.NewGuid(), emailConfirmed);
         }
     }
 
@@ -80,7 +103,7 @@ public class AuthControllerTests
         var fakeId = new FakeIdentity();
         var controller = AuthTestHelpers.CreateController(fakeId);
 
-        var dto = new RegisterDto("new@test.com", "  New Name  ", "Secret123!");
+        var dto = new RegisterDto("new@test.com", "  New Name  ", "Secret123!", Currency.USD);
         var result = await controller.Register(dto);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
@@ -109,7 +132,7 @@ public class AuthControllerTests
     {
         var controller = AuthTestHelpers.CreateController(new ThrowingRegisterIdentity());
 
-        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Register(new RegisterDto("u@test.com", "Bob", "bad")));
+        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Register(new RegisterDto("u@test.com", "Bob", "bad", Currency.USD)));
     }
 
     [Fact]
@@ -126,6 +149,11 @@ public class AuthControllerTests
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 
     private class ThrowingRegisterIdentity : IIdentityService
@@ -134,6 +162,11 @@ public class AuthControllerTests
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
         public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
@@ -142,5 +175,10 @@ public class AuthControllerTests
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
         public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using Cayeshni.API.Services;
 using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cayeshni.API.Extensions;
@@ -25,6 +26,9 @@ public static class AuthenticationExtensions
         })
         .AddJwtBearer(options =>
         {
+            // Preserve raw JWT claim names like "sub" instead of remapping them.
+            options.MapInboundClaims = false;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer              = true,
@@ -42,7 +46,25 @@ public static class AuthenticationExtensions
             };
         });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            // Full access - requires valid JWT and email_confirmed == true
+            var fullAccess = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .RequireClaim("email_confirmed", "true")
+                .Build();
+
+            // Limited access - any authenticated user (including email_confirmed=false)
+            var limitedAccess = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
+            options.AddPolicy("FullAccess", fullAccess);
+            options.AddPolicy("LimitedAccess", limitedAccess);
+
+            // Make FullAccess the default for [Authorize]
+            options.DefaultPolicy = fullAccess;
+        });
 
         // Register CookieService
         services.AddScoped<CookieService>();

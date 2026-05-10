@@ -41,6 +41,7 @@ services:
       - .env
     volumes:
       - keys:/app/keys
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -68,4 +69,5 @@ services:
 volumes:
   db-data:
   keys:
+  uploads:
 

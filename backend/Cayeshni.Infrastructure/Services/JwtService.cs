@@ -17,7 +17,7 @@ public class JwtService : IJwtService
         _jwtOptions = jwtOptions;
     }
 
-    public string GenerateAccessToken(Guid userId)
+    public string GenerateAccessToken(Guid userId, bool emailConfirmed)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
 
@@ -25,6 +25,7 @@ public class JwtService : IJwtService
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("email_confirmed", emailConfirmed.ToString().ToLower())
         };
 
         var token = new JwtSecurityToken(

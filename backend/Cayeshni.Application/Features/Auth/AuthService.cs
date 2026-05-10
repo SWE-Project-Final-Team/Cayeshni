@@ -19,7 +19,6 @@ public class AuthService
         {
             throw new ValidationException("Name must be at least 3 characters.");
         }
-
         return await _identity.RegisterAsync(dto with { Name = name });
     }
 

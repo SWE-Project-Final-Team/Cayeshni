@@ -42,6 +42,9 @@ RUN mkdir -p /tmp && chmod 1777 /tmp && \
     mkdir -p /app/keys && \
     chown -R appuser:appuser /app/keys && \
     chmod 700 /app/keys
+    
+# Ensure uploads directory exists and is owned by non-root appuser
+RUN mkdir -p /app/uploads && chown -R appuser:appuser /app/uploads && chmod 755 /app/uploads
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
