@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Cayeshni.Application.Features.Auth;
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.API.Services;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Cayeshni.API.Controllers;
 
@@ -24,16 +24,14 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
-        var tokens = await _authService.RegisterAsync(registerDto);
-        return Ok(CreateAuthResponse(tokens));
+        return Ok(Respond(await _authService.RegisterAsync(registerDto)));
     }
 
     [AllowAnonymous]
     [HttpPost("login")] 
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
-        var tokens = await _authService.LoginAsync(loginDto);
-        return Ok(CreateAuthResponse(tokens));
+        return Ok(Respond(await _authService.LoginAsync(loginDto)));
     }
 
     [HttpPost("refresh")]
@@ -42,8 +40,7 @@ public class AuthController : ControllerBase
         var refreshToken = _cookieService.GetRefreshToken(Request)
             ?? throw new UnauthorizedException("Refresh token is missing.");
 
-        var tokens = await _authService.RefreshTokenAsync(refreshToken);
-        return Ok(CreateAuthResponse(tokens));
+        return Ok(Respond(await _authService.RefreshTokenAsync(refreshToken)));
     }
 
     [Authorize]
@@ -54,10 +51,21 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
-    // Helper method (creates AuthResponseDto + sets refresh token cookie)
-    private AuthResponseDto CreateAuthResponse(TokenPairDto tokens)
+
+    private AuthResponseDto Respond(TokenPairDto tokens)
     {
         _cookieService.SetRefreshToken(Response, tokens.RefreshToken);
-        return new AuthResponseDto(tokens.AccessToken);
+        return new AuthResponseDto(
+            tokens.AccessToken,
+            EmailConfirmed: ParseEmailConfirmed(tokens.AccessToken)
+        );
+    }
+
+    // Helper method to parse email_confirmed from access token
+    private static bool ParseEmailConfirmed(string accessToken)
+    {
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var claim = jwt.Claims.FirstOrDefault(c => c.Type == "email_confirmed");
+        return claim?.Value == "true";
     }
 }

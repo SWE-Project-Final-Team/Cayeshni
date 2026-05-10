@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Cayeshni.Infrastructure.Services;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Persistence.Repositories;
+using Cayeshni.Infrastructure.Options;
 
 namespace Cayeshni.Infrastructure;
 
@@ -60,6 +62,23 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtService, JwtService>();
     
+        // Email service (using Brevo)
+        var brevoOptions = configuration
+            .GetSection(BrevoOptions.Section)
+            .Get<BrevoOptions>()
+            ?? throw new InvalidOperationException("Brevo configuration is missing.");
+            
+        services.AddSingleton(brevoOptions);
+        services.AddHttpClient<BrevoEmailService>();
+        services.AddScoped<IEmailService, BrevoEmailService>();
+
+        // File storage service
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        // Regiser Repositories
+        services.AddScoped<IUserRepository, UserRepository>();
+
         // Add other services like repositories, external API clients, etc.
 
         return services;

@@ -3,6 +3,10 @@ using Cayeshni.Infrastructure;
 using Scalar.AspNetCore;
 using Cayeshni.API.Extensions;
 using Cayeshni.Api.Middleware;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.OpenApi;
+using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
@@ -15,10 +19,43 @@ builder.Services.AddApplication();
 // Add authentication and authorization services (JWT, cookie handling, etc.)
 builder.Services.AddAuthenticationServices(builder.Configuration);
 
-// Add controllers and OpenAPI (Swagger/Scalar) services
-builder.Services.AddControllers();
+// Configure JSON options globally
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter());
+        options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    });
+
+// Add OpenAPI (Swagger/Scalar) services
 builder.Services.AddEndpointsApiExplorer(); // Required for OpenAPI generation
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    // Add JWT Bearer security scheme to OpenAPI documentation
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+
+        document.Components.SecuritySchemes["Bearer"] = new Microsoft.OpenApi.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+            Scheme = Microsoft.OpenApi.OpenApiConstants.Bearer,
+            BearerFormat = Microsoft.OpenApi.OpenApiConstants.Jwt,
+            Description = "JWT bearer authentication"
+        };
+
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
