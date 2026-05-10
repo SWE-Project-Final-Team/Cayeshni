@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.FileProviders;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
@@ -76,6 +77,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
         options.SwaggerEndpoint("/openapi/v1.json", "Cayeshni API"));
 }
+
+// Ensure uploads directory exists and serve it as static files at /uploads
+var uploadsPath = builder.Configuration["FileStorage:BasePath"] 
+    ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+
+Directory.CreateDirectory(uploadsPath);
+
+// Serve files in the uploads directory at the /uploads URL path
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath  = "/uploads"
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

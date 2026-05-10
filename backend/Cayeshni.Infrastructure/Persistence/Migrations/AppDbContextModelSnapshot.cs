@@ -352,7 +352,7 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<string>("ProfilePictureUrl")
+                    b.Property<string>("ProfilePicturePath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 

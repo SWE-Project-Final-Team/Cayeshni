@@ -1,6 +1,7 @@
 using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Application.Features.Users;
+using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Infrastructure.Persistence.Repositories;
@@ -14,53 +15,32 @@ public class UserRepository : IUserRepository
         _db = db;
     }
 
-    public async Task<UserProfileDto?> GetProfileAsync(Guid userId)
+    public async Task<User?> GetByIdAsync(Guid userId)
     {
         return await _db.Users
             .Where(u => u.Id == userId)
-            .Select(u => new UserProfileDto(
-                u.Id,
-                u.Name,
-                u.Email!,
-                u.ProfilePictureUrl,
-                u.PreferredCurrency,
-                u.CreatedAt
-            ))
+            .Select(u => new User
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email!,
+                ProfilePicturePath = u.ProfilePicturePath,
+                PreferredCurrency = u.PreferredCurrency,
+                CreatedAt = u.CreatedAt
+            })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<string?> GetPictureUrlAsync(Guid userId)
+    // only profile image path (not URL)
+    public async Task<string?> GetPicturePathAsync(Guid userId)
     {
         return await _db.Users
             .Where(u => u.Id == userId)
-            .Select(u => u.ProfilePictureUrl)
+            .Select(u => u.ProfilePicturePath)
             .FirstOrDefaultAsync();
     }
 
-    public async Task UpdateNameAsync(Guid userId, string name)
-    {
-        await _db.Users
-            .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.Name, name));
-    }
-
-    public async Task UpdateCurrencyAsync(Guid userId, Currency currency)
-    {
-        await _db.Users
-            .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.PreferredCurrency, currency));
-    }
-
-    public async Task UpdatePictureAsync(Guid userId, string? pictureUrl)
-    {
-        await _db.Users
-            .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.ProfilePictureUrl, pictureUrl));
-    }
-
+    // update name + currency in one DB call
     public async Task UpdateProfileAsync(Guid userId, string name, Currency currency)
     {
         await _db.Users
@@ -68,5 +48,14 @@ public class UserRepository : IUserRepository
             .ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.Name, name)
                 .SetProperty(u => u.PreferredCurrency, currency));
+    }
+
+    // update profile picture path
+    public async Task UpdatePictureAsync(Guid userId, string? picturePath)
+    {
+        await _db.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.ProfilePicturePath, picturePath));
     }
 }

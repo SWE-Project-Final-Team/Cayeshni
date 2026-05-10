@@ -12,7 +12,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(u => u.ProfilePictureUrl)
+        builder.Property(u => u.ProfilePicturePath)
             .HasMaxLength(500);
 
         builder.Property(u => u.PreferredCurrency)

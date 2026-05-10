@@ -41,10 +41,9 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpPost("me/picture")]
-    public async Task<ActionResult<UploadPictureResponseDto>> UploadPicture(
-        IFormFile file)
+    public async Task<ActionResult<UploadPictureResponseDto>> UploadPicture(IFormFile file)
     {
-        if (file.Length == 0)
+        if (file == null || file.Length == 0)
             return BadRequest(new { error = "File is empty." });
 
         var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
@@ -54,10 +53,9 @@ public class UsersController : ControllerBase
         var userId = User.GetUserId();
 
         await using var stream = file.OpenReadStream();
-        var url = await _userService.UploadPictureAsync(
-            userId, stream, file.FileName, file.ContentType);
+        var response = await _userService.UploadPictureAsync(userId, stream, file.FileName, file.ContentType);
 
-        return Ok(new UploadPictureResponseDto(url));
+        return Ok(response);
     }
 
     [Authorize]
