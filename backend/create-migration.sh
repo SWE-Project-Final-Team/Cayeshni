@@ -19,4 +19,9 @@ dotnet ef migrations add "$MIGRATION_NAME" \
     --startup-project Cayeshni.API \
     -o Persistence/Migrations
 
+if [ $? -ne 0 ]; then
+    echo "Failed to create migration. Please check the error messages above."
+    exit 1
+fi
+
 echo "Migration created successfully in Cayeshni.Infrastructure/Persistence/Migrations/"
