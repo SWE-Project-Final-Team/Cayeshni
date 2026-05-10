@@ -1,52 +1,71 @@
 using Microsoft.AspNetCore.Mvc;
 using Cayeshni.Application.Features.Auth;
-using System.Security.Claims;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.API.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 
-namespace Cayeshni.API.Controller;
+namespace Cayeshni.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;
+    private readonly CookieService _cookieService;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, CookieService cookieService)
     {
         _authService = authService;
+        _cookieService = cookieService;
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
-        var result = await _authService.RegisterAsync(registerDto);
-        return Ok(result);
+        return Ok(Respond(await _authService.RegisterAsync(registerDto)));
     }
 
-    [HttpPost("login")]
+    [AllowAnonymous]
+    [HttpPost("login")] 
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
-        var result = await _authService.LoginAsync(loginDto);
-        return Ok(result);
+        return Ok(Respond(await _authService.LoginAsync(loginDto)));
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<AuthResponseDto>> RefreshToken(RefreshTokenDto refreshToken)
+    public async Task<ActionResult<AuthResponseDto>> Refresh()
     {
-        var result = await _authService.RefreshTokenAsync(refreshToken);
-        return Ok(result);
+        var refreshToken = _cookieService.GetRefreshToken(Request)
+            ?? throw new UnauthorizedException("Refresh token is missing.");
+
+        return Ok(Respond(await _authService.RefreshTokenAsync(refreshToken)));
     }
 
-    [HttpPost("logout")]
     [Authorize]
-    public async Task<IActionResult> Logout()
+    [HttpPost("logout")]
+    public IActionResult Logout()
     {
-        // Get user ID from claims
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        if (userId == null)
-            return Unauthorized();
-
-        await _authService.LogoutAsync(Guid.Parse(userId));
+        _cookieService.ClearRefreshToken(Response);
         return NoContent();
+    }
+
+
+    private AuthResponseDto Respond(TokenPairDto tokens)
+    {
+        _cookieService.SetRefreshToken(Response, tokens.RefreshToken);
+        return new AuthResponseDto(
+            tokens.AccessToken,
+            EmailConfirmed: ParseEmailConfirmed(tokens.AccessToken)
+        );
+    }
+
+    // Helper method to parse email_confirmed from access token
+    private static bool ParseEmailConfirmed(string accessToken)
+    {
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var claim = jwt.Claims.FirstOrDefault(c => c.Type == "email_confirmed");
+        return claim?.Value == "true";
     }
 }

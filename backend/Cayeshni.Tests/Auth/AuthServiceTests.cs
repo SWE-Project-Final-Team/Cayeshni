@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
+using Cayeshni.Domain.Enums;
 using Xunit;
 
 namespace Cayeshni.Tests.Auth;
@@ -13,19 +14,28 @@ public class AuthServiceTests
     {
         public RegisterDto? LastRegisterDto;
 
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto)
         {
             LastRegisterDto = dto;
-            return Task.FromResult(new AuthResponseDto("at", "rt", Guid.NewGuid(), dto.Email, dto.Name));
+            return Task.FromResult(new TokenPairDto("at", "rt"));
         }
 
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto)
-            => Task.FromResult(new AuthResponseDto("at", "rt", Guid.NewGuid(), dto.Email, "name"));
+        public Task<TokenPairDto> LoginAsync(LoginDto dto)
+        {
+            return Task.FromResult(new TokenPairDto("at", "rt"));
+        }
 
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
-            => Task.FromResult(new AuthResponseDto("at", "rt", Guid.NewGuid(), "e", "n"));
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
+        {
+            return Task.FromResult(new TokenPairDto("at", "new_rt"));
+        }
 
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 
     [Fact]
@@ -34,7 +44,7 @@ public class AuthServiceTests
         var fake = new FakeIdentity();
         var svc = new AuthService(fake);
 
-        var dto = new RegisterDto("u@ex.com", "  Bob  ", "secret");
+        var dto = new RegisterDto("u@ex.com", "  Bob  ", "secret", Currency.USD);
         var res = await svc.RegisterAsync(dto);
 
         Assert.NotNull(fake.LastRegisterDto);
@@ -51,7 +61,7 @@ public class AuthServiceTests
         var fake = new FakeIdentity();
         var svc = new AuthService(fake);
 
-        var dto = new RegisterDto("u@ex.com", name, "p");
+        var dto = new RegisterDto("u@ex.com", name, "p", Currency.USD);
         await Assert.ThrowsAsync<ValidationException>(() => svc.RegisterAsync(dto));
     }
 
@@ -64,7 +74,7 @@ public class AuthServiceTests
         var dto = new LoginDto("x@y.com", "p");
         var res = await svc.LoginAsync(dto);
 
-        Assert.Equal(dto.Email, res.Email);
+        Assert.Equal("at", res.AccessToken);
     }
 
     [Fact]
@@ -82,7 +92,7 @@ public class AuthServiceTests
         var identity = new ThrowingRegisterIdentity();
         var svc = new AuthService(identity);
 
-        await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RegisterAsync(new RegisterDto("u@ex.com", "Bob", "bad")));
+        await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RegisterAsync(new RegisterDto("u@ex.com", "Bob", "bad", Currency.USD)));
     }
 
     [Fact]
@@ -91,10 +101,10 @@ public class AuthServiceTests
         var fake = new FakeIdentity();
         var svc = new AuthService(fake);
 
-        var dto = new RefreshTokenDto("rtoken");
-        var res = await svc.RefreshTokenAsync(dto);
+        var res = await svc.RefreshTokenAsync("rtoken");
 
         Assert.Equal("at", res.AccessToken);
+        Assert.Equal("new_rt", res.RefreshToken);
     }
 
     [Fact]
@@ -103,30 +113,45 @@ public class AuthServiceTests
         var identity = new ThrowingIdentity();
         var svc = new AuthService(identity);
 
-        await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RefreshTokenAsync(new RefreshTokenDto("bad")));
+        await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RefreshTokenAsync("bad"));
     }
 
     private class ThrowingIdentity : IIdentityService
     {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
+        public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : IIdentityService
     {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new UnauthorizedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new NotImplementedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new UnauthorizedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
+        public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 
     private class ThrowingRegisterIdentity : IIdentityService
     {
-        public Task<AuthResponseDto> RegisterAsync(RegisterDto dto) => throw new UnauthorizedException();
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto) => throw new NotImplementedException();
-        public Task LogoutAsync(Guid userId) => Task.CompletedTask;
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new UnauthorizedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
+        public Task LogoutAsync() => Task.CompletedTask;
+        public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
+        public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
+        public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
+        public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
     }
 }

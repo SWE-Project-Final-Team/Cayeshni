@@ -1,9 +1,12 @@
+using Cayeshni.Domain.Enums;
+
 namespace Cayeshni.Application.Features.Auth;
 
 public record RegisterDto(
     string Email,
     string Name,
-    string Password
+    string Password,
+    Currency PreferredCurrency
 );
 
 public record LoginDto(
@@ -13,12 +16,35 @@ public record LoginDto(
 
 public record AuthResponseDto(
     string AccessToken,
-    string RefreshToken,
-    Guid   UserId,
-    string Email,
-    string Name
+    bool EmailConfirmed
 );
 
-public record RefreshTokenDto(
+public record TokenPairDto(
+    string AccessToken,
     string RefreshToken
+);
+
+public record ResendConfirmationDto(
+    Guid UserId
+);
+
+// For password and email operations
+public record ChangePasswordDto(
+    string CurrentPassword,
+    string NewPassword
+);
+
+public record ForgotPasswordDto(
+    string Email
+);
+
+public record ResetPasswordDto(
+    string Email,
+    string Token,
+    string NewPassword
+);
+
+public record ConfirmEmailDto(
+    string UserId,
+    string Token
 );

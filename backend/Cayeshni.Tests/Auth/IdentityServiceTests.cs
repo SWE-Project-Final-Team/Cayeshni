@@ -1,81 +1,141 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Features.Auth;
-using Cayeshni.Infrastructure.Identity;
-using Cayeshni.Infrastructure.Persistence;
+using Cayeshni.Domain.Enums;
 using Cayeshni.Infrastructure.Persistence.Options;
-using Cayeshni.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Cayeshni.Tests.Auth;
 
 public class IdentityServiceTests
 {
-    private static IJwtService FakeJwt() => new FakeJwtService();
-
     [Fact]
-    public async Task RefreshToken_Expired_ClearsTokenAndThrowsUnauthorized()
+    public async Task RefreshToken_ValidJwtToken_ReturnsNewTokens()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        var user = AuthTestHelpers.CreateUser("expired-token", DateTime.UtcNow.AddDays(-1));
+        var user = AuthTestHelpers.CreateUser("test@example.com");
         ctx.Users.Add(user);
         await ctx.SaveChangesAsync();
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false);
 
-        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync(new RefreshTokenDto("expired-token")));
-        Assert.Contains("expired", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var result = await svc.RegisterAsync(new RegisterDto("new@test.com", "New User", "Secret123!", Currency.USD));
+        var refreshedTokens = await svc.RefreshTokenAsync(result.RefreshToken);
 
-        // reload user from db and assert token cleared
-        var refreshed = await ctx.Users.FirstAsync(u => u.Id == user.Id);
-        Assert.Null(refreshed.RefreshToken);
-        Assert.Null(refreshed.RefreshTokenExpiry);
+        Assert.NotNull(refreshedTokens.AccessToken);
+        Assert.NotNull(refreshedTokens.RefreshToken);
+        Assert.NotEqual(result.AccessToken, refreshedTokens.AccessToken);
     }
 
     [Fact]
-    public async Task RefreshToken_Valid_RotatesTokenAndPersistsNewValues()
+    public async Task RefreshToken_InvalidJwtToken_ThrowsUnauthorized()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        var oldExpiry = DateTime.UtcNow.AddDays(3);
-        var user = AuthTestHelpers.CreateUser("valid-token", oldExpiry);
-        ctx.Users.Add(user);
-        await ctx.SaveChangesAsync();
+        var svc = AuthTestHelpers.CreateIdentityService(ctx);
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
-
-        var result = await svc.RefreshTokenAsync(new RefreshTokenDto("valid-token"));
-
-        Assert.Equal("access", result.AccessToken);
-        Assert.Equal("refresh", result.RefreshToken);
-
-        var refreshed = await ctx.Users.FirstAsync(u => u.Id == user.Id);
-        Assert.Equal("refresh", refreshed.RefreshToken);
-        Assert.NotNull(refreshed.RefreshTokenExpiry);
-        Assert.True(refreshed.RefreshTokenExpiry > DateTime.UtcNow);
-        Assert.True(refreshed.RefreshTokenExpiry > oldExpiry.AddSeconds(-1));
+        var ex = await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RefreshTokenAsync("invalid-jwt-token"));
+        Assert.Contains("Invalid", ex.Message);
     }
 
     [Fact]
-    public async Task RefreshToken_InvalidToken_ThrowsUnauthorized()
+    public async Task RefreshToken_ExpiredJwtToken_ThrowsUnauthorized()
     {
         await using var ctx = AuthTestHelpers.CreateContext();
-        ctx.Users.Add(AuthTestHelpers.CreateUser("different-token", DateTime.UtcNow.AddDays(1)));
-        await ctx.SaveChangesAsync();
+        var options = new JwtOptions
+        {
+            Issuer = "test",
+            Audience = "test",
+            Secret = "super-secret-key-super-secret-key-super-secret-key",
+            Expiry = TimeSpan.FromMinutes(15),
+            RefreshExpiry = TimeSpan.FromSeconds(1)
+        };
 
-        var svc = new IdentityService(AuthTestHelpers.CreateUserManager(ctx), FakeJwt(), new JwtOptions());
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, jwtOptions: options);
+        var tokens = await svc.RegisterAsync(new RegisterDto("x@test.com", "X", "Secret123!", Currency.USD));
 
-        var ex = await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => svc.RefreshTokenAsync(new RefreshTokenDto("missing-token")));
-        Assert.Contains("Invalid refresh token", ex.Message, StringComparison.OrdinalIgnoreCase);
+        await Task.Delay(1200);
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedException>(() => svc.RefreshTokenAsync(tokens.RefreshToken));
+        Assert.Contains("Invalid", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    private class FakeJwtService : IJwtService
+    [Fact]
+    public async Task Register_WhenConfirmationDisabled_ConfirmsUser_AndSkipsEmail()
     {
-        public string GenerateAccessToken(Guid userId, string email) => "access";
-        public string GenerateRefreshToken() => "refresh";
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var email = new AuthTestHelpers.RecordingEmailService();
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false, emailService: email);
+
+        await svc.RegisterAsync(new RegisterDto("new@test.com", "New User", "Secret123!", Currency.USD));
+
+        Assert.Equal(0, email.SendCount);
+        Assert.True(ctx.Users.First().EmailConfirmed);
+    }
+
+    [Fact]
+    public async Task Register_WhenConfirmationEnabled_SendsEmail_AndLeavesUserUnconfirmed()
+    {
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var email = new AuthTestHelpers.RecordingEmailService();
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: true, emailService: email);
+
+        await svc.RegisterAsync(new RegisterDto("new@test.com", "New User", "Secret123!", Currency.USD));
+
+        Assert.False(ctx.Users.First().EmailConfirmed);
+    }
+
+    [Fact]
+    public async Task Login_WhenConfirmationDisabled_AllowsUnconfirmedUser()
+    {
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var user = AuthTestHelpers.CreateUser("login@test.com");
+        user.EmailConfirmed = false;
+        var manager = AuthTestHelpers.CreateUserManager(ctx);
+        var result = await manager.CreateAsync(user, "Secret123!");
+        Assert.True(result.Succeeded);
+
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false);
+        var tokens = await svc.LoginAsync(new LoginDto("login@test.com", "Secret123!"));
+
+        Assert.NotNull(tokens.AccessToken);
+        Assert.NotNull(tokens.RefreshToken);
+    }
+
+    [Fact]
+    public async Task Login_WhenConfirmationEnabled_UnconfirmedUser_ThrowsUnauthorized()
+    {
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var user = AuthTestHelpers.CreateUser("login@test.com");
+        user.EmailConfirmed = false;
+        var manager = AuthTestHelpers.CreateUserManager(ctx);
+        var result = await manager.CreateAsync(user, "Secret123!");
+        Assert.True(result.Succeeded);
+
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: true);
+
+        await Assert.ThrowsAsync<UnauthorizedException>(() => svc.LoginAsync(new LoginDto("login@test.com", "Secret123!")));
+    }
+
+    [Fact]
+    public async Task ForgotPassword_WhenConfirmationDisabled_ReturnsValidationError()
+    {
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false);
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => svc.ForgotPasswordAsync("x@test.com"));
+        Assert.Contains("Not enabled", ex.Message);
+    }
+
+    [Fact]
+    public async Task ResendConfirmation_WhenConfirmationDisabled_ReturnsValidationError()
+    {
+        await using var ctx = AuthTestHelpers.CreateContext();
+        var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false);
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => svc.ResendConfirmationAsync(Guid.NewGuid()));
+        Assert.Contains("Not enabled", ex.Message);
     }
 }

@@ -9,6 +9,8 @@ using Cayeshni.Infrastructure.Services;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Persistence.Repositories;
+using Cayeshni.Infrastructure.Options;
 
 namespace Cayeshni.Infrastructure;
 
@@ -65,6 +67,23 @@ public static class DependencyInjection
         services.AddScoped<IGroupService, GroupManagementService>();
         services.AddScoped<GroupService>();
     
+        // Email service (using Brevo)
+        var brevoOptions = configuration
+            .GetSection(BrevoOptions.Section)
+            .Get<BrevoOptions>()
+            ?? throw new InvalidOperationException("Brevo configuration is missing.");
+            
+        services.AddSingleton(brevoOptions);
+        services.AddHttpClient<BrevoEmailService>();
+        services.AddScoped<IEmailService, BrevoEmailService>();
+
+        // File storage service
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        // Regiser Repositories
+        services.AddScoped<IUserRepository, UserRepository>();
+
         // Add other services like repositories, external API clients, etc.
 
         return services;
