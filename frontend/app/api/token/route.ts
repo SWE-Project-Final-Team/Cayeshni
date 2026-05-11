@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { getInternalApiBase } from "@/lib/server/internal-api";
 
-const REFRESH_COOKIE = "refresh";
+const REFRESH_COOKIE = "refreshToken";
 const REFRESH_PATH = "/api/token/refresh";
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
 
 type LoginBody = { email?: string; password?: string };
+function readCookieValue(setCookie: string | null, cookieName: string): string | null {
+  if (!setCookie) return null;
+  const escaped = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = setCookie.match(new RegExp(`(?:^|,\\s*)${escaped}=([^;]+)`));
+  return match?.[1] ?? null;
+}
 
 export async function POST(request: Request) {
   let body: LoginBody;
@@ -40,9 +46,12 @@ export async function POST(request: Request) {
   }
 
   const accessToken = payload.accessToken ?? payload.AccessToken;
-  const refreshToken = payload.refreshToken ?? payload.RefreshToken;
+  const refreshToken = readCookieValue(
+    upstream.headers.get("set-cookie"),
+    REFRESH_COOKIE
+  );
 
-  if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
+  if (typeof accessToken !== "string" || !refreshToken) {
     return NextResponse.json(
       { detail: "Unexpected auth response from server" },
       { status: 502 }
@@ -54,7 +63,7 @@ export async function POST(request: Request) {
     name: REFRESH_COOKIE,
     value: refreshToken,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     path: REFRESH_PATH,
     secure: process.env.NODE_ENV === "production",
     maxAge: REFRESH_MAX_AGE,

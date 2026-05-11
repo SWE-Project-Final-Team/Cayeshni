@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login, register } from "@/lib/api/auth.api";
@@ -131,20 +132,6 @@ export function AuthPage() {
               Clarity in shared finances.
             </p>
           </div>
-          <div className="relative z-10 rounded-2xl border border-outline-variant/50 bg-surface/80 p-md shadow-level-1 backdrop-blur-md">
-            <div className="mb-sm flex items-center gap-sm">
-              <span className="material-symbols-outlined fill text-secondary">
-                verified_user
-              </span>
-              <span className="text-label-sm text-primary uppercase tracking-wider">
-                Bank-Grade Security
-              </span>
-            </div>
-            <p className="text-body-md text-on-surface-variant">
-              Your data is encrypted and secure. We focus on transparency so you
-              can focus on collaboration.
-            </p>
-          </div>
         </div>
 
         {/* Forms */}
@@ -228,12 +215,12 @@ export function AuthPage() {
                     >
                       Password
                     </label>
-                    <a
-                      href="#"
+                    <Link
+                      href="/forgot-password"
                       className="text-label-sm text-secondary hover:underline"
                     >
                       Forgot?
-                    </a>
+                    </Link>
                   </div>
                   <input
                     id="login-password"

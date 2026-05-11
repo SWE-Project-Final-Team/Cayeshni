@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getInternalApiBase } from "@/lib/server/internal-api";
 
-const REFRESH_COOKIE = "refresh";
+const REFRESH_COOKIE = "refreshToken";
 const REFRESH_PATH = "/api/token/refresh";
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
+function readCookieValue(setCookie: string | null, cookieName: string): string | null {
+  if (!setCookie) return null;
+  const escaped = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = setCookie.match(new RegExp(`(?:^|,\\s*)${escaped}=([^;]+)`));
+  return match?.[1] ?? null;
+}
 
 function clearRefreshCookie(response: NextResponse) {
   response.cookies.set({
@@ -13,7 +19,7 @@ function clearRefreshCookie(response: NextResponse) {
     path: REFRESH_PATH,
     maxAge: 0,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
   });
 }
 
@@ -31,8 +37,10 @@ export async function POST() {
 
   const upstream = await fetch(`${getInternalApiBase()}/auth/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken: refresh }),
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `${REFRESH_COOKIE}=${encodeURIComponent(refresh)}`,
+    },
   });
 
   const payload = (await upstream.json().catch(() => ({}))) as Record<
@@ -47,9 +55,10 @@ export async function POST() {
   }
 
   const accessToken = payload.accessToken ?? payload.AccessToken;
-  const newRefresh = payload.refreshToken ?? payload.RefreshToken;
+  const newRefresh =
+    readCookieValue(upstream.headers.get("set-cookie"), REFRESH_COOKIE) ?? refresh;
 
-  if (typeof accessToken !== "string" || typeof newRefresh !== "string") {
+  if (typeof accessToken !== "string") {
     const response = NextResponse.json(
       { detail: "Unexpected auth response from server" },
       { status: 502 }
@@ -63,7 +72,7 @@ export async function POST() {
     name: REFRESH_COOKIE,
     value: newRefresh,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     path: REFRESH_PATH,
     secure: process.env.NODE_ENV === "production",
     maxAge: REFRESH_MAX_AGE,

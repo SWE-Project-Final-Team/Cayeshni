@@ -19,6 +19,22 @@ export interface AuthResponse {
   access: string;
 }
 
+export interface ResetPasswordPayload {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ConfirmEmailPayload {
+  userId: string;
+  token: string;
+}
+
 function bffOrigin(): string {
   if (typeof window === "undefined") return "";
   return window.location.origin;
@@ -136,10 +152,57 @@ function mapProfile(d: {
 export async function me(): Promise<User> {
   try {
     const { data } = await axiosInstance.get<User | Record<string, unknown>>(
-      "/auth/me"
+      "/users/me"
     );
     return mapProfile(data as Record<string, unknown>);
   } catch (error) {
     throw new Error(getAxiosErrorMessage(error, "Failed to fetch user"));
+  }
+}
+
+export async function forgotPassword(email: string): Promise<string> {
+  try {
+    const { data } = await axiosInstance.post<{ message?: string }>(
+      "/users/forgot-password",
+      { email: email.trim() }
+    );
+    return data?.message || "If that email exists, a reset link has been sent.";
+  } catch (error) {
+    throw new Error(getAxiosErrorMessage(error, "Failed to request password reset"));
+  }
+}
+
+export async function resetPassword(payload: ResetPasswordPayload): Promise<void> {
+  try {
+    await axiosInstance.post("/users/reset-password", payload);
+  } catch (error) {
+    throw new Error(getAxiosErrorMessage(error, "Failed to reset password"));
+  }
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  try {
+    await axiosInstance.post("/users/change-password", payload);
+  } catch (error) {
+    throw new Error(getAxiosErrorMessage(error, "Failed to change password"));
+  }
+}
+
+export async function confirmEmail(payload: ConfirmEmailPayload): Promise<void> {
+  try {
+    await axiosInstance.post("/users/confirm-email", payload);
+  } catch (error) {
+    throw new Error(getAxiosErrorMessage(error, "Failed to confirm email"));
+  }
+}
+
+export async function resendConfirmation(): Promise<string> {
+  try {
+    const { data } = await axiosInstance.post<{ message?: string }>(
+      "/users/resend-confirmation"
+    );
+    return data?.message || "Confirmation email sent.";
+  } catch (error) {
+    throw new Error(getAxiosErrorMessage(error, "Failed to resend confirmation"));
   }
 }
