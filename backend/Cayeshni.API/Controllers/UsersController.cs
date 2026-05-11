@@ -4,6 +4,7 @@ using Cayeshni.Application.Features.Auth;
 using Cayeshni.Application.Features.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cayeshni.API.Controllers;
 
@@ -77,6 +78,8 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [AllowAnonymous]
+    [EnableRateLimiting("resend")]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
@@ -84,6 +87,7 @@ public class UsersController : ControllerBase
         return Ok(new { message = "If that email exists, a reset link has been sent." });
     }
 
+    [AllowAnonymous]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
     {
@@ -92,7 +96,7 @@ public class UsersController : ControllerBase
     }
 
     // Email confirmation
-    [Authorize(Policy = "LimitedAccess")]
+    [AllowAnonymous]
     [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
     {
@@ -100,12 +104,12 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Policy = "LimitedAccess")]
+    [AllowAnonymous]
+    [EnableRateLimiting("resend")]
     [HttpPost("resend-confirmation")]
-    public async Task<IActionResult> ResendConfirmation()
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationDto dto)
     {
-        var userId = User.GetUserId();
-        await _identity.ResendConfirmationAsync(userId);
-        return Ok(new { message = "Confirmation email sent." });
+        await _identity.ResendConfirmationAsync(dto.Email);
+        return Ok(new { message = "If that email is registered and unconfirmed, a new link has been sent." });
     }
 }
