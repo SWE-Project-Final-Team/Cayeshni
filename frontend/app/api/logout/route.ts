@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getInternalApiBase } from "@/lib/server/internal-api";
 
-const REFRESH_COOKIE = "refresh";
+const REFRESH_COOKIE = "refreshToken";
 const REFRESH_PATH = "/api/token/refresh";
 
 export async function POST(request: Request) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     path: REFRESH_PATH,
     maxAge: 0,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
   });
   return response;
 }

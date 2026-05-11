@@ -54,12 +54,12 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-var frontendOrigin = builder.Configuration["Frontend:Origin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(frontendOrigin)
+        policy
+            .WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -88,23 +88,8 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Cayeshni API"));
 }
 
-
-// Ensure uploads directory exists and serve it as static files at /uploads
-var uploadsPath = builder.Configuration["FileStorage:BasePath"] 
-    ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-
-Directory.CreateDirectory(uploadsPath);
-
-// Serve files in the uploads directory at the /uploads URL path
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath  = "/uploads"
-});
-
-app.UseHttpsRedirection();
-app.UseCors();
-
+// app.UseHttpsRedirection();
+app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
