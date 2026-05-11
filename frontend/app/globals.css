@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #fbf9fa;
+  --color-on-background: #1b1c1d;
+  --color-surface: #fbf9fa;
+  --color-surface-dim: #dbd9db;
+  --color-surface-bright: #fbf9fa;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f4;
+  --color-surface-container: #efedef;
+  --color-surface-container-high: #e9e7e9;
+  --color-surface-container-highest: #e4e2e3;
+  --color-on-surface: #1b1c1d;
+  --color-on-surface-variant: #44474c;
+  --color-inverse-surface: #303032;
+  --color-inverse-on-surface: #f2f0f2;
+  --color-outline: #74777d;
+  --color-outline-variant: #c4c6cd;
+  --color-surface-tint: #4f6b62;
+  --color-primary: #041627;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1a2b3c;
+  --color-on-primary-container: #8192a7;
+  --color-inverse-primary: #b8dfd4;
+  --color-secondary: #047857;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #059669;
+  --color-on-secondary-container: #fefcff;
+  --color-tertiary: #211200;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #38260b;
+  --color-on-tertiary-container: #a88c69;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-surface-variant: #e4e2e3;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-level-1: 0 2px 8px rgba(15, 77, 62, 0.06);
+  --shadow-level-2: 0 8px 24px rgba(15, 77, 62, 0.09);
+  --shadow-halo: 0 0 0 2px rgba(4, 120, 87, 0.22);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-inter);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .text-display-lg {
+    font-family: var(--font-manrope);
+    font-size: 36px;
+    line-height: 44px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  .text-headline-md {
+    font-family: var(--font-manrope);
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+
+  .text-body-lg {
+    font-family: var(--font-inter);
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 400;
+  }
+
+  .text-body-md {
+    font-family: var(--font-inter);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+
+  .text-label-sm {
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  .material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+  .material-symbols-outlined.fill {
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-md py-sm text-base text-on-surface transition-all outline-none;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    line-height: 24px;
+  }
+
+  .input-field:focus {
+    border-color: var(--color-secondary);
+    box-shadow: var(--shadow-halo);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in-up 0.4s ease-out forwards;
 }
