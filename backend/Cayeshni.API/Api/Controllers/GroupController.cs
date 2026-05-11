@@ -27,9 +27,7 @@ public class GroupController : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        // Apply application layer validation
-        var validatedDto = GroupServiceValidation.ValidateCreateGroupDto(dto);
-        var result = await _groupService.CreateGroupAsync(Guid.Parse(userId), validatedDto);
+        var result = await _groupService.CreateGroupAsync(Guid.Parse(userId), dto);
         return Ok(result);
     }
 
