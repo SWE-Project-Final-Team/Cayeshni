@@ -1,6 +1,5 @@
-using Cayeshni.API.Application.Features.Group;
+using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Infrastructure.Persistence;
-using Cayeshni.API.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;

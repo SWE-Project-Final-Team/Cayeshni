@@ -1,6 +1,6 @@
 using Cayeshni.API.Application.Common.Exceptions;
 
-namespace Cayeshni.API.Application.Features.Group;
+namespace Cayeshni.API.Application.Features.Groups;
 
 /// <summary>
 /// Application-layer validation and facade for group operations.

@@ -1,4 +1,4 @@
-using Cayeshni.API.Application.Features.Group;
+using Cayeshni.API.Application.Features.Groups;
 
 namespace Cayeshni.API.Application.Common.Interfaces;
 

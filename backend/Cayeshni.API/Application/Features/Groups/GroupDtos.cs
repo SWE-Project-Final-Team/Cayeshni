@@ -1,6 +1,6 @@
 using Cayeshni.API.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Group;
+namespace Cayeshni.API.Application.Features.Groups;
 
 public record CreateGroupDto(string Name, Currency DefaultCurrency = Currency.USD);
 

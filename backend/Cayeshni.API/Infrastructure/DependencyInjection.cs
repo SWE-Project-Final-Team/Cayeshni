@@ -58,9 +58,6 @@ public static class DependencyInjection
         // Authentication services
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtService, JwtService>();
-
-        // Group services
-        services.AddScoped<GroupService>();
     
         // Email service (using Brevo)
         var brevoOptions = configuration

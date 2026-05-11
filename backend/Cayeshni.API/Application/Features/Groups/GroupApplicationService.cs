@@ -1,12 +1,12 @@
 using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Features.Group;
+using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cayeshni.API.Infrastructure.Services;
+namespace Cayeshni.API.Application.Features.Groups;
 
-public class GroupService
+public class GroupService : IGroupService
 {
     private readonly AppDbContext _context;
 
