@@ -25,7 +25,7 @@ public record TokenPairDto(
 );
 
 public record ResendConfirmationDto(
-    string Email
+    Guid UserId
 );
 
 // For password and email operations

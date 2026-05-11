@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
 
@@ -7,7 +6,6 @@ namespace Cayeshni.Application.Features.Auth;
 public class AuthService
 {
     private readonly IIdentityService _identity;
-    private static readonly Regex EmailRegex = new(@"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$", RegexOptions.Compiled);
 
     public AuthService(IIdentityService identity)
     {
@@ -21,13 +19,6 @@ public class AuthService
         {
             throw new ValidationException("Name must be at least 3 characters.");
         }
-        
-        // Validate email format
-        if (string.IsNullOrWhiteSpace(dto.Email) || !EmailRegex.IsMatch(dto.Email))
-        {
-            throw new ValidationException("Please enter a valid email address.");
-        }
-        
         return await _identity.RegisterAsync(dto with { Name = name });
     }
 

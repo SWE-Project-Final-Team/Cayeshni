@@ -158,13 +158,13 @@ public class IdentityService : IIdentityService
             throw new ValidationException("Invalid or expired confirmation token.");
     }
 
-    public async Task ResendConfirmationAsync(string email)
+    public async Task ResendConfirmationAsync(Guid userId)
     {
         if (!_requireEmailConfirmation)
             throw new ValidationException("Not enabled.");
 
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null) return; // Don't reveal if email exists
+        var user = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new NotFoundException(nameof(AppUser), userId);
 
         if (await _userManager.IsEmailConfirmedAsync(user))
             throw new ValidationException("Email is already confirmed.");
@@ -183,8 +183,6 @@ public class IdentityService : IIdentityService
         var accessToken = _jwtService.GenerateAccessToken(userId, emailConfirmed);
         var refreshToken = _jwtService.GenerateRefreshToken(userId);
 
-
-        Console.WriteLine($"Access Token for user {userId} (email confirmed: {emailConfirmed}): {accessToken}");
         return new TokenPairDto(
             AccessToken: accessToken,
             RefreshToken: refreshToken

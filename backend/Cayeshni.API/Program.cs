@@ -4,7 +4,6 @@ using Scalar.AspNetCore;
 using Cayeshni.API.Extensions;
 using Cayeshni.Api.Middleware;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.RateLimiting;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
@@ -32,28 +31,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.Strict;
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     });
-
-// Add rate limiting (for endpoints like resend confirmation and forgot password to prevent abuse)
-builder.Services.AddRateLimiter(options =>
-{
-    var window = TimeSpan.FromMinutes(10);
-
-    options.OnRejected = async (context, ct) =>
-    {
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.Headers["Retry-After"] = ((int)window.TotalSeconds).ToString();
-        await context.HttpContext.Response.WriteAsJsonAsync(
-            new { error = $"Too many requests. Try again in {(int)window.TotalMinutes} minutes." }, ct);
-    };
-
-    options.AddFixedWindowLimiter("resend", o =>
-    {
-        o.PermitLimit = 3;
-        o.Window = window;
-        o.QueueLimit = 0;
-        o.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.NewestFirst;
-    });
-});
 
 // Add OpenAPI (Swagger/Scalar) services
 builder.Services.AddEndpointsApiExplorer(); // Required for OpenAPI generation
@@ -115,7 +92,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
 app.MapControllers();
 
 app.MapGet("/", () => "Cayeshni API");

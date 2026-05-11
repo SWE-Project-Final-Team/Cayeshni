@@ -15,5 +15,5 @@ public interface IIdentityService
     Task ForgotPasswordAsync(string email);
     Task ResetPasswordAsync(ResetPasswordDto dto);
     Task ConfirmEmailAsync(ConfirmEmailDto dto);
-    Task ResendConfirmationAsync(string email);
+    Task ResendConfirmationAsync(Guid userId);
 }

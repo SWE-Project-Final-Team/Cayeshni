@@ -34,7 +34,6 @@ public class AuthController : ControllerBase
         return Ok(Respond(await _authService.LoginAsync(loginDto)));
     }
 
-    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponseDto>> Refresh()
     {

@@ -54,8 +54,15 @@ public static class AuthenticationExtensions
                 .RequireClaim("email_confirmed", "true")
                 .Build();
 
-            // Make FullAccess the default for [Authorize]
+            // Limited access - any authenticated user (including email_confirmed=false)
+            var limitedAccess = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
             options.AddPolicy("FullAccess", fullAccess);
+            options.AddPolicy("LimitedAccess", limitedAccess);
+
+            // Make FullAccess the default for [Authorize]
             options.DefaultPolicy = fullAccess;
         });
 
