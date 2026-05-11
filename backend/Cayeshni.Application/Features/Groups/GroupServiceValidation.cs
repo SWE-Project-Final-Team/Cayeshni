@@ -2,10 +2,6 @@ using Cayeshni.Application.Common.Exceptions;
 
 namespace Cayeshni.Application.Features.Groups;
 
-/// <summary>
-/// Application-layer validation and facade for group operations.
-/// This layer ensures business rule validation before delegating to infrastructure services.
-/// </summary>
 public static class GroupServiceValidation
 {
     public static CreateGroupDto ValidateCreateGroupDto(CreateGroupDto dto)

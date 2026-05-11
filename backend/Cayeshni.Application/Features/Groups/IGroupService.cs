@@ -1,13 +1,12 @@
-using Cayeshni.Application.Features.Groups;
-
-namespace Cayeshni.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Groups;
 
 public interface IGroupService
 {
     Task<GroupResponseDto> CreateGroupAsync(Guid userId, CreateGroupDto dto);
-    Task DeleteGroupAsync(Guid userId, GroupResponseDto group);
     Task JoinGroupAsync(Guid userId, JoinGroupDto dto);
     Task ExitGroupAsync(Guid userId, Guid groupId);
-    Task UpdateGroupAsync(Guid userId, GroupResponseDto group);
     Task<List<GroupResponseDto>> GetUserGroupsAsync(Guid userId);
+    Task DeleteGroupAsync(Guid userId, GroupResponseDto group);
+    Task UpdateGroupAsync(Guid userId, GroupResponseDto group);
 }
+// Removed duplicate interface declaration.

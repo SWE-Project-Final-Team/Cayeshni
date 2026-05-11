@@ -1,5 +1,6 @@
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
+using Cayeshni.Application.Features.Groups;
 using Cayeshni.Application.Features.Users;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +12,7 @@ public static class DependencyInjection
     {
         services.AddScoped<AuthService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<UserService>();
+        services.AddScoped<IGroupService, GroupService>();
 
         // Register other application services, handlers, etc.
 

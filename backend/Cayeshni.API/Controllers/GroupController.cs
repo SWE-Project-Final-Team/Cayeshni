@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Cayeshni.Application.Features.Groups;
-using Cayeshni.Infrastructure.Services;
+using Cayeshni.API.Extensions;
 
 namespace Cayeshni.API.Controller;
 
@@ -11,9 +10,9 @@ namespace Cayeshni.API.Controller;
 [Authorize]
 public class GroupController : ControllerBase
 {
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
-    public GroupController(GroupService groupService)
+    public GroupController(IGroupService groupService)
     {
         _groupService = groupService;
     }
@@ -21,78 +20,55 @@ public class GroupController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<GroupResponseDto>> CreateGroup(CreateGroupDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
+        var userId = User.GetUserId();
 
         // Apply application layer validation
         var validatedDto = GroupServiceValidation.ValidateCreateGroupDto(dto);
-        var result = await _groupService.CreateGroupAsync(Guid.Parse(userId), validatedDto);
+        var result = await _groupService.CreateGroupAsync(userId, validatedDto);
         return Ok(result);
     }
 
     [HttpPost("join")]
     public async Task<IActionResult> JoinGroup(JoinGroupDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
+        var userId = User.GetUserId();
 
-        if (userId is null)
-            return Unauthorized();
-
-        await _groupService.JoinGroupAsync(Guid.Parse(userId), dto);
+        await _groupService.JoinGroupAsync(userId, dto);
         return Ok();
     }
 
     [HttpPost("exit")]
     public async Task<IActionResult> ExitGroup(Guid groupId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
+        var userId = User.GetUserId();
 
-        if (userId is null)
-            return Unauthorized();
-
-            await _groupService.ExitGroupAsync(Guid.Parse(userId), groupId);
+        await _groupService.ExitGroupAsync(userId, groupId);
         return Ok();
     }
 
     [HttpGet]
     public async Task<ActionResult<List<GroupResponseDto>>> GetMyGroups()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
+        var userId = User.GetUserId();
 
-        if (userId is null)
-            return Unauthorized();
-
-        var result = await _groupService.GetUserGroupsAsync(Guid.Parse(userId));
+        var result = await _groupService.GetUserGroupsAsync(userId);
         return Ok(result);
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteGroup(GroupResponseDto group)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
+        var userId = User.GetUserId();
 
-        if (userId is null)
-            return Unauthorized();
-
-        await _groupService.DeleteGroupAsync(Guid.Parse(userId), group);
+        await _groupService.DeleteGroupAsync(userId, group);
         return Ok();
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateGroup(GroupResponseDto group)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-        if (userId is null)
-            return Unauthorized();
-        await _groupService.UpdateGroupAsync(Guid.Parse(userId), group);
+        var userId = User.GetUserId();
+        await _groupService.UpdateGroupAsync(userId, group);
         return Ok();
     }
 }
