@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Cayeshni.Application.Features.Auth;
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.API.Services;
+using Cayeshni.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cayeshni.API.Controllers;
 
@@ -24,14 +26,14 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
     {
-        return Ok(Respond(await _authService.RegisterAsync(registerDto)));
+        return Ok(CreateAuthResponse(await _authService.RegisterAsync(registerDto)));
     }
 
     [AllowAnonymous]
     [HttpPost("login")] 
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
-        return Ok(Respond(await _authService.LoginAsync(loginDto)));
+        return Ok(CreateAuthResponse(await _authService.LoginAsync(loginDto)));
     }
 
     [AllowAnonymous]
@@ -41,7 +43,7 @@ public class AuthController : ControllerBase
         var refreshToken = _cookieService.GetRefreshToken(Request)
             ?? throw new UnauthorizedException("Refresh token is missing.");
 
-        return Ok(Respond(await _authService.RefreshTokenAsync(refreshToken)));
+        return Ok(CreateAuthResponse(await _authService.RefreshTokenAsync(refreshToken)));
     }
 
     [Authorize]
@@ -52,8 +54,51 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    // Password & Email operations
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    {
+        var userId = User.GetUserId();
+        await _authService.ChangePasswordAsync(userId, dto);
+        return NoContent();
+    }
 
-    private AuthResponseDto Respond(TokenPairDto tokens)
+    [AllowAnonymous]
+    [EnableRateLimiting("resend")]
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+    {
+        await _authService.ForgotPasswordAsync(dto.Email);
+        return Ok(new { message = "If that email exists, a reset link has been sent." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    {
+        await _authService.ResetPasswordAsync(dto);
+        return NoContent();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
+    {
+        await _authService.ConfirmEmailAsync(dto);
+        return NoContent();
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting("resend")]
+    [HttpPost("resend-confirmation")]
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationDto dto)
+    {
+        await _authService.ResendConfirmationAsync(dto.Email);
+        return Ok(new { message = "If that email is registered and unconfirmed, a new link has been sent." });
+    }
+
+    private AuthResponseDto CreateAuthResponse(TokenPairDto tokens)
     {
         _cookieService.SetRefreshToken(Response, tokens.RefreshToken);
         return new AuthResponseDto(

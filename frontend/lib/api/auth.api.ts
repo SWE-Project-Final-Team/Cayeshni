@@ -163,7 +163,7 @@ export async function me(): Promise<User> {
 export async function forgotPassword(email: string): Promise<string> {
   try {
     const { data } = await axiosInstance.post<{ message?: string }>(
-      "/users/forgot-password",
+      "/auth/forgot-password",
       { email: email.trim() }
     );
     return data?.message || "If that email exists, a reset link has been sent.";
@@ -174,7 +174,7 @@ export async function forgotPassword(email: string): Promise<string> {
 
 export async function resetPassword(payload: ResetPasswordPayload): Promise<void> {
   try {
-    await axiosInstance.post("/users/reset-password", payload);
+    await axiosInstance.post("/auth/reset-password", payload);
   } catch (error) {
     throw new Error(getAxiosErrorMessage(error, "Failed to reset password"));
   }
@@ -182,7 +182,7 @@ export async function resetPassword(payload: ResetPasswordPayload): Promise<void
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
   try {
-    await axiosInstance.post("/users/change-password", payload);
+    await axiosInstance.post("/auth/change-password", payload);
   } catch (error) {
     throw new Error(getAxiosErrorMessage(error, "Failed to change password"));
   }
@@ -190,18 +190,19 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<vo
 
 export async function confirmEmail(payload: ConfirmEmailPayload): Promise<void> {
   try {
-    await axiosInstance.post("/users/confirm-email", payload);
+    await axiosInstance.post("/auth/confirm-email", payload);
   } catch (error) {
     throw new Error(getAxiosErrorMessage(error, "Failed to confirm email"));
   }
 }
 
-export async function resendConfirmation(): Promise<string> {
+export async function resendConfirmation(email: string): Promise<string> {
   try {
     const { data } = await axiosInstance.post<{ message?: string }>(
-      "/users/resend-confirmation"
+      "/auth/resend-confirmation",
+      { email: email.trim() }
     );
-    return data?.message || "Confirmation email sent.";
+    return data?.message || "If that email is registered and unconfirmed, a new link has been sent.";
   } catch (error) {
     throw new Error(getAxiosErrorMessage(error, "Failed to resend confirmation"));
   }

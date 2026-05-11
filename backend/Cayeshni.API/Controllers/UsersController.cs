@@ -1,10 +1,7 @@
 using Cayeshni.API.Extensions;
-using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Application.Features.Auth;
 using Cayeshni.Application.Features.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cayeshni.API.Controllers;
 
@@ -13,12 +10,10 @@ namespace Cayeshni.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly IIdentityService  _identity;
 
-    public UsersController(IUserService userService, IIdentityService identity)
+    public UsersController(IUserService userService)
     {
         _userService = userService;
-        _identity = identity;
     }
 
     // Profile
@@ -66,50 +61,5 @@ public class UsersController : ControllerBase
         var userId = User.GetUserId();
         await _userService.DeletePictureAsync(userId);
         return NoContent();
-    }
-
-    // Password
-    [Authorize]
-    [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
-    {
-        var userId = User.GetUserId();
-        await _identity.ChangePasswordAsync(userId, dto);
-        return NoContent();
-    }
-
-    [AllowAnonymous]
-    [EnableRateLimiting("resend")]
-    [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
-    {
-        await _identity.ForgotPasswordAsync(dto.Email);
-        return Ok(new { message = "If that email exists, a reset link has been sent." });
-    }
-
-    [AllowAnonymous]
-    [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
-    {
-        await _identity.ResetPasswordAsync(dto);
-        return NoContent();
-    }
-
-    // Email confirmation
-    [AllowAnonymous]
-    [HttpPost("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
-    {
-        await _identity.ConfirmEmailAsync(dto);
-        return NoContent();
-    }
-
-    [AllowAnonymous]
-    [EnableRateLimiting("resend")]
-    [HttpPost("resend-confirmation")]
-    public async Task<IActionResult> ResendConfirmation(ResendConfirmationDto dto)
-    {
-        await _identity.ResendConfirmationAsync(dto.Email);
-        return Ok(new { message = "If that email is registered and unconfirmed, a new link has been sent." });
     }
 }

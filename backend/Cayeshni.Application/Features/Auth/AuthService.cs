@@ -36,4 +36,20 @@ public class AuthService
     public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => _identity.RefreshTokenAsync(refreshToken);
 
     public Task LogoutAsync() => _identity.LogoutAsync();
+
+    // Account/Identity operations
+    public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) =>
+        _identity.ChangePasswordAsync(userId, dto);
+
+    public Task ForgotPasswordAsync(string email) =>
+        _identity.ForgotPasswordAsync(email);
+
+    public Task ResetPasswordAsync(ResetPasswordDto dto) =>
+        _identity.ResetPasswordAsync(dto);
+
+    public Task ConfirmEmailAsync(ConfirmEmailDto dto) =>
+        _identity.ConfirmEmailAsync(dto);
+
+    public Task ResendConfirmationAsync(string email) =>
+        _identity.ResendConfirmationAsync(email);
 }
