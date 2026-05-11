@@ -66,7 +66,7 @@ public class IdentityService : IIdentityService
         }
 
         // Return tokens (limited token will reflect user's EmailConfirmed state)
-        return await IssueTokensAsync(appUser.Id);
+        return await IssueTokensAsync(appUser);
     }
 
     public async Task<TokenPairDto> LoginAsync(LoginDto dto)
@@ -82,7 +82,7 @@ public class IdentityService : IIdentityService
             throw new UnauthorizedException("Please confirm your email first.");
 
         // Always issue token; token contains email_confirmed claim reflecting current state
-        return await IssueTokensAsync(appUser.Id);
+        return await IssueTokensAsync(appUser);
     }
 
     public async Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
@@ -90,7 +90,10 @@ public class IdentityService : IIdentityService
         var userId = _jwtService.ValidateRefreshToken(refreshToken) 
             ?? throw new UnauthorizedException("Invalid refresh token.");
 
-        return await IssueTokensAsync(userId);
+        var appUser = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new UnauthorizedException("Invalid refresh token.");
+
+        return await IssueTokensAsync(appUser);
     }
 
     public Task LogoutAsync()
@@ -173,18 +176,13 @@ public class IdentityService : IIdentityService
     }
 
     // Heper functions
-    private async Task<TokenPairDto> IssueTokensAsync(Guid userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId.ToString())
-            ?? throw new NotFoundException(nameof(AppUser), userId);
+    private async Task<TokenPairDto> IssueTokensAsync(AppUser user)
+    {   
+        var accessToken = _jwtService.GenerateAccessToken(user.Id, user.EmailConfirmed);
+        var refreshToken = _jwtService.GenerateRefreshToken(user.Id);
 
-        var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-
-        var accessToken = _jwtService.GenerateAccessToken(userId, emailConfirmed);
-        var refreshToken = _jwtService.GenerateRefreshToken(userId);
-
-
-        Console.WriteLine($"Access Token for user {userId} (email confirmed: {emailConfirmed}): {accessToken}");
+        // FOR DEBUGGING REMOVE LATER
+        Console.WriteLine($"Access Token for user {user.Id} (email confirmed: {user.EmailConfirmed}): {accessToken}");
         return new TokenPairDto(
             AccessToken: accessToken,
             RefreshToken: refreshToken
