@@ -35,7 +35,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : IIdentityService
@@ -139,7 +139,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingRegisterIdentity : IIdentityService
@@ -152,6 +152,6 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
