@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Cayeshni.Infrastructure.Services;
 using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence.Options;
 using Cayeshni.Infrastructure.Persistence.Repositories;
 using Cayeshni.Infrastructure.Options;
@@ -61,6 +62,9 @@ public static class DependencyInjection
         // Authentication services
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtService, JwtService>();
+
+        // Group services
+        services.AddScoped<Services.GroupService>();
     
         // Email service (using Brevo)
         var brevoOptions = configuration
