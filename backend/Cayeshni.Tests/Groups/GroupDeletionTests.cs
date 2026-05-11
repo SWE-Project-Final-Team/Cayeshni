@@ -22,10 +22,10 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Delete Test"));
-        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById);
+        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById, groupResult.DefaultCurrency);
 
         // Act
         await service.DeleteGroupAsync(userId, groupDto);
@@ -40,11 +40,11 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var nonCreatorId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Delete Test"));
-        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById);
+        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById, groupResult.DefaultCurrency);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
@@ -58,10 +58,10 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var nonExistentGroupId = Guid.NewGuid();
-        var groupDto = new GroupResponseDto(nonExistentGroupId, "Fake", "fake-token", userId);
+        var groupDto = new GroupResponseDto(nonExistentGroupId, "Fake", "fake-token", userId, Cayeshni.Domain.Enums.Currency.USD);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(
@@ -74,7 +74,7 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();
@@ -82,7 +82,7 @@ public class GroupDeletionTests
         await service.JoinGroupAsync(userId1, new JoinGroupDto(groupResult.InviteToken));
         await service.JoinGroupAsync(userId2, new JoinGroupDto(groupResult.InviteToken));
 
-        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById);
+        var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById, groupResult.DefaultCurrency);
 
         // Act
         await service.DeleteGroupAsync(creatorId, groupDto);

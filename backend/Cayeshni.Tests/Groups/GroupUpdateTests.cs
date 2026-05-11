@@ -22,10 +22,10 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Original Name"));
-        var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, userId);
+        var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, userId, groupResult.DefaultCurrency);
 
         // Act
         await service.UpdateGroupAsync(userId, updatedGroupDto);
@@ -41,11 +41,11 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var nonCreatorId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Original Name"));
-        var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, creatorId);
+        var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, creatorId, groupResult.DefaultCurrency);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
@@ -59,9 +59,9 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
-        var groupDto = new GroupResponseDto(Guid.NewGuid(), "Fake", "fake-token", userId);
+        var groupDto = new GroupResponseDto(Guid.NewGuid(), "Fake", "fake-token", userId, Cayeshni.Domain.Enums.Currency.USD);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(

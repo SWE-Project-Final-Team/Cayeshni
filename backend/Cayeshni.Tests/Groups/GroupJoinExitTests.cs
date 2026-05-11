@@ -24,7 +24,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Test"));
@@ -47,7 +47,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Join Test"));
 
@@ -63,7 +63,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
 
         // Act & Assert
@@ -81,7 +81,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Exit Test"));
@@ -105,7 +105,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Exit Test"));
 
@@ -122,7 +122,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();
@@ -147,7 +147,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
 
         // Act & Assert
@@ -161,7 +161,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();

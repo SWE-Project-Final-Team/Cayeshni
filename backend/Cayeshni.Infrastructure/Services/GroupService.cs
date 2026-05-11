@@ -1,5 +1,4 @@
 using Cayeshni.Application.Common.Exceptions;
-using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Groups;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Infrastructure.Persistence;
@@ -7,20 +6,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Infrastructure.Services;
 
-public class GroupManagementService : IGroupService
+public class GroupService
 {
     private readonly AppDbContext _context;
 
-    public GroupManagementService(AppDbContext context)
+    public GroupService(AppDbContext context)
     {
         _context = context;
     }
 
     public async Task<GroupResponseDto> CreateGroupAsync(Guid userId, CreateGroupDto dto)
     {
+        var name = dto.Name.Trim();
+
+        if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
+            throw new ValidationException("Group name must be at least 3 characters.");
+
         var group = new Group
         {
-            Name = dto.Name,
+            Name = name,
+            DefaultCurrency = dto.DefaultCurrency,
             CreatedById = userId
         };
 
@@ -37,25 +42,9 @@ public class GroupManagementService : IGroupService
             group.Id,
             group.Name,
             group.InviteToken,
-            group.CreatedById
+            group.CreatedById,
+            group.DefaultCurrency
         );
-    }
-
-    public async Task DeleteGroupAsync (Guid userId, GroupResponseDto group)
-    {
-        var entity = await _context.Groups
-            .Include(g => g.Members)
-            .FirstOrDefaultAsync(g => g.Id == group.Id)
-            ?? throw new NotFoundException(nameof(Group), group.Id);
-
-        if (entity.CreatedById != userId)
-            throw new ValidationException("Only the group creator can delete this group.");
-
-        // Remove all group members
-        _context.GroupMembers.RemoveRange(entity.Members);
-        
-        _context.Groups.Remove(entity);
-        await _context.SaveChangesAsync();
     }
 
     public async Task JoinGroupAsync(Guid userId, JoinGroupDto dto)
@@ -119,9 +108,27 @@ public class GroupManagementService : IGroupService
                 g.Id,
                 g.Name,
                 g.InviteToken,
-                g.CreatedById
+                g.CreatedById,
+                g.DefaultCurrency
             ))
             .ToListAsync();
+    }
+
+    public async Task DeleteGroupAsync(Guid userId, GroupResponseDto group)
+    {
+        var entity = await _context.Groups
+            .Include(g => g.Members)
+            .FirstOrDefaultAsync(g => g.Id == group.Id)
+            ?? throw new NotFoundException(nameof(Group), group.Id);
+
+        if (entity.CreatedById != userId)
+            throw new ValidationException("Only the group creator can delete this group.");
+
+        // Remove all group members
+        _context.GroupMembers.RemoveRange(entity.Members);
+        
+        _context.Groups.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateGroupAsync(Guid userId, GroupResponseDto group)
@@ -134,6 +141,7 @@ public class GroupManagementService : IGroupService
             throw new ValidationException("Only the group creator can update this group.");
 
         entity.Name = group.Name;
+        entity.DefaultCurrency = group.DefaultCurrency;
         await _context.SaveChangesAsync();
     }
 }
