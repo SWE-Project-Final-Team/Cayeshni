@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Services;
 
 namespace Cayeshni.API.Controller;
 
@@ -26,7 +27,9 @@ public class GroupController : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _groupService.CreateGroupAsync(Guid.Parse(userId), dto);
+        // Apply application layer validation
+        var validatedDto = GroupServiceValidation.ValidateCreateGroupDto(dto);
+        var result = await _groupService.CreateGroupAsync(Guid.Parse(userId), validatedDto);
         return Ok(result);
     }
 

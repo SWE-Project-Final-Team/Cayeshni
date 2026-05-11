@@ -21,7 +21,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
         var createGroupDto = new CreateGroupDto("Test Group");
 
@@ -47,7 +47,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
 
         // Act
@@ -63,7 +63,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupManagementService(context);
+        var service = new GroupService(context);
         var userId = Guid.NewGuid();
 
         // Act
