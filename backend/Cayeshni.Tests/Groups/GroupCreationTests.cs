@@ -1,6 +1,6 @@
 using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Services;
+using Cayeshni.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -21,7 +21,8 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var repo = new GroupRepository(context);
+        var service = new GroupService(repo);
         var userId = Guid.NewGuid();
         var createGroupDto = new CreateGroupDto("Test Group");
 
@@ -47,7 +48,8 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var repo = new GroupRepository(context);
+        var service = new GroupService(repo);
         var userId = Guid.NewGuid();
 
         // Act
@@ -63,7 +65,8 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var repo = new GroupRepository(context);
+        var service = new GroupService(repo);
         var userId = Guid.NewGuid();
 
         // Act

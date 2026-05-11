@@ -11,6 +11,7 @@ using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence.Options;
 using Cayeshni.Infrastructure.Persistence.Repositories;
 using Cayeshni.Infrastructure.Options;
+using Cayeshni.Application.Features.Users;
 
 namespace Cayeshni.Infrastructure;
 
@@ -24,7 +25,6 @@ public static class DependencyInjection
 
         // Register AppDbContext with Npgsql provider
         var connectionString = dbOptions.ToConnectionString();
-        Console.WriteLine($"Using connection string: {connectionString}"); // for debugging REMOVE
         services.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString, x => 
             {
@@ -62,9 +62,6 @@ public static class DependencyInjection
         // Authentication services
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtService, JwtService>();
-
-        // Group services
-        services.AddScoped<Services.GroupService>();
     
         // Email service (using Brevo)
         var brevoOptions = configuration
@@ -80,8 +77,9 @@ public static class DependencyInjection
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
-        // Regiser Repositories
+        // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IGroupRepository, GroupRepository>();
 
         // Add other services like repositories, external API clients, etc.
 

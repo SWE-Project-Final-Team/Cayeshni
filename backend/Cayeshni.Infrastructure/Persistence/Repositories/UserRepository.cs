@@ -1,7 +1,6 @@
-using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Users;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
-using Cayeshni.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Infrastructure.Persistence.Repositories;
