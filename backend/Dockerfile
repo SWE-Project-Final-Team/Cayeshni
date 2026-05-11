@@ -37,14 +37,17 @@ RUN addgroup -g 1000 appuser && \
 # Copy published app from build stage
 COPY --from=build --chown=appuser:appuser /app .
 
+# Copy static files (e.g., default profile images) to the container
+COPY Cayeshni.API/wwwroot /app/wwwroot
+
+# Runtime uploads - will be overlaid by Docker volume
+RUN mkdir -p /app/uploads && chown -R appuser:appuser /app/uploads
+
 # Security: Set proper permissions for temporary files and keys
 RUN mkdir -p /tmp && chmod 1777 /tmp && \
     mkdir -p /app/keys && \
     chown -R appuser:appuser /app/keys && \
     chmod 700 /app/keys
-    
-# Ensure uploads directory exists and is owned by non-root appuser
-RUN mkdir -p /app/uploads && chown -R appuser:appuser /app/uploads && chmod 755 /app/uploads
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

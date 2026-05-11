@@ -75,6 +75,8 @@ public static class DependencyInjection
         // File storage service
         services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
+
 
         // Regiser Repositories
         services.AddScoped<IUserRepository, UserRepository>();

@@ -3,11 +3,7 @@ using Cayeshni.Infrastructure;
 using Scalar.AspNetCore;
 using Cayeshni.API.Extensions;
 using Cayeshni.Api.Middleware;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.OpenApi;
 using System.Text.Json.Serialization;
-using System.Text.Json.Nodes;
-using Microsoft.Extensions.FileProviders;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
@@ -58,10 +54,24 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Initialize database with migrations and seeding (seeding only in development if db is empty)
 await app.InitializeDatabaseAsync();
+
+app.UseUploads(); // Serve static files from uploads directory
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -78,23 +88,12 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "Cayeshni API"));
 }
 
-// Ensure uploads directory exists and serve it as static files at /uploads
-var uploadsPath = builder.Configuration["FileStorage:BasePath"] 
-    ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-
-Directory.CreateDirectory(uploadsPath);
-
-// Serve files in the uploads directory at the /uploads URL path
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath  = "/uploads"
-});
-
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
+app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 app.MapGet("/", () => "Cayeshni API");
 
 app.Run();
