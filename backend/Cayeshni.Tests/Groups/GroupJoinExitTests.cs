@@ -1,7 +1,7 @@
-using Cayeshni.Application.Common.Exceptions;
-using Cayeshni.Application.Features.Groups;
-using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Services;
+using Cayeshni.API.Application.Common.Exceptions;
+using Cayeshni.API.Application.Features.Group;
+using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.API.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -189,3 +189,4 @@ public class GroupJoinExitTests
 
     #endregion
 }
+

@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Cayeshni.API.Controllers;
-using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Application.Features.Auth;
-using Cayeshni.Infrastructure.Identity;
-using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Persistence.Options;
-using Cayeshni.Infrastructure.Services;
+using Cayeshni.API.Api.Controllers;
+using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.API.Application.Features.Auth;
+using Cayeshni.API.Infrastructure.Identity;
+using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.API.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -60,7 +60,7 @@ public static class AuthTestHelpers
 
     public static AuthController CreateController(IIdentityService identityService)
     {
-        var controller = new AuthController(new AuthService(identityService), new Cayeshni.API.Services.CookieService(new Cayeshni.Infrastructure.Persistence.Options.JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) }));
+        var controller = new AuthController(new AuthService(identityService), new Cayeshni.API.Api.Services.CookieService(new Cayeshni.API.Infrastructure.Persistence.Options.JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) }));
         controller.ControllerContext = CreateControllerContext();
         return controller;
     }
@@ -124,3 +124,4 @@ public static class AuthTestHelpers
         }
     }
 }
+

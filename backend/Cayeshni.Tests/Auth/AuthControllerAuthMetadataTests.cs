@@ -10,8 +10,8 @@ public class AuthControllerAuthMetadataTests
     [Fact]
     public void Logout_Action_HasAuthorizeAttribute()
     {
-        var method = typeof(Cayeshni.API.Controllers.AuthController)
-            .GetMethod(nameof(Cayeshni.API.Controllers.AuthController.Logout), BindingFlags.Instance | BindingFlags.Public);
+        var method = typeof(Cayeshni.API.Api.Controllers.AuthController)
+            .GetMethod(nameof(Cayeshni.API.Api.Controllers.AuthController.Logout), BindingFlags.Instance | BindingFlags.Public);
 
         Assert.NotNull(method);
         Assert.Contains(method!.GetCustomAttributes(inherit: true), a => a is AuthorizeAttribute);

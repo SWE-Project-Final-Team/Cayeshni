@@ -1,6 +1,6 @@
-using System.Text.Json;
-using Cayeshni.Api.Middleware;
-using Cayeshni.Application.Common.Exceptions;
+﻿using System.Text.Json;
+using Cayeshni.API.Api.Middleware;
+using Cayeshni.API.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -117,3 +117,4 @@ public class ExceptionHandlingMiddlewareTests
         public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }
+

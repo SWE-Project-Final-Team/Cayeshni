@@ -1,12 +1,9 @@
-using Cayeshni.Application;
-using Cayeshni.Infrastructure;
+using Cayeshni.API.Application;
+using Cayeshni.API.Infrastructure;
 using Scalar.AspNetCore;
-using Cayeshni.API.Extensions;
-using Cayeshni.Api.Middleware;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.OpenApi;
+using Cayeshni.API.Api.Extensions;
+using Cayeshni.API.Api.Middleware;
 using System.Text.Json.Serialization;
-using System.Text.Json.Nodes;
 using Microsoft.Extensions.FileProviders;
 
 DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
