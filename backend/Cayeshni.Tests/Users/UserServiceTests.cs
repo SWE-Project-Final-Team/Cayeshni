@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.Application.Common.Exceptions;
-using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Application.Features.Users;
-using Cayeshni.Domain.Entities;
-using Cayeshni.Domain.Enums;
+using Cayeshni.API.Application.Common.Exceptions;
+using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.API.Application.Features.Users;
+using Cayeshni.API.Domain.Entities;
+using Cayeshni.API.Domain.Enums;
 using Xunit;
 
 namespace Cayeshni.Tests.Users;
@@ -247,3 +247,4 @@ public class UserServiceTests
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');
     }
 }
+

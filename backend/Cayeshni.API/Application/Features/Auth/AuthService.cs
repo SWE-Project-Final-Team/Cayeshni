@@ -1,0 +1,30 @@
+using Cayeshni.API.Application.Common.Exceptions;
+using Cayeshni.API.Application.Common.Interfaces;
+
+namespace Cayeshni.API.Application.Features.Auth;
+
+public class AuthService
+{
+    private readonly IIdentityService _identity;
+
+    public AuthService(IIdentityService identity)
+    {
+        _identity = identity;
+    }
+
+    public async Task<TokenPairDto> RegisterAsync(RegisterDto dto)
+    {
+        var name = dto.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
+        {
+            throw new ValidationException("Name must be at least 3 characters.");
+        }
+        return await _identity.RegisterAsync(dto with { Name = name });
+    }
+
+    public Task<TokenPairDto> LoginAsync(LoginDto dto) => _identity.LoginAsync(dto);
+    
+    public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => _identity.RefreshTokenAsync(refreshToken);
+
+    public Task LogoutAsync() => _identity.LogoutAsync();
+}
