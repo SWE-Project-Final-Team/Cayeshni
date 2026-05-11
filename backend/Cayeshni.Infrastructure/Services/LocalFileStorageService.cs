@@ -1,26 +1,38 @@
+using System.ComponentModel.DataAnnotations;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Domain.Enums;
 using Cayeshni.Infrastructure.Persistence.Options;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
-
-namespace Cayeshni.Infrastructure.Services;
 
 public class LocalFileStorageService : IFileStorageService
 {
     private readonly FileStorageOptions _options;
+    private readonly string _basePath;
 
-    public LocalFileStorageService(IOptions<FileStorageOptions> options)
+    public LocalFileStorageService(IWebHostEnvironment env, IOptions<FileStorageOptions> options)
     {
         _options = options.Value;
-        Directory.CreateDirectory(_options.BasePath);
+        _basePath = Path.Combine(env.ContentRootPath, "uploads");
+        Directory.CreateDirectory(_basePath);
     }
 
     public async Task<string> SaveAsync(Stream fileStream, string fileName, string contentType, FileFolder folder)
-    {
+    {    
+        // size validation
+        if (fileStream.Length > _options.MaxUploadSizeMb * 1024 * 1024)
+            throw new ValidationException($"File too large. Max {_options.MaxUploadSizeMb}MB allowed.");
+
+        // extension validation
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        if (!_options.AllowedExtensions.Contains(extension))
+            throw new ValidationException($"Invalid file type. Allowed types: {string.Join(", ", _options.AllowedExtensions)}");
+
         var folderName = folder.ToString().ToLowerInvariant();
-        var folderPath = Path.Combine(_options.BasePath, folderName);
-        
-        Directory.CreateDirectory(folderPath); // Ensure folder exists
+        var folderPath = Path.Combine(_basePath, folderName);
+
+        Directory.CreateDirectory(folderPath);
 
         var uniqueName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
         var fullPath = Path.Combine(folderPath, uniqueName);
@@ -33,7 +45,10 @@ public class LocalFileStorageService : IFileStorageService
 
     public Task DeleteAsync(string relativePath)
     {
-        var fullPath = Path.Combine(_options.BasePath, relativePath);
+        var fullPath = Path.GetFullPath(Path.Combine(_basePath, relativePath));
+
+        if (!fullPath.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Invalid path");
 
         if (File.Exists(fullPath))
             File.Delete(fullPath);
@@ -41,17 +56,10 @@ public class LocalFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
-    public string? GetUrl(string? relativePath)
+    public string GetUrl(string relativePath)
     {
-        if (string.IsNullOrWhiteSpace(relativePath))
-            return null;
-
-        relativePath = relativePath.Replace("\\", "/").TrimStart('/'); // Ensure URL uses forward slashes
-        var fullPath = Path.Combine(_options.BasePath, relativePath);
-
-        if (!File.Exists(fullPath))
-            return null;
-
-        return $"{_options.BaseUrl.TrimEnd('/')}/{relativePath}"; 
+        return $"{_options.BaseUrl.TrimEnd('/')}/uploads/{relativePath.Replace("\\", "/").TrimStart('/')}";
     }
+
+    public string GetBaseUrl() => _options.BaseUrl.TrimEnd('/');
 }

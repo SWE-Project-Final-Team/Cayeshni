@@ -3,10 +3,7 @@ namespace Cayeshni.Infrastructure.Persistence.Options;
 public class FileStorageOptions
 {
     public const string Section = "FileStorage";
-
-    // Absolute path on disk where files are saved
-    public string BasePath { get; set; } = "/app/uploads";
-
-    // Public base URL returned to clients
-    public string BaseUrl  { get; set; } = "http://localhost:8080/uploads";
+    public string BaseUrl { get; set; } = "http://localhost:8080";
+    public int MaxUploadSizeMb { get; set; } = 5;
+    public IEnumerable<string> AllowedExtensions { get; set; } = [".jpg", ".jpeg", ".png", ".webp"];
 }
