@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cayeshni.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260510045632_InitialCreate")]
+    [Migration("20260511202458_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -378,6 +378,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("EmailConfirmed", "CreatedAt");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });

@@ -376,6 +376,8 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
+                    b.HasIndex("EmailConfirmed", "CreatedAt");
+
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
