@@ -35,7 +35,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     [Fact]
@@ -50,6 +50,19 @@ public class AuthServiceTests
         Assert.NotNull(fake.LastRegisterDto);
         Assert.Equal("Bob", fake.LastRegisterDto!.Name);
         Assert.Equal(dto.Email, fake.LastRegisterDto.Email);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-email")]
+    [InlineData("a@b")]
+    public async Task Register_InvalidEmail_Throws(string email)
+    {
+        var fake = new FakeIdentity();
+        var svc = new AuthService(fake);
+
+        var dto = new RegisterDto(email, "Valid Name", "secret", Currency.USD);
+        await Assert.ThrowsAsync<ValidationException>(() => svc.RegisterAsync(dto));
     }
 
     [Theory]
@@ -126,7 +139,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : IIdentityService
@@ -139,7 +152,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingRegisterIdentity : IIdentityService
@@ -152,7 +165,7 @@ public class AuthServiceTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
 

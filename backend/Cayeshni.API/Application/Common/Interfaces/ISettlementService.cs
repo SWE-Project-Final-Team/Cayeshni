@@ -7,5 +7,5 @@ public interface ISettlementService
     Task<SettlementResponseDto> CreateSettlementAsync(Guid userId, CreateSettlementDto dto);
     Task DeleteSettlementAsync(Guid userId, SettlementResponseDto settlement);
     Task UpdateSettlementAsync(Guid userId, SettlementResponseDto settlement);
-    Task<List<SettlementResponseDto>> GetGroupSettlementsAsync(Guid groupId);
+    Task<List<SettlementResponseDto>> GetGroupSettlementsAsync(Guid userId, Guid groupId);
 }

@@ -1,0 +1,343 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { apiJson } from "@/lib/api/client";
+import type {
+  DashboardActivityItemDto,
+  DashboardGroupBalanceDto,
+} from "@/lib/api/types";
+import { currencyCode, currencyValueFromApi } from "@/lib/currency";
+import { useAuth } from "@/lib/auth/auth-context";
+
+function formatMoney(currency: string | number, amount: number): string {
+  const c = currencyValueFromApi(currency);
+  return `${currencyCode(c)} ${amount.toFixed(2)}`;
+}
+
+function displayActor(
+  meId: string | undefined,
+  actorId: string | null,
+  actorName: string | null
+): string {
+  if (!actorName) return "Someone";
+  if (meId && actorId && actorId === meId) return "You";
+  return actorName;
+}
+
+export default function DashboardPage() {
+  const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
+  const [balances, setBalances] = useState<DashboardGroupBalanceDto[] | null>(
+    null
+  );
+  const [activity, setActivity] = useState<DashboardActivityItemDto[] | null>(
+    null
+  );
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accessToken || !emailConfirmed) {
+      setBalances([]);
+      setActivity([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setErr(null);
+      try {
+        const [b, a] = await Promise.all([
+          apiJson<DashboardGroupBalanceDto[]>("/api/dashboard/group-balances", {
+            accessToken,
+          }),
+          apiJson<DashboardActivityItemDto[]>(
+            "/api/dashboard/recent-activity?limit=18",
+            { accessToken }
+          ),
+        ]);
+        if (!cancelled) {
+          setBalances(b);
+          setActivity(a);
+        }
+      } catch (e) {
+        if (!cancelled) setErr(apiErrorMessage(e));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, emailConfirmed, apiErrorMessage]);
+
+  const totalsByCurrency = useMemo(() => {
+    if (!balances?.length) return [];
+    const map = new Map<
+      number,
+      { currency: number; owe: number; owed: number }
+    >();
+    for (const row of balances) {
+      const c = currencyValueFromApi(row.currency);
+      const cur = map.get(c) ?? { currency: c, owe: 0, owed: 0 };
+      cur.owe += row.youOwe;
+      cur.owed += row.youAreOwed;
+      map.set(c, cur);
+    }
+    return [...map.values()];
+  }, [balances]);
+
+  const groupCount = balances?.length ?? 0;
+
+  return (
+    <div className="space-y-xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-md">
+        <div>
+          <h2 className="font-display-lg text-display-lg text-on-surface">
+            Dashboard
+          </h2>
+          <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
+            Balances per group and your latest expense activity.
+          </p>
+        </div>
+        <div className="hidden md:flex items-center gap-sm">
+          <Link
+            href="/expenses"
+            className="bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 flex items-center gap-xs"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Add expense
+          </Link>
+        </div>
+      </div>
+
+      {err && (
+        <div className="rounded-lg border border-error/30 bg-error-container/30 text-error px-md py-sm font-body-md">
+          {err}
+        </div>
+      )}
+
+      {!emailConfirmed && (
+        <div className="rounded-[16px] border border-outline-variant bg-surface-container-lowest p-lg shadow-level-1">
+          <p className="font-body-md text-on-surface">
+            Confirm your email to load balances and activity from the API.
+          </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-md gap-container-margin">
+        <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] p-lg shadow-level-1 flex flex-col justify-between">
+          <div>
+            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+              Active groups
+            </p>
+            <h3 className="font-financial-xl text-financial-xl text-primary mt-sm">
+              {emailConfirmed ? groupCount : "—"}
+            </h3>
+          </div>
+          <Link
+            href="/groups"
+            className="mt-xl text-primary font-label-sm text-label-sm underline hover:text-secondary"
+          >
+            Manage groups
+          </Link>
+        </div>
+        <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] p-lg shadow-level-1">
+          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+            You are owed
+          </p>
+          {emailConfirmed && totalsByCurrency.some((t) => t.owed > 0) ? (
+            <ul className="mt-sm space-y-xs">
+              {totalsByCurrency
+                .filter((t) => t.owed > 0)
+                .map((t) => (
+                <li
+                  key={t.currency}
+                  className="font-financial-xl text-financial-xl text-secondary"
+                >
+                  {formatMoney(t.currency, t.owed)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <h3 className="font-financial-xl text-financial-xl text-secondary mt-sm">
+              {emailConfirmed ? "—" : "—"}
+            </h3>
+          )}
+          <p className="font-label-sm text-label-sm text-on-surface-variant mt-xl">
+            Totals by currency across groups
+          </p>
+        </div>
+        <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] p-lg shadow-level-1">
+          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+            You owe
+          </p>
+          {emailConfirmed && totalsByCurrency.some((t) => t.owe > 0) ? (
+            <ul className="mt-sm space-y-xs">
+              {totalsByCurrency
+                .filter((t) => t.owe > 0)
+                .map((t) => (
+                <li
+                  key={t.currency}
+                  className="font-financial-xl text-financial-xl text-error"
+                >
+                  {formatMoney(t.currency, t.owe)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <h3 className="font-financial-xl text-financial-xl text-error mt-sm">
+              {emailConfirmed ? "—" : "—"}
+            </h3>
+          )}
+          <Link
+            href="/settlements"
+            className="mt-xl text-primary font-label-sm text-label-sm underline hover:text-secondary inline-block"
+          >
+            Settle up
+          </Link>
+        </div>
+      </div>
+
+      <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] shadow-level-1 overflow-hidden">
+        <div className="p-lg border-b border-outline-variant flex justify-between items-center gap-md flex-wrap">
+          <h3 className="font-headline-md text-headline-md text-on-surface">
+            Per-group balances
+          </h3>
+          <Link
+            href="/groups"
+            className="text-secondary font-label-sm text-label-sm hover:underline shrink-0"
+          >
+            Groups
+          </Link>
+        </div>
+        {!emailConfirmed || balances === null ? (
+          <p className="p-lg font-body-md text-on-surface-variant">
+            {emailConfirmed ? "Loading…" : "—"}
+          </p>
+        ) : balances.length === 0 ? (
+          <p className="p-lg font-body-md text-on-surface-variant">
+            Join a group to see how much you owe and are owed.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant/60 text-label-sm text-on-surface-variant uppercase tracking-wider">
+                  <th className="p-md font-label-sm">Group</th>
+                  <th className="p-md font-label-sm text-right">You owe</th>
+                  <th className="p-md font-label-sm text-right">You are owed</th>
+                  <th className="p-md font-label-sm w-px whitespace-nowrap" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/40">
+                {balances.map((row) => (
+                  <tr key={row.groupId} className="text-on-surface">
+                    <td className="p-md font-semibold">{row.groupName}</td>
+                    <td className="p-md text-right text-error tabular-nums">
+                      {row.youOwe > 0
+                        ? formatMoney(row.currency, row.youOwe)
+                        : "—"}
+                    </td>
+                    <td className="p-md text-right text-secondary tabular-nums">
+                      {row.youAreOwed > 0
+                        ? formatMoney(row.currency, row.youAreOwed)
+                        : "—"}
+                    </td>
+                    <td className="p-md">
+                      <Link
+                        href={`/expenses?group=${encodeURIComponent(row.groupId)}`}
+                        className="text-secondary font-label-sm hover:underline whitespace-nowrap"
+                      >
+                        Expenses
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] shadow-level-1 flex flex-col">
+        <div className="p-lg border-b border-outline-variant flex justify-between items-center gap-md flex-wrap">
+          <h3 className="font-headline-md text-headline-md text-on-surface">
+            Recent activity
+          </h3>
+          <Link
+            href="/expenses"
+            className="text-secondary font-label-sm text-label-sm hover:underline shrink-0"
+          >
+            View expenses
+          </Link>
+        </div>
+        {!emailConfirmed || activity === null ? (
+          <p className="p-lg font-body-md text-on-surface-variant">
+            {emailConfirmed ? "Loading…" : "—"}
+          </p>
+        ) : activity.length === 0 ? (
+          <p className="p-lg font-body-md text-on-surface-variant">
+            No transactions or settlements yet in your groups.
+          </p>
+        ) : (
+          <ul className="divide-y divide-outline-variant/40">
+            {activity.map((item) => {
+              const me = profile?.id;
+              const when = new Date(item.createdAt).toLocaleString();
+              const amountStr = formatMoney(item.currency, item.amount);
+              let title: string;
+              if (item.kind === "transaction") {
+                const who = displayActor(me, item.actorUserId, item.actorName);
+                const desc = item.description?.trim();
+                title = desc
+                  ? `${who} paid ${amountStr} · ${desc}`
+                  : `${who} paid ${amountStr}`;
+              } else {
+                const payer = displayActor(
+                  me,
+                  item.actorUserId,
+                  item.actorName
+                );
+                const payee = displayActor(
+                  me,
+                  item.counterpartyUserId,
+                  item.counterpartyName
+                );
+                title = `${payer} paid ${payee} ${amountStr}`;
+              }
+              const href =
+                item.kind === "transaction"
+                  ? `/expenses?group=${encodeURIComponent(item.groupId)}`
+                  : "/settlements";
+
+              return (
+                <li key={`${item.kind}-${item.id}`}>
+                  <Link
+                    href={href}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-xs p-md hover:bg-secondary-fixed/20 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-body-md text-on-surface">{title}</p>
+                      <p className="text-sm text-on-surface-variant mt-xs">
+                        <span className="font-medium text-on-surface/90">
+                          {item.groupName}
+                        </span>
+                        {item.kind === "settlement" &&
+                          item.note?.trim() && (
+                            <span className="ml-sm">· {item.note}</span>
+                          )}
+                      </p>
+                    </div>
+                    <time
+                      dateTime={item.createdAt}
+                      className="shrink-0 text-xs text-on-surface-variant tabular-nums"
+                    >
+                      {when}
+                    </time>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}

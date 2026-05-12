@@ -47,7 +47,7 @@ public class GroupService : IGroupService
         );
     }
 
-    public async Task JoinGroupAsync(Guid userId, JoinGroupDto dto)
+    public async Task<GroupResponseDto> JoinGroupAsync(Guid userId, JoinGroupDto dto)
     {
         var group = await _context.Groups
             .Include(g => g.Members)
@@ -65,6 +65,47 @@ public class GroupService : IGroupService
         });
 
         await _context.SaveChangesAsync();
+
+        return new GroupResponseDto(
+            group.Id,
+            group.Name,
+            group.InviteToken,
+            group.CreatedById,
+            group.DefaultCurrency
+        );
+    }
+
+    public async Task<GroupDetailDto> GetGroupDetailAsync(Guid userId, Guid groupId)
+    {
+        var group = await _context.Groups
+            .Include(g => g.Members)
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.Members.Any(m => m.UserId == userId))
+            ?? throw new NotFoundException(nameof(Group), groupId);
+
+        var memberIds = group.Members.Select(m => m.UserId).Distinct().ToList();
+        var nameByUserId = await _context.Users
+            .Where(u => memberIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Name);
+
+        var members = group.Members
+            .OrderBy(m => m.JoinedAt)
+            .ThenBy(m => m.UserId)
+            .Select(m => new GroupMemberSummaryDto(
+                m.UserId,
+                nameByUserId.GetValueOrDefault(m.UserId) ?? "Unknown",
+                m.JoinedAt,
+                m.UserId == group.CreatedById
+            ))
+            .ToList();
+
+        return new GroupDetailDto(
+            group.Id,
+            group.Name,
+            group.InviteToken,
+            group.CreatedById,
+            group.DefaultCurrency,
+            members
+        );
     }
 
     public async Task ExitGroupAsync(Guid userId, Guid groupId)

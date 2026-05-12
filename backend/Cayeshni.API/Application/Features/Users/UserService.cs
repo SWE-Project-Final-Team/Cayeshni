@@ -32,6 +32,32 @@ public class UserService : IUserService
         );
     }
 
+    public async Task<IReadOnlyList<UserProfileSearchDto>> SearchProfilesByDisplayNameAsync(
+        Guid currentUserId,
+        string query)
+    {
+        var q = query.Trim();
+        if (q.Length < 2)
+            return Array.Empty<UserProfileSearchDto>();
+
+        if (q.Length > 80)
+            q = q[..80];
+
+        var users = await _userRepository.SearchByDisplayNameAsync(q, currentUserId, 20);
+        var list = new List<UserProfileSearchDto>(users.Count);
+        foreach (var u in users)
+        {
+            var pictureUrl = _fileStorageService.GetUrl(u.ProfilePicturePath);
+            list.Add(new UserProfileSearchDto(
+                u.Id,
+                u.Name,
+                u.Email,
+                pictureUrl));
+        }
+
+        return list;
+    }
+
     public async Task UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
     {
         var name = dto.Name?.Trim();

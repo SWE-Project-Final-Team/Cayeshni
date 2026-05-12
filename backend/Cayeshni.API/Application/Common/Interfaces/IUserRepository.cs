@@ -12,4 +12,7 @@ public interface IUserRepository
     Task UpdateProfileAsync(Guid userId, string name, Currency currency);
 
     Task UpdatePictureAsync(Guid userId, string? picturePath);
+
+    /// <summary>Case-insensitive substring match on display name; excludes <paramref name="excludeUserId"/>.</summary>
+    Task<IReadOnlyList<User>> SearchByDisplayNameAsync(string query, Guid excludeUserId, int take);
 }

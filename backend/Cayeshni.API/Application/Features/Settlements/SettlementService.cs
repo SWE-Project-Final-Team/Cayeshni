@@ -22,10 +22,18 @@ public class SettlementService : ISettlementService
         if (userId != dto.PayerUserId)
             throw new ValidationException("User can only create settlements as the payer.");
 
-        // Fetch the group to validate currency
+        // Fetch the group to validate currency and membership
         var group = await _context.Groups
+            .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == dto.GroupId)
             ?? throw new NotFoundException(nameof(Group), dto.GroupId);
+
+        var memberIds = group.Members.Select(m => m.UserId).ToHashSet();
+        if (!memberIds.Contains(dto.PayerUserId) || !memberIds.Contains(dto.PayeeUserId))
+            throw new ValidationException("Payer and payee must be members of the group.");
+
+        if (dto.PayerUserId == dto.PayeeUserId)
+            throw new ValidationException("Payer and payee must be different users.");
 
         // Validate currency matches group's default currency
         if (dto.Currency != group.DefaultCurrency)
@@ -46,6 +54,9 @@ public class SettlementService : ISettlementService
         {
             var transaction = transactions.FirstOrDefault(t => t.Id == allocation.TransactionId)
                 ?? throw new NotFoundException(nameof(Transaction), allocation.TransactionId);
+
+            if (transaction.GroupId != dto.GroupId)
+                throw new ValidationException($"Transaction {allocation.TransactionId} does not belong to this group.");
 
             var transactionMember = transaction.TransactionMembers
                 .FirstOrDefault(tm => tm.UserId == allocation.DebtorUserId)
@@ -139,11 +150,20 @@ public class SettlementService : ISettlementService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<SettlementResponseDto>> GetGroupSettlementsAsync(Guid groupId)
+    public async Task<List<SettlementResponseDto>> GetGroupSettlementsAsync(Guid userId, Guid groupId)
     {
+        var group = await _context.Groups
+            .Include(g => g.Members)
+            .FirstOrDefaultAsync(g => g.Id == groupId)
+            ?? throw new NotFoundException(nameof(Group), groupId);
+
+        if (!group.Members.Any(m => m.UserId == userId))
+            throw new ValidationException("User is not a member of this group.");
+
         var settlements = await _context.Settlements
             .Where(s => s.GroupId == groupId)
             .Include(s => s.Allocations)
+            .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
 
         return settlements.Select(s => new SettlementResponseDto(

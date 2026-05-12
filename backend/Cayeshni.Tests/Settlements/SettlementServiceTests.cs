@@ -265,10 +265,46 @@ public class SettlementServiceTests
         await service.CreateSettlementAsync(userId2, dto2);
 
         // Act
-        var result = await service.GetGroupSettlementsAsync(groupId);
+        var result = await service.GetGroupSettlementsAsync(userId1, groupId);
 
         // Assert
         Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task GetGroupSettlementsAsync_NonMember_Throws()
+    {
+        var context = GetTestDbContext();
+        var service = new SettlementService(context);
+        var (_, _, groupId, _) = await SetupTestDataAsync(context);
+        var outsider = Guid.NewGuid();
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => service.GetGroupSettlementsAsync(outsider, groupId));
+    }
+
+    [Fact]
+    public async Task CreateSettlementAsync_PayerAndPayeeSame_Throws()
+    {
+        var context = GetTestDbContext();
+        var service = new SettlementService(context);
+        var (_, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
+
+        var dto = new CreateSettlementDto(
+            groupId,
+            userId2,
+            userId2,
+            100m,
+            Currency.USD,
+            null,
+            new List<SettlementAllocationDto>
+            {
+                new(transactionId, userId2, 100m)
+            }
+        );
+
+        await Assert.ThrowsAsync<ValidationException>(
+            () => service.CreateSettlementAsync(userId2, dto));
     }
 
     [Fact]

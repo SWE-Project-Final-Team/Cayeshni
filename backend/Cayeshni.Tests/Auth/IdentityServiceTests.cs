@@ -135,7 +135,7 @@ public class IdentityServiceTests
         await using var ctx = AuthTestHelpers.CreateContext();
         var svc = AuthTestHelpers.CreateIdentityService(ctx, requireEmailConfirmation: false);
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => svc.ResendConfirmationAsync(Guid.NewGuid()));
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => svc.ResendConfirmationAsync("any@test.com"));
         Assert.Contains("Not enabled", ex.Message);
     }
 }

@@ -248,8 +248,7 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Currency")
                         .HasColumnType("integer");
@@ -382,6 +381,8 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("EmailConfirmed", "CreatedAt");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });

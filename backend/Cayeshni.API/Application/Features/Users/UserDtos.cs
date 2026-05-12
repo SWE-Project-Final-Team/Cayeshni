@@ -19,3 +19,11 @@ public record UpdateProfileDto(
 public record UploadPictureResponseDto(
     string PictureUrl
 );
+
+/// <summary>Lightweight row for profile search / friend invite picker.</summary>
+public record UserProfileSearchDto(
+    Guid Id,
+    string Name,
+    string Email,
+    string? ProfilePictureUrl
+);

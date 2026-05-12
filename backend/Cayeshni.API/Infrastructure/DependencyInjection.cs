@@ -7,6 +7,7 @@ using Cayeshni.API.Infrastructure.Services;
 using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Infrastructure.Persistence.Options;
 using Cayeshni.API.Infrastructure.Persistence.Repositories;
+using Microsoft.Extensions.Hosting;
 
 namespace Cayeshni.API.Infrastructure;
 
@@ -69,14 +70,22 @@ public static class DependencyInjection
         services.AddHttpClient<BrevoEmailService>();
         services.AddScoped<IEmailService, BrevoEmailService>();
 
-        // File storage service
-        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
+        // File storage service — BasePath must be absolute for Docker/Linux (PhysicalFileProvider, file IO)
+        services.AddOptions<FileStorageOptions>()
+            .Bind(configuration.GetSection(FileStorageOptions.Section))
+            .PostConfigure<IHostEnvironment>((opts, env) =>
+            {
+                if (string.IsNullOrWhiteSpace(opts.BasePath))
+                    opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, "uploads"));
+                else if (!Path.IsPathRooted(opts.BasePath))
+                    opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.BasePath));
+            });
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         // Regiser Repositories
         services.AddScoped<IUserRepository, UserRepository>();
 
-        // Add other services like repositories, external API clients, etc.
+        services.AddHostedService<UnverifiedUserCleanupService>();
 
         return services;
     }

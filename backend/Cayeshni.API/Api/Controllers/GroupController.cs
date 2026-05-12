@@ -32,7 +32,7 @@ public class GroupController : ControllerBase
     }
 
     [HttpPost("join")]
-    public async Task<IActionResult> JoinGroup(JoinGroupDto dto)
+    public async Task<ActionResult<GroupResponseDto>> JoinGroup(JoinGroupDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                      ?? User.FindFirstValue("sub");
@@ -40,21 +40,8 @@ public class GroupController : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        await _groupService.JoinGroupAsync(Guid.Parse(userId), dto);
-        return Ok();
-    }
-
-    [HttpPost("exit")]
-    public async Task<IActionResult> ExitGroup(Guid groupId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-            await _groupService.ExitGroupAsync(Guid.Parse(userId), groupId);
-        return Ok();
+        var result = await _groupService.JoinGroupAsync(Guid.Parse(userId), dto);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -68,6 +55,32 @@ public class GroupController : ControllerBase
 
         var result = await _groupService.GetUserGroupsAsync(Guid.Parse(userId));
         return Ok(result);
+    }
+
+    [HttpGet("{groupId:guid}")]
+    public async Task<ActionResult<GroupDetailDto>> GetGroup(Guid groupId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _groupService.GetGroupDetailAsync(Guid.Parse(userId), groupId);
+        return Ok(result);
+    }
+
+    [HttpPost("exit")]
+    public async Task<IActionResult> ExitGroup(Guid groupId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+            await _groupService.ExitGroupAsync(Guid.Parse(userId), groupId);
+        return Ok();
     }
 
     [HttpDelete]

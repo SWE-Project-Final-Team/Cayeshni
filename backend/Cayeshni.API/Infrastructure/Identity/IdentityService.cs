@@ -65,8 +65,7 @@ public class IdentityService : IIdentityService
             }
         }
 
-        // Return tokens (limited token will reflect user's EmailConfirmed state)
-        return await IssueTokensAsync(appUser.Id);
+        return await IssueTokensAsync(appUser);
     }
 
     public async Task<TokenPairDto> LoginAsync(LoginDto dto)
@@ -81,16 +80,18 @@ public class IdentityService : IIdentityService
         if (_requireEmailConfirmation && !appUser.EmailConfirmed)
             throw new UnauthorizedException("Please confirm your email first.");
 
-        // Always issue token; token contains email_confirmed claim reflecting current state
-        return await IssueTokensAsync(appUser.Id);
+        return await IssueTokensAsync(appUser);
     }
 
     public async Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
     {
-        var userId = _jwtService.ValidateRefreshToken(refreshToken) 
+        var userId = _jwtService.ValidateRefreshToken(refreshToken)
             ?? throw new UnauthorizedException("Invalid refresh token.");
 
-        return await IssueTokensAsync(userId);
+        var appUser = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new UnauthorizedException("Invalid refresh token.");
+
+        return await IssueTokensAsync(appUser);
     }
 
     public Task LogoutAsync()
@@ -158,13 +159,17 @@ public class IdentityService : IIdentityService
             throw new ValidationException("Invalid or expired confirmation token.");
     }
 
-    public async Task ResendConfirmationAsync(Guid userId)
+    public async Task ResendConfirmationAsync(string email)
     {
         if (!_requireEmailConfirmation)
             throw new ValidationException("Not enabled.");
 
-        var user = await _userManager.FindByIdAsync(userId.ToString())
-            ?? throw new NotFoundException(nameof(AppUser), userId);
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        var user = await _userManager.FindByEmailAsync(email.Trim());
+        if (user is null)
+            return;
 
         if (await _userManager.IsEmailConfirmedAsync(user))
             throw new ValidationException("Email is already confirmed.");
@@ -172,21 +177,15 @@ public class IdentityService : IIdentityService
         await SendConfirmationEmailAsync(user);
     }
 
-    // Heper functions
-    private async Task<TokenPairDto> IssueTokensAsync(Guid userId)
+    private Task<TokenPairDto> IssueTokensAsync(AppUser user)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString())
-            ?? throw new NotFoundException(nameof(AppUser), userId);
+        var accessToken = _jwtService.GenerateAccessToken(user.Id, user.EmailConfirmed);
+        var refreshToken = _jwtService.GenerateRefreshToken(user.Id);
 
-        var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-
-        var accessToken = _jwtService.GenerateAccessToken(userId, emailConfirmed);
-        var refreshToken = _jwtService.GenerateRefreshToken(userId);
-
-        return new TokenPairDto(
+        return Task.FromResult(new TokenPairDto(
             AccessToken: accessToken,
             RefreshToken: refreshToken
-        );
+        ));
     }
 
     private async Task SendConfirmationEmailAsync(AppUser user)

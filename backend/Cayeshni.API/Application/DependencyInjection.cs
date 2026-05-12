@@ -5,6 +5,7 @@ using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Application.Features.Users.Friends;
 using Cayeshni.API.Application.Features.Settlements;
 using Cayeshni.API.Application.Features.Transactions;
+using Cayeshni.API.Application.Features.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cayeshni.API.Application;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<FriendService>();
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<TransactionService>();
+        services.AddScoped<DashboardService>();
 
         // Register other application services, handlers, etc.
 

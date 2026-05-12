@@ -45,7 +45,7 @@ public class AuthControllerTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
 
         private static string CreateAccessToken(bool emailConfirmed)
         {
@@ -153,7 +153,7 @@ public class AuthControllerTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingRegisterIdentity : IIdentityService
@@ -166,7 +166,7 @@ public class AuthControllerTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
     private class ThrowingLoginIdentity : Cayeshni.API.Application.Common.Interfaces.IIdentityService
@@ -179,7 +179,7 @@ public class AuthControllerTests
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
         public Task ResetPasswordAsync(ResetPasswordDto dto) => Task.CompletedTask;
         public Task ConfirmEmailAsync(ConfirmEmailDto dto) => Task.CompletedTask;
-        public Task ResendConfirmationAsync(Guid userId) => Task.CompletedTask;
+        public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
 

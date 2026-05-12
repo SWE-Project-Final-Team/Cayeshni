@@ -1,0 +1,496 @@
+"use client";
+
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { apiJson } from "@/lib/api/client";
+import type {
+  GroupDto,
+  GroupMemberBalanceDto,
+  TransactionDto,
+} from "@/lib/api/types";
+import { currencyCode, currencyValueFromApi } from "@/lib/currency";
+import { equalParts, toCents } from "@/lib/money-split";
+import { useAuth } from "@/lib/auth/auth-context";
+import { ListboxSelect } from "@/components/listbox-select";
+
+const CATEGORIES: { value: number; label: string }[] = [
+  { value: 0, label: "Transport" },
+  { value: 1, label: "Food" },
+  { value: 2, label: "Accommodation" },
+  { value: 3, label: "Entertainment" },
+  { value: 4, label: "Utilities" },
+  { value: 5, label: "Shopping" },
+  { value: 6, label: "Other" },
+];
+
+function categoryLabel(c: number): string {
+  return CATEGORIES.find((x) => x.value === c)?.label ?? `Category ${c}`;
+}
+
+function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): GroupDto {
+  return {
+    ...g,
+    defaultCurrency: currencyValueFromApi(g.defaultCurrency),
+  };
+}
+
+export default function ExpensesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
+          Loading expenses…
+        </div>
+      }
+    >
+      <ExpensesPageInner />
+    </Suspense>
+  );
+}
+
+function ExpensesPageInner() {
+  const searchParams = useSearchParams();
+  const urlGroupApplied = useRef(false);
+  const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
+  const [groups, setGroups] = useState<GroupDto[]>([]);
+  const [groupId, setGroupId] = useState("");
+  const [txs, setTxs] = useState<TransactionDto[]>([]);
+  const [members, setMembers] = useState<GroupMemberBalanceDto[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [formErr, setFormErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState(6);
+  const [equalSplit, setEqualSplit] = useState(true);
+  const [customParts, setCustomParts] = useState<Record<string, string>>({});
+
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.id === groupId),
+    [groups, groupId]
+  );
+
+  const groupOptions = useMemo(
+    () =>
+      groups.map((g) => ({
+        value: g.id,
+        label: g.name,
+        description: `Default currency · ${currencyCode(g.defaultCurrency)}`,
+      })),
+    [groups]
+  );
+
+  const categoryOptions = useMemo(
+    () =>
+      CATEGORIES.map((c) => ({
+        value: String(c.value),
+        label: c.label,
+      })),
+    []
+  );
+
+  const loadGroups = useCallback(async () => {
+    if (!accessToken || !emailConfirmed) return;
+    try {
+      const raw = await apiJson<
+        (GroupDto & { defaultCurrency?: string | number })[]
+      >("/api/groups", { accessToken });
+      setGroups(raw.map(normalizeGroup));
+      setGroupId((prev) => prev || raw[0]?.id || "");
+    } catch (e) {
+      setErr(apiErrorMessage(e));
+    }
+  }, [accessToken, emailConfirmed, apiErrorMessage]);
+
+  const loadTx = useCallback(async () => {
+    if (!accessToken || !emailConfirmed || !groupId) {
+      setTxs([]);
+      return;
+    }
+    setErr(null);
+    try {
+      const data = await apiJson<TransactionDto[]>(
+        `/api/transactions/group/${groupId}`,
+        { accessToken }
+      );
+      setTxs(data);
+    } catch (e) {
+      setErr(apiErrorMessage(e));
+      setTxs([]);
+    }
+  }, [accessToken, emailConfirmed, groupId, apiErrorMessage]);
+
+  const loadMembers = useCallback(async () => {
+    if (!accessToken || !emailConfirmed || !groupId) {
+      setMembers([]);
+      return;
+    }
+    try {
+      const data = await apiJson<GroupMemberBalanceDto[]>(
+        `/api/transactions/group/${groupId}/debts`,
+        { accessToken }
+      );
+      setMembers(data);
+    } catch {
+      setMembers([]);
+    }
+  }, [accessToken, emailConfirmed, groupId]);
+
+  useEffect(() => {
+    void loadGroups();
+  }, [loadGroups]);
+
+  useEffect(() => {
+    if (groups.length === 0 || urlGroupApplied.current) return;
+    const g = searchParams.get("group");
+    if (g && groups.some((x) => x.id === g)) {
+      setGroupId(g);
+    }
+    urlGroupApplied.current = true;
+  }, [groups, searchParams]);
+
+  useEffect(() => {
+    void loadTx();
+  }, [loadTx]);
+
+  useEffect(() => {
+    void loadMembers();
+  }, [loadMembers]);
+
+  const memberIds = useMemo(
+    () => members.map((m) => m.userId).sort(),
+    [members]
+  );
+
+  useEffect(() => {
+    const total = parseFloat(amount.replace(",", ".")) || 0;
+    if (!equalSplit || memberIds.length === 0 || total <= 0) return;
+    const parts = equalParts(total, memberIds.length);
+    const next: Record<string, string> = {};
+    memberIds.forEach((id, i) => {
+      next[id] = parts[i]?.toFixed(2) ?? "0.00";
+    });
+    setCustomParts(next);
+  }, [amount, equalSplit, memberIds]);
+
+  async function addTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    if (!accessToken || !groupId || !selectedGroup) return;
+
+    const total = parseFloat(amount.replace(",", ".")) || 0;
+    if (total <= 0) {
+      setFormErr("Enter an amount greater than zero.");
+      return;
+    }
+    if (memberIds.length === 0) {
+      setFormErr("This group has no members to split with yet.");
+      return;
+    }
+
+    let splits: { userId: string; amountOwed: number }[];
+    if (equalSplit) {
+      const parts = equalParts(total, memberIds.length);
+      splits = memberIds.map((userId, i) => ({
+        userId,
+        amountOwed: parts[i] ?? 0,
+      }));
+    } else {
+      splits = memberIds.map((userId) => ({
+        userId,
+        amountOwed: parseFloat((customParts[userId] ?? "0").replace(",", ".")) || 0,
+      }));
+    }
+
+    const sumCents = splits.reduce((s, x) => s + toCents(x.amountOwed), 0);
+    if (sumCents !== toCents(total)) {
+      setFormErr(
+        `Splits must add up to ${total.toFixed(2)} ${currencyCode(selectedGroup.defaultCurrency)}. Current: ${(sumCents / 100).toFixed(2)}.`
+      );
+      return;
+    }
+
+    setFormErr(null);
+    setSubmitting(true);
+    try {
+      await apiJson<TransactionDto>("/api/transactions", {
+        method: "POST",
+        accessToken,
+        json: {
+          groupId,
+          totalAmount: total,
+          currency: selectedGroup.defaultCurrency,
+          category,
+          description: description.trim() || null,
+          members: splits,
+        },
+      });
+      setAmount("");
+      setDescription("");
+      setCategory(6);
+      setEqualSplit(true);
+      await loadTx();
+    } catch (e) {
+      setFormErr(apiErrorMessage(e));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!emailConfirmed) {
+    return (
+      <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
+        Confirm your email to load expenses from the API.
+      </div>
+    );
+  }
+
+  const currencyLabel = selectedGroup
+    ? currencyCode(selectedGroup.defaultCurrency)
+    : "";
+
+  return (
+    <div className="space-y-xl">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-md">
+        <div>
+          <h2 className="font-display-lg text-display-lg text-on-surface">
+            Expenses
+          </h2>
+          <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
+            Add transactions for a group. Amounts use the group&apos;s default
+            currency ({currencyLabel || "—"}). You are recorded as the person
+            who paid.
+          </p>
+        </div>
+        <div className="flex flex-col gap-xs w-full sm:w-auto sm:min-w-[260px]">
+          <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+            Group
+          </span>
+          <ListboxSelect
+            value={groupId}
+            onChange={setGroupId}
+            options={groupOptions}
+            placeholder="Choose a group"
+            emptyMessage="No groups yet — create one under Groups"
+            leadingIcon="groups"
+            className="w-full min-w-0 sm:min-w-[240px]"
+            align="end"
+          />
+        </div>
+      </div>
+
+      {err && (
+        <div className="rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
+          {err}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-lg">
+        <div className="xl:col-span-7 space-y-md">
+          <div className="bg-surface rounded-[16px] border border-outline-variant shadow-level-1 overflow-hidden">
+            <div className="bg-surface-container-low px-lg py-sm font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant">
+              Transactions
+            </div>
+            {txs.length === 0 ? (
+              <div className="p-lg font-body-md text-on-surface-variant">
+                No transactions in this group yet.
+              </div>
+            ) : (
+              <ul>
+                {txs.map((t, i) => (
+                  <li
+                    key={t.id}
+                    className={`flex items-center justify-between p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
+                      i % 2 === 1 ? "bg-surface-container-low" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-md min-w-0">
+                      <div className="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0">
+                        <span className="material-symbols-outlined text-[22px]">
+                          receipt_long
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-body-md text-body-md font-bold text-on-surface truncate">
+                          {t.description || categoryLabel(t.category)}
+                        </div>
+                        <div className="font-label-sm text-label-sm text-on-surface-variant">
+                          Paid by{" "}
+                          {profile?.id === t.paidByUserId
+                            ? "you"
+                            : `${t.paidByUserId.slice(0, 8)}…`}{" "}
+                          · {categoryLabel(t.category)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-financial-xl text-[20px] leading-tight text-on-surface">
+                        {currencyCode(t.currency)} {t.totalAmount.toFixed(2)}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <div className="xl:col-span-5">
+          <form
+            onSubmit={addTransaction}
+            className="bg-surface rounded-[16px] border border-outline-variant shadow-level-2 p-lg sticky top-lg space-y-md"
+          >
+            <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-sm">
+              Add expense
+            </h3>
+
+            {formErr && (
+              <div className="rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md text-sm">
+                {formErr}
+              </div>
+            )}
+
+            {!selectedGroup ? (
+              <p className="font-body-md text-on-surface-variant">
+                Select a group to add an expense.
+              </p>
+            ) : (
+              <>
+                <p className="font-label-sm text-on-surface-variant">
+                  Currency:{" "}
+                  <span className="text-on-surface font-semibold">
+                    {currencyLabel}
+                  </span>{" "}
+                  (must match the group — set when the group was created)
+                </p>
+
+                <div>
+                  <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
+                    Amount ({currencyLabel})
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-financial-xl text-[24px] text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
+                    Description (optional)
+                  </label>
+                  <input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Dinner, rent, taxi…"
+                    className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+
+                <div>
+                  <span className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
+                    Category
+                  </span>
+                  <ListboxSelect
+                    value={String(category)}
+                    onChange={(v) => setCategory(Number(v))}
+                    options={categoryOptions}
+                    placeholder="Pick a category"
+                    leadingIcon="category"
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="border border-outline-variant/60 rounded-lg p-md space-y-sm">
+                  <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                    Split between members
+                  </p>
+                  <label className="flex items-center gap-sm cursor-pointer font-body-md text-on-surface">
+                    <input
+                      type="radio"
+                      name="split"
+                      checked={equalSplit}
+                      onChange={() => setEqualSplit(true)}
+                      className="accent-secondary"
+                    />
+                    Equal split ({memberIds.length} member
+                    {memberIds.length === 1 ? "" : "s"})
+                  </label>
+                  <label className="flex items-center gap-sm cursor-pointer font-body-md text-on-surface">
+                    <input
+                      type="radio"
+                      name="split"
+                      checked={!equalSplit}
+                      onChange={() => {
+                        setEqualSplit(false);
+                        const total = parseFloat(amount.replace(",", ".")) || 0;
+                        if (total > 0 && memberIds.length > 0) {
+                          const parts = equalParts(total, memberIds.length);
+                          const next: Record<string, string> = {};
+                          memberIds.forEach((id, i) => {
+                            next[id] = (parts[i] ?? 0).toFixed(2);
+                          });
+                          setCustomParts(next);
+                        }
+                      }}
+                      className="accent-secondary"
+                    />
+                    Custom amounts
+                  </label>
+                </div>
+
+                {!equalSplit && memberIds.length > 0 && (
+                  <div className="space-y-sm max-h-48 overflow-y-auto pr-xs">
+                    {memberIds.map((id) => (
+                      <div
+                        key={id}
+                        className="flex items-center justify-between gap-sm"
+                      >
+                        <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
+                          {id === profile?.id ? "You" : `${id.slice(0, 8)}…`}
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={customParts[id] ?? ""}
+                          onChange={(e) =>
+                            setCustomParts((prev) => ({
+                              ...prev,
+                              [id]: e.target.value,
+                            }))
+                          }
+                          className="w-28 bg-surface border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting || !groupId || memberIds.length === 0}
+                  className="w-full bg-secondary text-on-secondary font-label-sm py-md rounded-lg hover:bg-secondary/90 disabled:opacity-50 flex justify-center items-center gap-sm"
+                >
+                  {submitting ? (
+                    "Saving…"
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[20px]">
+                        add
+                      </span>
+                      Add transaction
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

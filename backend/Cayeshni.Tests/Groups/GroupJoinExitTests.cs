@@ -29,9 +29,11 @@ public class GroupJoinExitTests
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Test"));
 
         // Act
-        await service.JoinGroupAsync(userId, new JoinGroupDto(groupResult.InviteToken));
+        var joined = await service.JoinGroupAsync(userId, new JoinGroupDto(groupResult.InviteToken));
 
         // Assert
+        Assert.Equal(groupResult.Id, joined.Id);
+        Assert.Equal(groupResult.Name, joined.Name);
         var group = await context.Groups
             .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == groupResult.Id);

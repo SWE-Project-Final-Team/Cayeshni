@@ -1,6 +1,5 @@
 ﻿using Cayeshni.API.Api.Extensions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Auth;
+using Cayeshni.API.Application.Features.Dashboard;
 using Cayeshni.API.Application.Features.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,15 +11,14 @@ namespace Cayeshni.API.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly IIdentityService  _identity;
+    private readonly DashboardService _dashboardService;
 
-    public UsersController(IUserService userService, IIdentityService identity)
+    public UsersController(IUserService userService, DashboardService dashboardService)
     {
         _userService = userService;
-        _identity = identity;
+        _dashboardService = dashboardService;
     }
 
-    // Profile
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserProfileDto>> GetMe()
@@ -28,6 +26,16 @@ public class UsersController : ControllerBase
         var userId = User.GetUserId();
         var profile = await _userService.GetProfileAsync(userId);
         return Ok(profile);
+    }
+
+    [Authorize]
+    [HttpGet("search")]
+    public async Task<ActionResult<IReadOnlyList<UserProfileSearchDto>>> SearchProfiles(
+        [FromQuery(Name = "q")] string? q)
+    {
+        var userId = User.GetUserId();
+        var results = await _userService.SearchProfilesByDisplayNameAsync(userId, q ?? "");
+        return Ok(results);
     }
 
     [Authorize]
@@ -67,45 +75,22 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    // Password
     [Authorize]
-    [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    [HttpGet("~/api/dashboard/group-balances")]
+    public async Task<ActionResult<IReadOnlyList<DashboardGroupBalanceDto>>> DashboardGroupBalances()
     {
         var userId = User.GetUserId();
-        await _identity.ChangePasswordAsync(userId, dto);
-        return NoContent();
+        var result = await _dashboardService.GetGroupBalancesAsync(userId);
+        return Ok(result);
     }
 
-    [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
-    {
-        await _identity.ForgotPasswordAsync(dto.Email);
-        return Ok(new { message = "If that email exists, a reset link has been sent." });
-    }
-
-    [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
-    {
-        await _identity.ResetPasswordAsync(dto);
-        return NoContent();
-    }
-
-    // Email confirmation
-    [Authorize(Policy = "LimitedAccess")]
-    [HttpPost("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
-    {
-        await _identity.ConfirmEmailAsync(dto);
-        return NoContent();
-    }
-
-    [Authorize(Policy = "LimitedAccess")]
-    [HttpPost("resend-confirmation")]
-    public async Task<IActionResult> ResendConfirmation()
+    [Authorize]
+    [HttpGet("~/api/dashboard/recent-activity")]
+    public async Task<ActionResult<IReadOnlyList<DashboardActivityItemDto>>> DashboardRecentActivity(
+        [FromQuery] int limit = 20)
     {
         var userId = User.GetUserId();
-        await _identity.ResendConfirmationAsync(userId);
-        return Ok(new { message = "Confirmation email sent." });
+        var result = await _dashboardService.GetRecentActivityAsync(userId, limit);
+        return Ok(result);
     }
 }

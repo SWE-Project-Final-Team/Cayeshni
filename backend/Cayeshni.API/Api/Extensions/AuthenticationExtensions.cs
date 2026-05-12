@@ -48,21 +48,13 @@ public static class AuthenticationExtensions
 
         services.AddAuthorization(options =>
         {
-            // Full access - requires valid JWT and email_confirmed == true
+            // Full access - requires valid JWT and email_confirmed == true (matches backend_ref)
             var fullAccess = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .RequireClaim("email_confirmed", "true")
                 .Build();
 
-            // Limited access - any authenticated user (including email_confirmed=false)
-            var limitedAccess = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .Build();
-
             options.AddPolicy("FullAccess", fullAccess);
-            options.AddPolicy("LimitedAccess", limitedAccess);
-
-            // Make FullAccess the default for [Authorize]
             options.DefaultPolicy = fullAccess;
         });
 

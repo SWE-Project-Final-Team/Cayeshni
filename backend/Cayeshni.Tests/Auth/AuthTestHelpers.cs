@@ -17,6 +17,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 
 namespace Cayeshni.Tests.Auth;
 
@@ -60,9 +63,22 @@ public static class AuthTestHelpers
 
     public static AuthController CreateController(IIdentityService identityService)
     {
-        var controller = new AuthController(new AuthService(identityService), new Cayeshni.API.Api.Services.CookieService(new Cayeshni.API.Infrastructure.Persistence.Options.JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) }));
+        var jwt = new JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) };
+        var controller = new AuthController(
+            new AuthService(identityService),
+            new Cayeshni.API.Api.Services.CookieService(jwt, new TestWebHostEnvironment()));
         controller.ControllerContext = CreateControllerContext();
         return controller;
+    }
+
+    private sealed class TestWebHostEnvironment : IWebHostEnvironment
+    {
+        public string WebRootPath { get; set; } = "";
+        public IFileProvider WebRootFileProvider { get; set; } = new NullFileProvider();
+        public string ApplicationName { get; set; } = "Tests";
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+        public string ContentRootPath { get; set; } = "";
+        public string EnvironmentName { get; set; } = Environments.Development;
     }
 
     public static ControllerContext CreateControllerContext(ClaimsPrincipal? user = null)

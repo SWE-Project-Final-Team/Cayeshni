@@ -40,7 +40,7 @@ public class SettlementController : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _settlementService.GetGroupSettlementsAsync(groupId);
+        var result = await _settlementService.GetGroupSettlementsAsync(Guid.Parse(userId), groupId);
         return Ok(result);
     }
 
