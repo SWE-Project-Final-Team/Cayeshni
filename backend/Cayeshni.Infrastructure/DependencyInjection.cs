@@ -83,6 +83,9 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
 
+        // Register unverified user cleanup hosted service (every 24 hours)
+        services.AddHostedService<UnverifiedUserCleanupService>();
+
         // Add other services like repositories, external API clients, etc.
 
         return services;

@@ -25,5 +25,6 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 
         builder.HasIndex(u => u.NormalizedEmail)
             .IsUnique();
+        builder.HasIndex(u => new { u.EmailConfirmed, u.CreatedAt }); // For fast cleaning of unconfirmed accounts
     }
 }
