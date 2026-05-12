@@ -42,7 +42,7 @@ public class GroupDetailTests
         await ctx.SaveChangesAsync();
 
         var service = new GroupService(ctx);
-        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("G1"));
+        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Test Group"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.GetGroupDetailAsync(outsiderId, group.Id));

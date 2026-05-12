@@ -198,6 +198,12 @@ public class UserServiceTests
 
             return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyList<User>> SearchByDisplayNameAsync(string query, Guid excludeUserId, int take)
+        {
+            // For testing purposes, return empty list
+            return Task.FromResult<IReadOnlyList<User>>(new List<User>());
+        }
     }
 
     private sealed class FakeFileStorageService : IFileStorageService
