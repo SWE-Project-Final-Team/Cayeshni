@@ -247,6 +247,10 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.Property<int>("Currency")
                         .HasColumnType("integer");
 

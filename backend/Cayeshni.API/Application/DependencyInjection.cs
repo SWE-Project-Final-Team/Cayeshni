@@ -3,6 +3,8 @@ using Cayeshni.API.Application.Features.Auth;
 using Cayeshni.API.Application.Features.Users;
 using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Application.Features.Users.Friends;
+using Cayeshni.API.Application.Features.Settlements;
+using Cayeshni.API.Application.Features.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cayeshni.API.Application;
@@ -16,6 +18,8 @@ public static class DependencyInjection
         services.AddScoped<UserService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<FriendService>();
+        services.AddScoped<ISettlementService, SettlementService>();
+        services.AddScoped<TransactionService>();
 
         // Register other application services, handlers, etc.
 

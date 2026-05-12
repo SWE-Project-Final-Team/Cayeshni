@@ -17,6 +17,7 @@ public class Transaction
     public TransactionCategory Category { get; set; } = TransactionCategory.Other;
     [MaxLength(500)]
     public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 
