@@ -17,6 +17,7 @@ import {
   setAccessTokenRefreshHandler,
   setSessionInvalidationHandler,
 } from "@/lib/api/client";
+import { API_BASE } from "@/lib/api/config";
 import { clearPostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { currencyValueFromApi } from "@/lib/currency";
 import { parseEmailConfirmed } from "@/lib/jwt";

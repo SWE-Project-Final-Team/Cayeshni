@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --font-sans: var(--font-inter);
   --font-manrope: var(--font-manrope);
 
@@ -97,6 +97,62 @@
   --text-financial-xl--font-weight: 700;
 }
 
+@layer base {
+  :root.theme-dark {
+    color-scheme: dark;
+
+    --color-surface-container: #1a211e;
+    --color-inverse-primary: #1f5a3d;
+    --color-outline-variant: #3b4541;
+    --color-inverse-surface: #e6ebe7;
+    --color-secondary-fixed: #d9f5e3;
+    --color-background: #0f1412;
+    --color-on-primary-fixed-variant: #2d4a3d;
+    --color-on-secondary: #0a1f14;
+    --color-on-primary-container: #d6efe1;
+    --color-primary: #b7dbc7;
+    --color-error: #ffb4ab;
+    --color-balance-owed: #5fd48c;
+    --color-balance-owe: #ff8f8a;
+    --color-on-tertiary-fixed: #281802;
+    --color-tertiary-fixed: #feddb5;
+    --color-tertiary-container: #3f2c12;
+    --color-secondary-container: #1a3a2b;
+    --color-inverse-on-surface: #121816;
+    --color-outline: #8b9690;
+    --color-surface-container-low: #121816;
+    --color-tertiary: #f0c796;
+    --color-on-secondary-container: #cfe9dc;
+    --color-surface-container-lowest: #0a0f0d;
+    --color-surface-tint: #b7dbc7;
+    --color-on-primary: #0b1a12;
+    --color-on-surface-variant: #b8c2bd;
+    --color-surface-container-highest: #2b3330;
+    --color-surface-bright: #1a211e;
+    --color-surface-variant: #3b4541;
+    --color-surface-dim: #0d1210;
+    --color-on-tertiary-container: #f0d9b9;
+    --color-secondary-fixed-dim: #a8d4bc;
+    --color-primary-fixed-dim: #a8c9b8;
+    --color-on-tertiary-fixed-variant: #584326;
+    --color-on-error-container: #ffdad6;
+    --color-on-background: #e6ebe7;
+    --color-on-tertiary: #2b1c06;
+    --color-on-secondary-fixed-variant: #0a4d32;
+    --color-tertiary-fixed-dim: #e1c29b;
+    --color-surface: #121816;
+    --color-primary-fixed: #c8ead6;
+    --color-on-secondary-fixed: #001f12;
+    --color-secondary: #79c89e;
+    --color-surface-container-high: #232b27;
+    --color-on-primary-fixed: #0a1f14;
+    --color-on-surface: #e6ebe7;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-primary-container: #2a3c33;
+  }
+}
+
 @utility font-label-sm {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-size: var(--text-label-sm);
@@ -150,20 +206,36 @@ body {
 }
 
 .material-symbols-outlined {
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 .material-symbols-outlined.fill {
-  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 .chip-owed {
-  background-color: color-mix(in srgb, var(--color-balance-owed) 14%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-balance-owed) 14%,
+    transparent
+  );
   color: var(--color-balance-owed);
 }
 
 .chip-owe {
-  background-color: color-mix(in srgb, var(--color-balance-owe) 14%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-balance-owe) 14%,
+    transparent
+  );
   color: var(--color-balance-owe);
 }
 
