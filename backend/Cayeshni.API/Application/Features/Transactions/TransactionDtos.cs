@@ -20,6 +20,7 @@ public record TransactionResponseDto(
     Guid Id,
     Guid GroupId,
     Guid PaidByUserId,
+    string PaidByDisplayName,
     decimal TotalAmount,
     Currency Currency,
     TransactionCategory Category,

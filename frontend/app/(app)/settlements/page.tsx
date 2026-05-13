@@ -11,6 +11,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { ListboxSelect } from "@/components/listbox-select";
+import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
 import { currencyApiName, currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
@@ -386,7 +387,7 @@ export default function SettlementsPage() {
                       </span>
                       <span className="text-on-surface-variant">
                         Remaining owed:{" "}
-                        <span className="text-on-surface">
+                        <span className={`font-medium tabular-nums ${oweAmountClass(b.remainingOwed)}`}>
                           {b.remainingOwed.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
                         </span>
@@ -443,7 +444,9 @@ export default function SettlementsPage() {
                         type="button"
                         disabled={maxTowardPayee <= 0 || previewLoading}
                         onClick={() => setAmountStr(maxTowardPayee.toFixed(2))}
-                        className="text-sm font-label-sm text-secondary border border-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high disabled:opacity-50"
+                        className={`text-sm font-label-sm border border-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high disabled:opacity-50 ${
+                          maxTowardPayee > 0 ? "text-balance-owe" : "text-on-surface-variant"
+                        }`}
                       >
                         Use max ({maxTowardPayee.toFixed(2)})
                       </button>
@@ -455,7 +458,7 @@ export default function SettlementsPage() {
                     ) : payeeUserId && payeeUserId !== payerId ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
                         Max toward {displayName(detail.members, payeeUserId)}:{" "}
-                        <span className="text-on-surface tabular-nums">
+                        <span className={`tabular-nums font-medium ${oweAmountClass(maxTowardPayee)}`}>
                           {maxTowardPayee.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
                         </span>
@@ -484,9 +487,11 @@ export default function SettlementsPage() {
                           const tx = txs.find((t) => t.id === a.transactionId);
                           return (
                             <li key={`${a.transactionId}-${a.allocatedAmount}`}>
-                              {tx?.description || "Expense"} ·{" "}
-                              {a.allocatedAmount.toFixed(2)}{" "}
-                              {currencyCode(detail.defaultCurrency)}
+                              {tx?.description?.trim() || "—"} ·{" "}
+                              <span className={`font-medium ${oweAmountClass(a.allocatedAmount)}`}>
+                                {a.allocatedAmount.toFixed(2)}{" "}
+                                {currencyCode(detail.defaultCurrency)}
+                              </span>
                             </li>
                           );
                         })}
@@ -548,7 +553,7 @@ export default function SettlementsPage() {
                             </p>
                           )}
                         </div>
-                        <div className="font-financial-xl text-[20px] text-primary shrink-0 tabular-nums">
+                        <div className={`font-financial-xl text-[20px] shrink-0 tabular-nums ${owedAmountClass(s.amount)}`}>
                           {currencyCode(cur)} {s.amount.toFixed(2)}
                         </div>
                       </div>

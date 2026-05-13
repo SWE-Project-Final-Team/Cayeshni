@@ -7,6 +7,7 @@ import type {
   DashboardActivityItemDto,
   DashboardGroupBalanceDto,
 } from "@/lib/api/types";
+import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
 import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -23,6 +24,137 @@ function displayActor(
   if (!actorName) return "Someone";
   if (meId && actorId && actorId === meId) return "You";
   return actorName;
+}
+
+function formatActivityTime(iso: string): { label: string; titleAttr: string } {
+  const d = new Date(iso);
+  return {
+    label: d.toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }),
+    titleAttr: d.toLocaleString(undefined, {
+      dateStyle: "full",
+      timeStyle: "medium",
+    }),
+  };
+}
+
+function DashboardActivityRow({
+  item,
+  profileId,
+}: {
+  item: DashboardActivityItemDto;
+  profileId: string | undefined;
+}) {
+  const amountStr = formatMoney(item.currency, item.amount);
+  const when = formatActivityTime(item.createdAt);
+  const href =
+    item.kind === "transaction"
+      ? `/expenses?group=${encodeURIComponent(item.groupId)}`
+      : "/settlements";
+
+  const isTx = item.kind === "transaction";
+
+  return (
+    <li className="list-none">
+      <Link
+        href={href}
+        title={when.titleAttr}
+        className="group flex gap-md sm:gap-lg rounded-2xl border border-outline-variant/60 bg-surface-container-low/90 p-md sm:p-lg hover:border-secondary/35 hover:bg-surface-container-high/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary transition-colors"
+      >
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+            isTx
+              ? "bg-primary-fixed/45 text-primary"
+              : "bg-secondary-fixed/55 text-secondary"
+          }`}
+          aria-hidden
+        >
+          <span className="material-symbols-outlined text-[22px]">
+            {isTx ? "receipt_long" : "payments"}
+          </span>
+        </div>
+
+        <div className="min-w-0 flex-1 flex flex-col gap-xs">
+          <div className="flex flex-wrap items-center gap-x-sm gap-y-xs">
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isTx
+                  ? "bg-primary-fixed/50 text-on-primary-fixed-variant"
+                  : "bg-secondary-fixed/60 text-secondary"
+              }`}
+            >
+              {isTx ? "Expense" : "Settlement"}
+            </span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[12rem] sm:max-w-none">
+              {item.groupName}
+            </span>
+          </div>
+
+          {isTx ? (
+            <>
+              <p className="font-body-md text-on-surface leading-snug">
+                <span className="font-semibold text-primary">
+                  {displayActor(profileId, item.actorUserId, item.actorName)}
+                </span>{" "}
+                <span className="text-on-surface-variant">paid</span>
+                {item.description?.trim() ? (
+                  <>
+                    <span className="text-on-surface-variant"> · </span>
+                    <span className="text-on-surface">{item.description.trim()}</span>
+                  </>
+                ) : null}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-body-md text-on-surface leading-snug">
+                <span className="font-semibold text-primary">
+                  {displayActor(profileId, item.actorUserId, item.actorName)}
+                </span>
+                <span className="text-on-surface-variant"> paid </span>
+                <span className="font-semibold text-primary">
+                  {displayActor(
+                    profileId,
+                    item.counterpartyUserId,
+                    item.counterpartyName
+                  )}
+                </span>
+              </p>
+              {item.note?.trim() ? (
+                <p className="text-sm text-on-surface-variant line-clamp-2 border-l-2 border-outline-variant pl-sm">
+                  {item.note.trim()}
+                </p>
+              ) : null}
+            </>
+          )}
+
+          <time
+            dateTime={item.createdAt}
+            className="text-xs text-on-surface-variant tabular-nums sm:hidden"
+          >
+            {when.label}
+          </time>
+        </div>
+
+        <div className="shrink-0 flex flex-col items-end gap-xs text-right">
+          <p className="font-financial-xl text-[1.125rem] sm:text-[1.25rem] text-on-surface tabular-nums leading-tight">
+            {amountStr}
+          </p>
+          <time
+            dateTime={item.createdAt}
+            className="hidden sm:block text-xs text-on-surface-variant tabular-nums"
+          >
+            {when.label}
+          </time>
+          <span className="text-[10px] font-label-sm uppercase tracking-wide text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+            View
+          </span>
+        </div>
+      </Link>
+    </li>
+  );
 }
 
 export default function DashboardPage() {
@@ -139,7 +271,7 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] p-lg shadow-level-1">
-          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+          <p className="font-label-sm text-label-sm text-balance-owed uppercase tracking-wider">
             You are owed
           </p>
           {emailConfirmed && totalsByCurrency.some((t) => t.owed > 0) ? (
@@ -149,14 +281,14 @@ export default function DashboardPage() {
                 .map((t) => (
                 <li
                   key={t.currency}
-                  className="font-financial-xl text-financial-xl text-secondary"
+                  className="font-financial-xl text-financial-xl text-balance-owed"
                 >
                   {formatMoney(t.currency, t.owed)}
                 </li>
               ))}
             </ul>
           ) : (
-            <h3 className="font-financial-xl text-financial-xl text-secondary mt-sm">
+            <h3 className="font-financial-xl text-financial-xl text-on-surface-variant mt-sm">
               {emailConfirmed ? "—" : "—"}
             </h3>
           )}
@@ -165,7 +297,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] p-lg shadow-level-1">
-          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+          <p className="font-label-sm text-label-sm text-balance-owe uppercase tracking-wider">
             You owe
           </p>
           {emailConfirmed && totalsByCurrency.some((t) => t.owe > 0) ? (
@@ -175,14 +307,14 @@ export default function DashboardPage() {
                 .map((t) => (
                 <li
                   key={t.currency}
-                  className="font-financial-xl text-financial-xl text-error"
+                  className="font-financial-xl text-financial-xl text-balance-owe"
                 >
                   {formatMoney(t.currency, t.owe)}
                 </li>
               ))}
             </ul>
           ) : (
-            <h3 className="font-financial-xl text-financial-xl text-error mt-sm">
+            <h3 className="font-financial-xl text-financial-xl text-on-surface-variant mt-sm">
               {emailConfirmed ? "—" : "—"}
             </h3>
           )}
@@ -221,8 +353,8 @@ export default function DashboardPage() {
               <thead>
                 <tr className="border-b border-outline-variant/60 text-label-sm text-on-surface-variant uppercase tracking-wider">
                   <th className="p-md font-label-sm">Group</th>
-                  <th className="p-md font-label-sm text-right">You owe</th>
-                  <th className="p-md font-label-sm text-right">You are owed</th>
+                  <th className="p-md font-label-sm text-right text-balance-owe">You owe</th>
+                  <th className="p-md font-label-sm text-right text-balance-owed">You are owed</th>
                   <th className="p-md font-label-sm w-px whitespace-nowrap" />
                 </tr>
               </thead>
@@ -230,12 +362,22 @@ export default function DashboardPage() {
                 {balances.map((row) => (
                   <tr key={row.groupId} className="text-on-surface">
                     <td className="p-md font-semibold">{row.groupName}</td>
-                    <td className="p-md text-right text-error tabular-nums">
+                    <td
+                      className={`p-md text-right tabular-nums ${
+                        row.youOwe > 0 ? oweAmountClass(row.youOwe) : "text-on-surface-variant"
+                      }`}
+                    >
                       {row.youOwe > 0
                         ? formatMoney(row.currency, row.youOwe)
                         : "—"}
                     </td>
-                    <td className="p-md text-right text-secondary tabular-nums">
+                    <td
+                      className={`p-md text-right tabular-nums ${
+                        row.youAreOwed > 0
+                          ? owedAmountClass(row.youAreOwed)
+                          : "text-on-surface-variant"
+                      }`}
+                    >
                       {row.youAreOwed > 0
                         ? formatMoney(row.currency, row.youAreOwed)
                         : "—"}
@@ -256,16 +398,22 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-[16px] shadow-level-1 flex flex-col">
-        <div className="p-lg border-b border-outline-variant flex justify-between items-center gap-md flex-wrap">
-          <h3 className="font-headline-md text-headline-md text-on-surface">
-            Recent activity
-          </h3>
+      <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-2xl shadow-level-1 flex flex-col overflow-hidden">
+        <div className="p-lg border-b border-outline-variant flex justify-between items-center gap-md flex-wrap bg-surface-container-low/50">
+          <div>
+            <h3 className="font-headline-md text-headline-md text-on-surface">
+              Recent activity
+            </h3>
+            <p className="font-label-sm text-on-surface-variant mt-xs">
+              Expenses and settlements, newest first
+            </p>
+          </div>
           <Link
             href="/expenses"
-            className="text-secondary font-label-sm text-label-sm hover:underline shrink-0"
+            className="text-secondary font-label-sm text-label-sm hover:underline shrink-0 inline-flex items-center gap-xs"
           >
-            View expenses
+            <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+            All activity
           </Link>
         </div>
         {!emailConfirmed || activity === null ? (
@@ -277,64 +425,14 @@ export default function DashboardPage() {
             No transactions or settlements yet in your groups.
           </p>
         ) : (
-          <ul className="divide-y divide-outline-variant/40">
-            {activity.map((item) => {
-              const me = profile?.id;
-              const when = new Date(item.createdAt).toLocaleString();
-              const amountStr = formatMoney(item.currency, item.amount);
-              let title: string;
-              if (item.kind === "transaction") {
-                const who = displayActor(me, item.actorUserId, item.actorName);
-                const desc = item.description?.trim();
-                title = desc
-                  ? `${who} paid ${amountStr} · ${desc}`
-                  : `${who} paid ${amountStr}`;
-              } else {
-                const payer = displayActor(
-                  me,
-                  item.actorUserId,
-                  item.actorName
-                );
-                const payee = displayActor(
-                  me,
-                  item.counterpartyUserId,
-                  item.counterpartyName
-                );
-                title = `${payer} paid ${payee} ${amountStr}`;
-              }
-              const href =
-                item.kind === "transaction"
-                  ? `/expenses?group=${encodeURIComponent(item.groupId)}`
-                  : "/settlements";
-
-              return (
-                <li key={`${item.kind}-${item.id}`}>
-                  <Link
-                    href={href}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-xs p-md hover:bg-secondary-fixed/20 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-body-md text-on-surface">{title}</p>
-                      <p className="text-sm text-on-surface-variant mt-xs">
-                        <span className="font-medium text-on-surface/90">
-                          {item.groupName}
-                        </span>
-                        {item.kind === "settlement" &&
-                          item.note?.trim() && (
-                            <span className="ml-sm">· {item.note}</span>
-                          )}
-                      </p>
-                    </div>
-                    <time
-                      dateTime={item.createdAt}
-                      className="shrink-0 text-xs text-on-surface-variant tabular-nums"
-                    >
-                      {when}
-                    </time>
-                  </Link>
-                </li>
-              );
-            })}
+          <ul className="flex flex-col gap-sm p-sm sm:p-md">
+            {activity.map((item) => (
+              <DashboardActivityRow
+                key={`${item.kind}-${item.id}`}
+                item={item}
+                profileId={profile?.id}
+              />
+            ))}
           </ul>
         )}
       </div>

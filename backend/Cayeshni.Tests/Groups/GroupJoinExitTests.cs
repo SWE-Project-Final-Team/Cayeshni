@@ -1,6 +1,7 @@
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -23,7 +24,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Test"));
@@ -48,7 +49,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Join Test"));
 
@@ -64,7 +65,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
 
         // Act & Assert
@@ -82,7 +83,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Exit Test"));
@@ -106,7 +107,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Exit Test"));
 
@@ -123,7 +124,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();
@@ -148,7 +149,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
 
         // Act & Assert
@@ -162,7 +163,7 @@ public class GroupJoinExitTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();

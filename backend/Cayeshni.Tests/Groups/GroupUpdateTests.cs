@@ -1,6 +1,7 @@
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -21,7 +22,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Original Name"));
         var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, userId, groupResult.DefaultCurrency);
@@ -40,7 +41,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var nonCreatorId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Original Name"));
@@ -58,7 +59,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupDto = new GroupResponseDto(Guid.NewGuid(), "Fake", "fake-token", userId, Cayeshni.API.Domain.Enums.Currency.USD);
 

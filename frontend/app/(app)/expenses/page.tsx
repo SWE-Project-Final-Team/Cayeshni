@@ -27,6 +27,17 @@ function categoryLabel(c: number): string {
   return CATEGORIES.find((x) => x.value === c)?.label ?? `Category ${c}`;
 }
 
+function expensePayerLabel(
+  paidByUserId: string,
+  paidByDisplayName: string,
+  selfId: string | undefined
+): string {
+  if (selfId && paidByUserId === selfId) return "you";
+  const name = paidByDisplayName?.trim();
+  if (name) return name;
+  return "Member";
+}
+
 function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): GroupDto {
   return {
     ...g,
@@ -300,32 +311,39 @@ function ExpensesPageInner() {
                 {txs.map((t, i) => (
                   <li
                     key={t.id}
-                    className={`flex items-center justify-between p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
+                    className={`flex items-start p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
                       i % 2 === 1 ? "bg-surface-container-low" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-md min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0">
+                    <div className="flex items-start gap-md min-w-0 flex-1">
+                      <div className="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0 mt-0.5">
                         <span className="material-symbols-outlined text-[22px]">
                           receipt_long
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-body-md text-body-md font-bold text-on-surface truncate">
-                          {t.description || categoryLabel(t.category)}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-px">
+                          <div className="flex justify-between items-baseline gap-md">
+                            <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">
+                              Description
+                            </span>
+                            <span className="font-financial-xl text-[20px] leading-tight text-on-surface tabular-nums shrink-0">
+                              {currencyCode(t.currency)} {t.totalAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="font-body-md text-body-md font-bold text-on-surface truncate">
+                            {t.description?.trim() || "—"}
+                          </div>
                         </div>
-                        <div className="font-label-sm text-label-sm text-on-surface-variant">
+                        <div className="font-label-sm text-label-sm text-on-surface-variant mt-xs">
                           Paid by{" "}
-                          {profile?.id === t.paidByUserId
-                            ? "you"
-                            : `${t.paidByUserId.slice(0, 8)}…`}{" "}
+                          {expensePayerLabel(
+                            t.paidByUserId,
+                            t.paidByDisplayName,
+                            profile?.id
+                          )}{" "}
                           · {categoryLabel(t.category)}
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-financial-xl text-[20px] leading-tight text-on-surface">
-                        {currencyCode(t.currency)} {t.totalAmount.toFixed(2)}
                       </div>
                     </div>
                   </li>

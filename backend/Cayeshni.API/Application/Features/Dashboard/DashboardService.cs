@@ -68,10 +68,13 @@ public class DashboardService
 
             foreach (var s in settlements.Where(s => s.GroupId == gid))
             {
+                // Payer = debtor who sends money; payee = creditor who receives.
+                // Transaction phase: creditor +total, debtors -amountOwed (debtors negative).
+                // Settlement moves money from debtor to creditor: debtor balance increases, creditor decreases.
                 if (balance.ContainsKey(s.PayerUserId))
-                    balance[s.PayerUserId] -= s.Amount;
+                    balance[s.PayerUserId] += s.Amount;
                 if (balance.ContainsKey(s.PayeeUserId))
-                    balance[s.PayeeUserId] += s.Amount;
+                    balance[s.PayeeUserId] -= s.Amount;
             }
 
             var net = balance.GetValueOrDefault(userId);

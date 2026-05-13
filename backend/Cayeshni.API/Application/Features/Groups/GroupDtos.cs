@@ -19,7 +19,8 @@ public record GroupMemberSummaryDto(
     Guid UserId,
     string DisplayName,
     DateTime JoinedAt,
-    bool IsCreator
+    bool IsCreator,
+    string? ProfilePictureUrl
 );
 
 /// <summary>Single group with members — caller must be a member.</summary>

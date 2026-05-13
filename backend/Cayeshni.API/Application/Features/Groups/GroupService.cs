@@ -9,10 +9,12 @@ namespace Cayeshni.API.Application.Features.Groups;
 public class GroupService : IGroupService
 {
     private readonly AppDbContext _context;
+    private readonly IFileStorageService _fileStorage;
 
-    public GroupService(AppDbContext context)
+    public GroupService(AppDbContext context, IFileStorageService fileStorage)
     {
         _context = context;
+        _fileStorage = fileStorage;
     }
 
     public async Task<GroupResponseDto> CreateGroupAsync(Guid userId, CreateGroupDto dto)
@@ -83,9 +85,16 @@ public class GroupService : IGroupService
             ?? throw new NotFoundException(nameof(Group), groupId);
 
         var memberIds = group.Members.Select(m => m.UserId).Distinct().ToList();
-        var nameByUserId = await _context.Users
+        var userRows = await _context.Users
+            .AsNoTracking()
             .Where(u => memberIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.Name);
+            .Select(u => new { u.Id, u.Name, u.ProfilePicturePath })
+            .ToListAsync();
+
+        var nameByUserId = userRows.ToDictionary(x => x.Id, x => x.Name);
+        var pictureUrlByUserId = userRows.ToDictionary(
+            x => x.Id,
+            x => _fileStorage.GetUrl(x.ProfilePicturePath));
 
         var members = group.Members
             .OrderBy(m => m.JoinedAt)
@@ -94,7 +103,8 @@ public class GroupService : IGroupService
                 m.UserId,
                 nameByUserId.GetValueOrDefault(m.UserId) ?? "Unknown",
                 m.JoinedAt,
-                m.UserId == group.CreatedById
+                m.UserId == group.CreatedById,
+                pictureUrlByUserId.GetValueOrDefault(m.UserId)
             ))
             .ToList();
 

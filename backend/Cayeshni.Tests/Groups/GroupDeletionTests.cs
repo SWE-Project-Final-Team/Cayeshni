@@ -1,6 +1,7 @@
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -21,7 +22,7 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Delete Test"));
         var groupDto = new GroupResponseDto(groupResult.Id, groupResult.Name, groupResult.InviteToken, groupResult.CreatedById, groupResult.DefaultCurrency);
@@ -39,7 +40,7 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var nonCreatorId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Delete Test"));
@@ -57,7 +58,7 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var nonExistentGroupId = Guid.NewGuid();
         var groupDto = new GroupResponseDto(nonExistentGroupId, "Fake", "fake-token", userId, Cayeshni.API.Domain.Enums.Currency.USD);
@@ -73,7 +74,7 @@ public class GroupDeletionTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context);
+        var service = new GroupService(context, new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId1 = Guid.NewGuid();
         var userId2 = Guid.NewGuid();

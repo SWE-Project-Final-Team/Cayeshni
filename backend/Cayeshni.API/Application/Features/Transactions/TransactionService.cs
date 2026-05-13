@@ -72,10 +72,16 @@ public class TransactionService
             .Select(tm => new TransactionMemberDto(tm.UserId, tm.AmountOwed))
             .ToList();
 
+        var payerName = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.Name)
+            .FirstOrDefaultAsync() ?? string.Empty;
+
         return new TransactionResponseDto(
             transaction.Id,
             transaction.GroupId,
             transaction.PaidByUserId,
+            payerName,
             transaction.TotalAmount,
             transaction.Currency,
             transaction.Category,
@@ -92,10 +98,16 @@ public class TransactionService
             .Include(t => t.TransactionMembers)
             .ToListAsync();
 
+        var payerIds = transactions.Select(t => t.PaidByUserId).Distinct().ToList();
+        var payerNames = await _context.Users
+            .Where(u => payerIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Name);
+
         return transactions.Select(t => new TransactionResponseDto(
             t.Id,
             t.GroupId,
             t.PaidByUserId,
+            payerNames.GetValueOrDefault(t.PaidByUserId) ?? string.Empty,
             t.TotalAmount,
             t.Currency,
             t.Category,

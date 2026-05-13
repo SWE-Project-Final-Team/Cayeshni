@@ -12,6 +12,8 @@ export type GroupMemberSummaryDto = {
   displayName: string;
   joinedAt: string;
   isCreator: boolean;
+  /** Public URL from API when user has a profile photo. */
+  profilePictureUrl?: string | null;
 };
 
 export type GroupDetailDto = {
@@ -62,6 +64,8 @@ export type TransactionDto = {
   id: string;
   groupId: string;
   paidByUserId: string;
+  /** Display name of payer (`AppUser.Name`); use when not the current user. */
+  paidByDisplayName: string;
   totalAmount: number;
   currency: number;
   category: number;

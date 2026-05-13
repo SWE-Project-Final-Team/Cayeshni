@@ -10,7 +10,12 @@ import {
   type ReactNode,
 } from "react";
 import { API_BASE } from "@/lib/api/config";
-import { apiJson, ApiError, readBodyAsJsonOrText } from "@/lib/api/client";
+import {
+  apiJson,
+  ApiError,
+  readBodyAsJsonOrText,
+  setAccessTokenRefreshHandler,
+} from "@/lib/api/client";
 import { clearPostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { currencyValueFromApi } from "@/lib/currency";
 import { parseEmailConfirmed } from "@/lib/jwt";
@@ -116,6 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, [applyToken]);
+
+  useEffect(() => {
+    setAccessTokenRefreshHandler(refreshSession);
+    return () => setAccessTokenRefreshHandler(null);
+  }, [refreshSession]);
 
   useEffect(() => {
     let cancelled = false;

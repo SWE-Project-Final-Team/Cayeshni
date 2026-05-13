@@ -2,6 +2,7 @@ using Cayeshni.API.Application.Features.Transactions;
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
+using Cayeshni.API.Infrastructure.Identity;
 using Cayeshni.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +19,27 @@ public class TransactionServiceTests
         return new AppDbContext(options);
     }
 
+    private static void SeedUser(AppDbContext context, Guid id, string email, string name)
+    {
+        context.Users.Add(new AppUser
+        {
+            Id = id,
+            UserName = email,
+            NormalizedUserName = email.ToUpperInvariant(),
+            Email = email,
+            NormalizedEmail = email.ToUpperInvariant(),
+            Name = name,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            EmailConfirmed = true,
+        });
+    }
+
     private async Task<(Guid UserId, Guid GroupId)> SetupTestDataAsync(AppDbContext context)
     {
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
+
+        SeedUser(context, userId, "owner@test.com", "Test Owner");
 
         var group = new Group
         {
@@ -71,6 +89,7 @@ public class TransactionServiceTests
         Assert.Equal(100m, result.TotalAmount);
         Assert.Equal("Lunch", result.Description);
         Assert.Equal(userId, result.PaidByUserId);
+        Assert.Equal("Test Owner", result.PaidByDisplayName);
     }
 
     [Fact]
@@ -232,6 +251,7 @@ public class TransactionServiceTests
 
         // Assert
         Assert.Equal(2, result.Count);
+        Assert.All(result, (t) => Assert.Equal("Test Owner", t.PaidByDisplayName));
     }
 
     [Fact]

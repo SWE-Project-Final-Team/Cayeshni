@@ -15,6 +15,10 @@
   --color-on-primary-container: #5c7a6a;
   --color-primary: #051a10;
   --color-error: #ba1a1a;
+  /** Positive balance (you are owed / settled toward you) — use `text-balance-owed`. */
+  --color-balance-owed: #166534;
+  /** Amount you owe or outstanding obligation — use `text-balance-owe`. */
+  --color-balance-owe: #ba1a1a;
   --color-on-tertiary-fixed: #281802;
   --color-tertiary-fixed: #feddb5;
   --color-tertiary-container: #38260b;
@@ -154,8 +158,13 @@ body {
 }
 
 .chip-owed {
-  background-color: color-mix(in srgb, var(--color-error) 12%, transparent);
-  color: var(--color-error);
+  background-color: color-mix(in srgb, var(--color-balance-owed) 14%, transparent);
+  color: var(--color-balance-owed);
+}
+
+.chip-owe {
+  background-color: color-mix(in srgb, var(--color-balance-owe) 14%, transparent);
+  color: var(--color-balance-owe);
 }
 
 .chip-paid {

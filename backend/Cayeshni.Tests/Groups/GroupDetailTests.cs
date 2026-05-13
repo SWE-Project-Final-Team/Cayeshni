@@ -2,6 +2,7 @@ using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Features.Groups;
 using Cayeshni.API.Infrastructure.Identity;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -41,8 +42,8 @@ public class GroupDetailTests
         SeedUser(ctx, creatorId, "c@test.com", "Creator");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx);
-        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Test Group"));
+        var service = new GroupService(ctx, new FakeFileStorageService());
+        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("G1"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.GetGroupDetailAsync(outsiderId, group.Id));
@@ -58,7 +59,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "Joiner Name");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx);
+        var service = new GroupService(ctx, new FakeFileStorageService());
         var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Trip"));
         await service.JoinGroupAsync(joinerId, new JoinGroupDto(group.InviteToken));
 
@@ -73,6 +74,8 @@ public class GroupDetailTests
         var joinerRow = detail.Members.Single(m => m.UserId == joinerId);
         Assert.Equal("Joiner Name", joinerRow.DisplayName);
         Assert.False(joinerRow.IsCreator);
+        Assert.Null(creatorRow.ProfilePictureUrl);
+        Assert.Null(joinerRow.ProfilePictureUrl);
     }
 
     [Fact]
@@ -85,7 +88,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "J");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx);
+        var service = new GroupService(ctx, new FakeFileStorageService());
         var created = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Return"));
 
         var joined = await service.JoinGroupAsync(joinerId, new JoinGroupDto(created.InviteToken));
