@@ -115,17 +115,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="w-full max-w-[1000px] bg-surface-container-lowest rounded-[24px] shadow-level-2 border border-outline-variant/30 flex flex-col md:flex-row overflow-hidden relative">
+    <main className="w-full max-w-[1000px] bg-surface-container-lowest rounded-[24px] shadow-level-2 border border-outline-variant/40 flex flex-col md:flex-row overflow-hidden relative">
       <div
-        className="hidden md:flex flex-col justify-start w-5/12 bg-surface-container p-xl relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "linear-gradient(135deg, rgba(251,249,250,0.92), rgba(239,237,239,0.95)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuBe2qAQ1o7B5ptUYohvGZreyVeRTDJsbI_r6lCGUyKBjABCxykkAlV-Ol4eAfCrGpa1UprlupIhP4xCv5d0zSmotVMNTtVpqbkaCPMk1-7kQy3hgF1W7b8MgjeoSfPHoMDwJRvbSvsuF_ecEhmUD7aeEdIK8TbPe8zkL_G2tQS4tTMLokuEGlB9MD-tyPHvmMBlTGGzbILG23j45dlS82TZGFAMYyq7ZT7QNZteEwmZTxFUlFWmwedUWx60lqflfKcHZEKoNwq_LhQ)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className="hidden md:flex flex-col justify-start w-5/12 p-xl relative overflow-hidden bg-gradient-to-br from-primary-container/70 via-surface-container-low to-secondary-container/55"
       >
-        <div className="absolute inset-0 bg-surface/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-surface/20 via-transparent to-surface/10" />
+        <div className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-secondary-fixed/20 blur-3xl" />
+        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-primary-fixed/20 blur-3xl" />
         <div className="relative z-10">
           <h1 className="font-display-lg text-display-lg text-primary flex items-center gap-sm">
             <span className="material-symbols-outlined fill text-[40px] text-secondary">

@@ -120,6 +120,7 @@ public class TransactionService
     public async Task<TransactionDetailDto> GetTransactionWithBalancesAsync(Guid transactionId)
     {
         var transaction = await _context.Transactions
+            .AsSplitQuery()
             .Include(t => t.TransactionMembers)
             .Include(t => t.Allocations)
             .FirstOrDefaultAsync(t => t.Id == transactionId)
