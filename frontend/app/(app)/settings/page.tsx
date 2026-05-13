@@ -18,6 +18,8 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState(profile?.preferredCurrency ?? 0);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -153,25 +155,51 @@ export default function SettingsPage() {
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
             Current password
           </label>
-          <input
-            type="password"
-            value={currentPw}
-            onChange={(e) => setCurrentPw(e.target.value)}
-            className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface"
-            autoComplete="current-password"
-          />
+          <div className="relative">
+            <input
+              type={showCurrentPw ? "text" : "password"}
+              value={currentPw}
+              onChange={(e) => setCurrentPw(e.target.value)}
+              className="w-full bg-surface border border-outline-variant rounded-lg pl-md pr-11 py-sm font-body-md text-on-surface"
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              aria-label={showCurrentPw ? "Hide password" : "Show password"}
+              aria-pressed={showCurrentPw}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
+              onClick={() => setShowCurrentPw((prev) => !prev)}
+            >
+              <span className="material-symbols-outlined">
+                {showCurrentPw ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          </div>
         </div>
         <div>
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
             New password
           </label>
-          <input
-            type="password"
-            value={newPw}
-            onChange={(e) => setNewPw(e.target.value)}
-            className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface"
-            autoComplete="new-password"
-          />
+          <div className="relative">
+            <input
+              type={showNewPw ? "text" : "password"}
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              className="w-full bg-surface border border-outline-variant rounded-lg pl-md pr-11 py-sm font-body-md text-on-surface"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              aria-label={showNewPw ? "Hide password" : "Show password"}
+              aria-pressed={showNewPw}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
+              onClick={() => setShowNewPw((prev) => !prev)}
+            >
+              <span className="material-symbols-outlined">
+                {showNewPw ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          </div>
         </div>
         <button
           type="submit"

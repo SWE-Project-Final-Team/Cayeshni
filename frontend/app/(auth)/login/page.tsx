@@ -43,9 +43,11 @@ export default function LoginPage() {
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [regName, setRegName] = useState("");
   const [regCurrency, setRegCurrency] = useState(0);
 
@@ -240,14 +242,27 @@ export default function LoginPage() {
                     Forgot?
                   </Link>
                 </div>
-                <input
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                  type="password"
-                  autoComplete="current-password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-md pr-11 py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    type={showLoginPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showLoginPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
+                    onClick={() => setShowLoginPassword((prev) => !prev)}
+                  >
+                    <span className="material-symbols-outlined">
+                      {showLoginPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
             <button
@@ -287,14 +302,27 @@ export default function LoginPage() {
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
                   Password
                 </label>
-                <input
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                  type="password"
-                  autoComplete="new-password"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-md pr-11 py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    type={showRegPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    aria-label={showRegPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showRegPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
+                    onClick={() => setShowRegPassword((prev) => !prev)}
+                  >
+                    <span className="material-symbols-outlined">
+                      {showRegPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
 
