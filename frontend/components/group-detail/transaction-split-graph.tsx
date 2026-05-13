@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export type GraphMember = {
   userId: string;
@@ -59,6 +60,7 @@ export function TransactionSplitGraph({
   onMemberClick,
   compact,
 }: Props) {
+  const { t } = useI18n();
   const reactId = useId().replace(/:/g, "");
   const markerId = `${reactId}-split-arrow`;
   const markerOwedId = `${reactId}-split-arrow-owed`;
@@ -239,7 +241,7 @@ export function TransactionSplitGraph({
 
       <div className="relative z-[1] px-md pt-md pb-0 sm:px-lg">
         <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-          Split flow
+          {t("Split flow")}
         </p>
         <p className="font-headline-sm text-on-surface mt-xs tabular-nums">{currencyLabel}</p>
       </div>
@@ -249,7 +251,7 @@ export function TransactionSplitGraph({
         className="relative z-[1] w-full h-auto block select-none"
         style={{ minHeight: compact ? 232 : 308 }}
         role="img"
-        aria-label="Expense split from payer to members"
+        aria-label={t("Expense split from payer to members")}
       >
         <defs>
           <marker

@@ -7,13 +7,8 @@ import { CURRENCY_OPTIONS } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export default function SettingsPage() {
-  const {
-    profile,
-    accessToken,
-    loadProfile,
-    apiErrorMessage,
-    logout,
-  } = useAuth();
+  const { profile, accessToken, loadProfile, apiErrorMessage, logout } =
+    useAuth();
   const [name, setName] = useState(profile?.name ?? "");
   const [currency, setCurrency] = useState(profile?.preferredCurrency ?? 0);
   const [currentPw, setCurrentPw] = useState("");
@@ -30,7 +25,7 @@ export default function SettingsPage() {
         value: String(c.value),
         label: c.label,
       })),
-    []
+    [],
   );
 
   useEffect(() => {

@@ -13,8 +13,10 @@ import {
 import { ListboxSelect } from "@/components/listbox-select";
 import { MoneyLoadingScreen } from "@/components/money-loading-screen";
 import { CURRENCY_OPTIONS } from "@/lib/currency";
+import { useI18n } from "@/lib/i18n";
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const {
     login,
@@ -38,7 +40,7 @@ export default function LoginPage() {
         value: String(c.value),
         label: c.label,
       })),
-    []
+    [],
   );
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -73,7 +75,7 @@ export default function LoginPage() {
         method: "POST",
         json: { email },
       });
-      setResendMsg("If your account is unconfirmed, check your inbox.");
+      setResendMsg(t("If your account is unconfirmed, check your inbox."));
     } catch (err) {
       setResendMsg(apiErrorMessage(err));
     }
@@ -111,7 +113,7 @@ export default function LoginPage() {
   }
 
   if (bootstrapping) {
-    return <MoneyLoadingScreen message="Opening the ledger…" />;
+    return <MoneyLoadingScreen message={t("Opening the ledger…")} />;
   }
 
   return (
@@ -130,7 +132,7 @@ export default function LoginPage() {
             Cayeshni
           </h1>
           <p className="font-body-lg text-body-lg text-on-surface-variant mt-sm">
-            Clarity in shared finances.
+            {t("Clarity in shared finances.")}
           </p>
         </div>
       </div>
@@ -151,8 +153,9 @@ export default function LoginPage() {
             role="status"
           >
             <p className="font-body-md text-body-md text-on-surface">
-              Your email is not verified yet. Open the link we sent you to unlock
-              your account, or request a new message below.
+              {t(
+                "Your email is not verified yet. Open the link we sent you to unlock your account, or request a new message below."
+              )}
             </p>
             <div className="flex flex-wrap items-center gap-sm">
               <button
@@ -160,18 +163,20 @@ export default function LoginPage() {
                 onClick={() => void resendConfirmation()}
                 className="inline-flex items-center gap-xs bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90"
               >
-                Resend verification link
+                {t("Resend verification link")}
               </button>
               <button
                 type="button"
                 onClick={() => void logout()}
                 className="font-label-sm text-secondary hover:underline"
               >
-                Sign out
+                {t("Sign out")}
               </button>
             </div>
             {resendMsg && (
-              <p className="font-body-sm text-on-surface-variant">{resendMsg}</p>
+              <p className="font-body-sm text-on-surface-variant">
+                {resendMsg}
+              </p>
             )}
           </div>
         )}
@@ -186,7 +191,7 @@ export default function LoginPage() {
                 : "border-transparent text-on-surface-variant hover:text-primary"
             }`}
           >
-            Sign In
+            {t("Sign In")}
           </button>
           <button
             type="button"
@@ -197,7 +202,7 @@ export default function LoginPage() {
                 : "border-transparent text-on-surface-variant hover:text-primary"
             }`}
           >
-            Create Account
+            {t("Create Account")}
           </button>
         </div>
 
@@ -215,7 +220,7 @@ export default function LoginPage() {
             <div className="space-y-md">
               <div>
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                  Email
+                  {t("Email")}
                 </label>
                 <input
                   className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
@@ -229,13 +234,13 @@ export default function LoginPage() {
               <div>
                 <div className="flex justify-between items-center mb-xs">
                   <label className="block font-label-sm text-label-sm text-on-surface-variant">
-                    Password
+                    {t("Password")}
                   </label>
                   <Link
                     href="/forgot-password"
                     className="font-label-sm text-label-sm text-secondary hover:underline"
                   >
-                    Forgot?
+                    {t("Forgot?")}
                   </Link>
                 </div>
                 <div className="relative">
@@ -249,7 +254,11 @@ export default function LoginPage() {
                   />
                   <button
                     type="button"
-                    aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showLoginPassword
+                        ? t("Hide password")
+                        : t("Show password")
+                    }
                     aria-pressed={showLoginPassword}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
                     onClick={() => setShowLoginPassword((prev) => !prev)}
@@ -266,7 +275,7 @@ export default function LoginPage() {
               disabled={pending}
               className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-md rounded-lg shadow-sm hover:shadow-md hover:bg-secondary/90 transition-all flex justify-center items-center gap-sm disabled:opacity-60"
             >
-              Sign In
+              {t("Sign In")}
               <span className="material-symbols-outlined text-[18px]">
                 arrow_forward
               </span>
@@ -279,11 +288,11 @@ export default function LoginPage() {
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary text-[12px] font-bold">
                   1
                 </span>
-                Account
+                {t("Account")}
               </h3>
               <div>
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                  Email
+                  {t("Email")}
                 </label>
                 <input
                   className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
@@ -296,7 +305,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                  Password
+                  {t("Password")}
                 </label>
                 <div className="relative">
                   <input
@@ -309,7 +318,11 @@ export default function LoginPage() {
                   />
                   <button
                     type="button"
-                    aria-label={showRegPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showRegPassword
+                        ? t("Hide password")
+                        : t("Show password")
+                    }
                     aria-pressed={showRegPassword}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
                     onClick={() => setShowRegPassword((prev) => !prev)}
@@ -327,30 +340,30 @@ export default function LoginPage() {
                 <span className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-outline-variant text-outline-variant text-[12px] font-bold">
                   2
                 </span>
-                Profile
+                {t("Profile")}
               </h3>
               <div>
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                  Display name
+                  {t("Display name")}
                 </label>
                 <input
                   className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="How should we call you?"
+                  placeholder={t("How should we call you?")}
                   required
                   minLength={3}
                 />
               </div>
               <div>
                 <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                  Default currency
+                  {t("Default currency")}
                 </label>
                 <ListboxSelect
                   value={String(regCurrency)}
                   onChange={(v) => setRegCurrency(Number(v))}
                   options={currencyOptions}
-                  placeholder="Select currency"
+                  placeholder={t("Select currency")}
                   leadingIcon="payments"
                   className="w-full"
                 />
@@ -362,7 +375,7 @@ export default function LoginPage() {
               disabled={pending}
               className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-md rounded-lg shadow-sm hover:shadow-md hover:bg-secondary/90 transition-all flex justify-center items-center gap-sm disabled:opacity-60"
             >
-              Create account
+              {t("Create account")}
               <span className="material-symbols-outlined text-[18px]">
                 group_add
               </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export type ListboxOption = {
   value: string;
@@ -36,12 +37,15 @@ export function ListboxSelect({
   align = "start",
   maxHeightClass = "max-h-56",
 }: ListboxSelectProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
   const btnId = useId();
 
   const selected = options.find((o) => o.value === value);
+  const resolvedPlaceholder = t(placeholder);
+  const resolvedEmptyMessage = t(emptyMessage);
 
   useEffect(() => {
     if (!open) return;
@@ -89,7 +93,7 @@ export function ListboxSelect({
         ) : null}
         <span className="min-w-0 flex-1 flex flex-col gap-0">
           <span className="truncate font-body-md text-on-surface">
-            {selected?.label ?? (options.length === 0 ? emptyMessage : placeholder)}
+            {selected?.label ?? (options.length === 0 ? resolvedEmptyMessage : resolvedPlaceholder)}
           </span>
           {selected?.description ? (
             <span className="truncate text-xs text-on-surface-variant font-normal leading-tight">
