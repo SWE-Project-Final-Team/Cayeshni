@@ -1,0 +1,309 @@
+% Cayeshni SDLC report — compile with: pdflatex PROJECT_REPORT.tex (run twice for TOC)
+% or: xelatex PROJECT_REPORT.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+% Plain text in \title/\author avoids hyperref PDF-string brace errors at \maketitle.
+\title{Software Development Life Cycle (SDLC) Report\\[0.6em]Cayeshni --- Group Expense Management System}
+\author{Seifeldin Ahmed Maazouz (8927)\\
+Ahmed Wael Mohamed Gaber (8836)\\
+Karim Mohamed Khaled (9004)\\
+Abdelrahman Ahmed Agha (8918)\\
+Abdelrahman Essam Eldin (8893)\\
+Asser Mohamed Ahmed Hanafy (8833)\\[0.75em]
+Faculty of Engineering, Alexandria University}
+\date{May 13, 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vfill
+\noindent\textit{Course: Software Engineering --- final project (Term 08). Faculty of Engineering, Alexandria University. Document version 1.0. Submission date: May 13, 2026.}
+\vfill
+\clearpage
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+%------------------------------------------------------------------
+\section{Cover and administrative data}
+%------------------------------------------------------------------
+
+\noindent Copy these fields onto the official cover sheet for the PDF or printed submission.
+
+\begin{center}
+\begin{tabular}{@{}p{0.35\textwidth}p{0.55\textwidth}@{}}
+\toprule
+\textbf{Item} & \textbf{Entry} \\
+\midrule
+Title of project & Cayeshni --- group expense management and settlement tracking \\
+Course name & Software Engineering --- final project (Term 08) \\
+Instructor & As listed on the official course syllabus / LMS for your section \\
+Team members &
+\begin{minipage}[t]{0.53\textwidth}\raggedright
+{\small\noindent Seifeldin Ahmed Maazouz (8927);\\
+Ahmed Wael Mohamed Gaber (8836);\\
+Karim Mohamed Khaled (9004);\\
+Abdelrahman Ahmed Agha (8918);\\
+Abdelrahman Essam Eldin (8893);\\
+Asser Mohamed Ahmed Hanafy (8833).%
+}%
+\end{minipage} \\
+Submission date & May 13, 2026 \\
+Institution & Faculty of Engineering, Alexandria University \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.75em}
+\noindent Official brief for structure and deliverables: file \texttt{Final Project-software- SSP.pdf} in the \texttt{docs} folder.
+
+%------------------------------------------------------------------
+\section{Abstract}
+%------------------------------------------------------------------
+
+Cayeshni is a small web system for groups that share costs: one place to log who paid, how the bill was split, and who paid whom back later. This report follows the SDLC phases used in the module---requirements, design, implementation, testing, and maintenance---and points to the UML diagrams stored alongside the source (use case, sequence, activity, state, class). Diagrams live as separate files under \texttt{docs}; they are not inlined here so they stay easy to update.
+
+%------------------------------------------------------------------
+\section{Introduction}
+%------------------------------------------------------------------
+
+\subsection{Why this report exists}
+
+The module asks for a written report that follows the life cycle, not only working code. This document states what we built, why, and how we checked it, without pasting source listings.
+
+\subsection{What the report covers}
+
+Everything here concerns the Cayeshni product. Behaviour and constraints are given in prose and tables; diagram sources are listed in Section~\ref{sec:refs}.
+
+\subsection{What Cayeshni does (short)}
+
+Signed-in users can run groups (create, invite, join, leave), add expenses in the group currency with splits, see balances, and record settlements between two members when someone pays someone back. Friends are optional. The interface is a browser application; rules and data sit behind an HTTP API and a PostgreSQL database.
+
+%------------------------------------------------------------------
+\section{Software development life cycle}
+%------------------------------------------------------------------
+
+Each subsection below matches one phase from the course brief.
+
+\subsection{Requirements}
+
+\subsubsection{Problem}
+
+Flatmates and trip groups often track money in chats or spreadsheets. That drifts out of date and people argue over the arithmetic. The aim is one shared ledger per group so the history of expenses and paybacks stays in one place.
+
+\subsubsection{Scope}
+
+\textbf{In scope}
+
+\begin{center}
+\begin{tabular}{@{}cl@{}}
+\toprule
+\textbf{ID} & \textbf{Item} \\
+\midrule
+S-01 & Sign-up, login, logout, session refresh \\
+S-02 & Email confirmation before full access \\
+S-03 & Groups: create, join by invite, leave, owner edits \\
+S-04 & Friends: send / accept / decline, list friends \\
+S-05 & Group expenses with per-member split lines \\
+S-06 & Settlements between members, with checks on amounts and links to expenses where used \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{1em}
+\textbf{Out of scope}
+
+\begin{center}
+\begin{tabular}{@{}cl@{}}
+\toprule
+\textbf{ID} & \textbf{Item} \\
+\midrule
+X-01 & Card or bank payment APIs \\
+X-02 & Native iOS/Android apps (web only) \\
+X-03 & Live currency conversion beyond the group chosen currency \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Functional requirements (summary)}
+
+\begin{center}
+\begin{tabular}{@{}p{0.12\textwidth}p{0.78\textwidth}@{}}
+\toprule
+\textbf{ID} & \textbf{Text} \\
+\midrule
+FR-01 & New users can register and sign in. \\
+FR-02 & Email must be confirmed before the account is treated as fully active. \\
+FR-03 & Users can create a group and share an invite so others can join. \\
+FR-04 & A member can post an expense: total plus splits that add up to that total. \\
+FR-05 & Group members can list expenses and open detail that shows how much is still owed after settlements. \\
+FR-06 & A settlement can be recorded between two members of the same group, with the rules enforced in code. \\
+FR-07 & Friend requests and acceptance so people can find each other before sharing groups. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Non-functional requirements (summary)}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.1\textwidth}p{0.18\textwidth}p{0.62\textwidth}@{}}
+\toprule
+\textbf{ID} & \textbf{Area} & \textbf{Text} \\
+\midrule
+NFR-01 & Security & Passwords are not stored in plain text; access uses short-lived JWTs; refresh uses a protected cookie pattern; production should use HTTPS. \\
+NFR-02 & Performance & The app should stay usable for the group sizes used in class demos. \\
+NFR-03 & Usability & Screens are organised so a new user can complete the main flows without training. \\
+NFR-04 & Reliability & Inputs are validated; the database enforces keys and basic integrity. \\
+NFR-05 & Growth & The API is stateless so more instances could be added later if traffic grew. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Example scenario}
+
+A short vacation example used while writing requirements is in \texttt{docs/examples/vacation-trip-scenario.md} (see also Section~\ref{sec:annex}).
+
+\subsection{Design}
+
+\subsubsection{Architecture}
+
+Browser client, HTTP API, relational database. Identity and login use the platform identity support and JWTs on API calls.
+
+\subsubsection{Main design choices}
+
+The server is split into layers (HTTP, application services, domain, persistence) so each part can be tested and changed separately. Each group picks one default currency; all expenses and settlements for that group use it so balance math stays consistent.
+
+\subsubsection{Where the UML diagrams are}
+
+\noindent All paths below are relative to the \texttt{docs} folder.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.22\textwidth}p{0.72\textwidth}@{}}
+\toprule
+\textbf{Type} & \textbf{Files} \\
+\midrule
+Use case & \texttt{auth/auth-use-cases.md}, \texttt{groups/group-use-case-diagram.md}, \texttt{friends/friend-use-case-diagram.md}, \texttt{transactions/transaction-use-cases.md}, \texttt{settlements/settlement-use-cases.md} \\
+Sequence & \texttt{auth/auth-sequence-diagrams.md}, \texttt{groups/group-sequence-diagrams.md}, \texttt{friends/friend-sequence-diagrams.md}, \texttt{transactions/transaction-sequence-diagram.md}, \texttt{settlements/settlement-sequence-diagram.md} \\
+Activity & \texttt{design/activity-diagrams.md} \\
+State machine & \texttt{design/state-machine-diagrams.md} \\
+Class & \texttt{class\_diagram.md} \\
+Extra sketches & \texttt{auth/auth-architecture.md}, \texttt{groups/group-architecture.md}, \texttt{friends/friend-architecture.md}, \texttt{architecture/transaction-settlement-architecture.md} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.5em}
+\noindent The diagrams are deliberately small (few boxes and messages), closer to a pre-implementation sketch than a full reverse-engineering dump.
+
+\subsection{Implementation}
+
+\subsubsection{Stack}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Layer} & \textbf{Choice} \\
+\midrule
+UI & TypeScript, React, Next.js \\
+API & C\#, ASP.NET Core \\
+Database & PostgreSQL via Entity Framework Core \\
+Repository & Git; backend unit tests where added \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Main blocks of code}
+
+Authentication and profiles; groups and membership; friends; transactions; settlements. Names align with folders in the backend solution.
+
+\subsubsection{Deployment}
+
+Configuration is read from environment settings (database URL, secrets, email). Schema changes go through EF migrations against the target database.
+
+\subsection{Testing}
+
+Unit tests cover pure logic and services; a smaller set of integration-style tests exercises the API where useful; manual runs cover sign-up through settlement in the browser. Sample checks:
+
+\begin{center}
+\begin{tabular}{@{}p{0.12\textwidth}p{0.82\textwidth}@{}}
+\toprule
+\textbf{Tag} & \textbf{Check} \\
+\midrule
+TC-01 & Splits that do not equal the expense total are rejected. \\
+TC-02 & An expense that already has settlement lines tied to it cannot be deleted blindly. \\
+TC-03 & Someone who is not in the group cannot read that group transactions. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The tables can be extended if the instructor asks for a longer test appendix.
+
+\subsection{Maintenance}
+
+Day to day: keep the application running, apply security patches to dependencies and runtime, rotate secrets, back up the database according to institutional policy.
+
+When bugs appear: reproduce, fix on a branch, review, merge---the same workflow as during development.
+
+Future ideas (not part of this submission): receipt photos, CSV export, push or email reminders, a real payment provider.
+
+%------------------------------------------------------------------
+\section{Submission checklist}
+%------------------------------------------------------------------
+
+The brief asks for: (1)~working software, (2)~a project report as PDF, (3)~the UML set. This repository contains (1) and the source text plus diagram files for (2) and (3). Before the deadline, compile this report to PDF, attach or embed diagrams as required, and submit according to course instructions.
+
+%------------------------------------------------------------------
+\section{References and annexes}
+\label{sec:refs}
+%------------------------------------------------------------------
+
+\subsection{Primary reference}
+
+Course handout: \texttt{docs/Final Project-software- SSP.pdf}.
+
+\subsection{Other internal files}
+
+\noindent List of diagram files: \texttt{docs/README.md}.\\
+Branch naming and commits: \texttt{docs/CONTRIBUTING.md}.
+
+\subsection{Annex --- example scenario}
+\label{sec:annex}
+
+\texttt{docs/examples/vacation-trip-scenario.md}.
+
+%------------------------------------------------------------------
+\section{Document control}
+%------------------------------------------------------------------
+
+\begin{center}
+\begin{tabular}{@{}lllp{0.42\textwidth}@{}}
+\toprule
+\textbf{Ver.} & \textbf{Date} & \textbf{Who} & \textbf{Note} \\
+\midrule
+1.0 & May 13, 2026 & Authors (see \S1) & Initial submission package (report + repository). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\noindent\textit{End of report. Export diagrams from the \texttt{docs} tree into the final PDF where figures are required.}
+
+\end{document}
