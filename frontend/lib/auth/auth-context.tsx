@@ -9,12 +9,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { API_BASE } from "@/lib/api/config";
 import {
   apiJson,
   ApiError,
+  isDefaultProfilePicture,
   readBodyAsJsonOrText,
   setAccessTokenRefreshHandler,
+  setSessionInvalidationHandler,
 } from "@/lib/api/client";
 import { clearPostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { currencyValueFromApi } from "@/lib/currency";
@@ -128,6 +129,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshSession]);
 
   useEffect(() => {
+    setSessionInvalidationHandler(() => {
+      clearToken();
+    });
+    return () => setSessionInvalidationHandler(null);
+  }, [clearToken]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
@@ -157,10 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken,
         }
       );
+      const pic = (raw.profilePictureUrl ?? "").trim();
       const me: UserProfile = {
         ...raw,
         preferredCurrency: currencyValueFromApi(raw.preferredCurrency),
-        profilePictureUrl: raw.profilePictureUrl || `${API_BASE}/defaults/avatar.webp`,
+        profilePictureUrl: isDefaultProfilePicture(pic) ? "" : pic,
       };
       setProfile(me);
       if (me.email) persistAccountEmail(me.email);

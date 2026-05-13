@@ -61,8 +61,15 @@ public class LocalFileStorageService : IFileStorageService
     {
         if (string.IsNullOrWhiteSpace(relativePath))
             return null;
-        
-        return $"{_options.BaseUrl.TrimEnd('/')}/uploads/{relativePath.Replace("\\", "/").TrimStart('/')}";
+
+        var normalized = relativePath.Replace("\\", "/").TrimStart('/');
+        var baseUrl = _options.BaseUrl.TrimEnd('/');
+
+        // BaseUrl may be API origin (http://host:port) or already .../uploads — avoid doubling "uploads".
+        if (baseUrl.EndsWith("/uploads", StringComparison.OrdinalIgnoreCase))
+            return $"{baseUrl}/{normalized}";
+
+        return $"{baseUrl}/uploads/{normalized}";
     }
 
     public string GetBaseUrl() => _options.BaseUrl.TrimEnd('/');

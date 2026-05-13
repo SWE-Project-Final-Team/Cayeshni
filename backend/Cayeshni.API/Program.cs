@@ -126,13 +126,7 @@ var uploadsPath = ResolveUploadsPhysicalPath(app.Environment, builder.Configurat
 Directory.CreateDirectory(uploadsPath);
 
 // Serve files in the uploads directory at the /uploads URL path
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath  = "/uploads"
-});
-
-app.UseStaticFiles(); // For wwwroot and default static files
+app.UseUploads();
 
 // app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");

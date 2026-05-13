@@ -14,6 +14,10 @@ type Props = {
   selfUserId?: string;
   categoryDisplay: string;
   settlementsTouching: SettlementDto[];
+  /** When false, hide the per-member share/settled list (e.g. shown elsewhere in the hub). */
+  showPerMemberBalances?: boolean;
+  /** When false, hide settlements that touch this expense. */
+  showSettlementsTouching?: boolean;
 };
 
 function rosterName(roster: Roster, userId: string, selfId?: string): string {
@@ -29,6 +33,8 @@ export function TransactionDetailPanel({
   selfUserId,
   categoryDisplay,
   settlementsTouching,
+  showPerMemberBalances = true,
+  showSettlementsTouching = true,
 }: Props) {
   if (!listRow) {
     return (
@@ -97,6 +103,7 @@ export function TransactionDetailPanel({
         </div>
       </dl>
 
+      {showPerMemberBalances ? (
       <div>
         <h4 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">
           Who owes what
@@ -152,8 +159,9 @@ export function TransactionDetailPanel({
           </ul>
         )}
       </div>
+      ) : null}
 
-      {settlementsTouching.length > 0 ? (
+      {showSettlementsTouching && settlementsTouching.length > 0 ? (
         <div>
           <h4 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">
             Settlements touching this expense

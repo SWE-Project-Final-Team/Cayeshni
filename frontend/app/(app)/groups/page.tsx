@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { apiJson } from "@/lib/api/client";
-import type { GroupDto } from "@/lib/api/types";
+import type { GroupDto, PendingGroupInviteDto } from "@/lib/api/types";
 import { currencyCode } from "@/lib/currency";
 import { storePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -25,6 +25,29 @@ export default function GroupsPage() {
   const [shareHint, setShareHint] = useState<string | null>(null);
   const [inviteFromLink, setInviteFromLink] = useState(false);
   const prefilledInvite = useRef(false);
+  const [pendingInvites, setPendingInvites] = useState<PendingGroupInviteDto[]>(
+    []
+  );
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [inviteActionErr, setInviteActionErr] = useState<string | null>(null);
+
+  const loadInvites = useCallback(async () => {
+    if (!accessToken || !emailConfirmed) return;
+    setInvitesLoading(true);
+    try {
+      const data = await apiJson<PendingGroupInviteDto[]>(
+        "/api/groups/pending-invites",
+        { accessToken }
+      );
+      setPendingInvites(data);
+      setInviteActionErr(null);
+    } catch (e) {
+      setInviteActionErr(apiErrorMessage(e));
+      setPendingInvites([]);
+    } finally {
+      setInvitesLoading(false);
+    }
+  }, [accessToken, emailConfirmed, apiErrorMessage]);
 
   const load = useCallback(async () => {
     if (!accessToken || !emailConfirmed) return;
@@ -39,6 +62,10 @@ export default function GroupsPage() {
       setLoading(false);
     }
   }, [accessToken, emailConfirmed, apiErrorMessage]);
+
+  useEffect(() => {
+    void loadInvites();
+  }, [loadInvites]);
 
   useEffect(() => {
     void load();
@@ -108,11 +135,42 @@ export default function GroupsPage() {
       });
       setJoinToken("");
       await load();
+      await loadInvites();
       router.push(`/groups/${joined.id}`);
     } catch (e) {
       setJoinErr(apiErrorMessage(e));
     } finally {
       setJoinBusy(false);
+    }
+  }
+
+  async function joinFromPending(inv: PendingGroupInviteDto) {
+    if (!accessToken) return;
+    setInviteActionErr(null);
+    try {
+      await apiJson<GroupDto>("/api/groups/join", {
+        method: "POST",
+        accessToken,
+        json: { inviteToken: inv.inviteToken },
+      });
+      await Promise.all([load(), loadInvites()]);
+      router.push(`/groups/${inv.groupId}`);
+    } catch (e) {
+      setInviteActionErr(apiErrorMessage(e));
+    }
+  }
+
+  async function dismissPendingInvite(notificationId: string) {
+    if (!accessToken) return;
+    setInviteActionErr(null);
+    try {
+      await apiJson(`/api/groups/pending-invites/${notificationId}`, {
+        method: "DELETE",
+        accessToken,
+      });
+      await loadInvites();
+    } catch (e) {
+      setInviteActionErr(apiErrorMessage(e));
     }
   }
 
@@ -171,6 +229,66 @@ export default function GroupsPage() {
           <strong>Join group</strong> when you&apos;re ready.
         </div>
       )}
+
+      {(inviteActionErr || invitesLoading) && (
+        <div
+          className={`rounded-xl border px-md py-sm font-body-md ${
+            inviteActionErr
+              ? "border-error/40 bg-error-container/30 text-error"
+              : "border-outline-variant bg-surface-container-low text-on-surface-variant"
+          }`}
+        >
+          {inviteActionErr ?? "Loading invitations…"}
+        </div>
+      )}
+
+      {!invitesLoading && pendingInvites.length > 0 ? (
+        <section
+          className="rounded-xl border border-secondary/35 bg-secondary-fixed/20 p-lg shadow-level-1 space-y-md"
+          aria-label="Pending group invitations"
+        >
+          <h3 className="font-headline-md text-headline-md text-on-surface">
+            Group invitations
+          </h3>
+          <ul className="space-y-md">
+            {pendingInvites.map((inv) => (
+              <li
+                key={inv.notificationId}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-md rounded-lg border border-outline-variant/60 bg-surface p-md"
+              >
+                <div className="min-w-0">
+                  <p className="font-body-md font-semibold text-on-surface">
+                    {inv.groupName}
+                  </p>
+                  <p className="text-sm text-on-surface-variant mt-xs">
+                    From {inv.invitedByName} ·{" "}
+                    {new Date(inv.createdAt).toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-sm shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => void joinFromPending(inv)}
+                    className="rounded-lg bg-secondary text-on-secondary font-label-sm px-md py-sm hover:bg-secondary/90"
+                  >
+                    Join group
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void dismissPendingInvite(inv.notificationId)}
+                    className="rounded-lg border border-outline-variant font-label-sm px-md py-sm text-primary hover:bg-surface-container-high"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <form
         onSubmit={createGroup}
@@ -286,6 +404,7 @@ export default function GroupsPage() {
                     Open group
                   </Link>
                   <InviteFriendToGroup
+                    groupId={g.id}
                     groupName={g.name}
                     inviteToken={g.inviteToken}
                     accessToken={accessToken}

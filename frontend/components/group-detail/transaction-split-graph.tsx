@@ -18,11 +18,13 @@ type Props = {
   payerShareAmount?: number | null;
   /** Dim styling when another panel highlights */
   activeUserIds?: ReadonlySet<string> | null;
+  /** Highlight flows from this member's perspective (payer vs share). */
+  lensUserId?: string | null;
+  /** Fired when a member bubble is clicked (not edges). */
+  onMemberClick?: (userId: string) => void;
+  /** Smaller canvas for dense layouts */
+  compact?: boolean;
 };
-
-const W = 680;
-const H = 440;
-const NODE_R = 40;
 
 function shortenLine(
   x1: number,
@@ -53,17 +55,29 @@ export function TransactionSplitGraph({
   currencyLabel,
   payerShareAmount,
   activeUserIds,
+  lensUserId,
+  onMemberClick,
+  compact,
 }: Props) {
   const reactId = useId().replace(/:/g, "");
   const markerId = `${reactId}-split-arrow`;
+  const markerOwedId = `${reactId}-split-arrow-owed`;
   const [hoverUser, setHoverUser] = useState<string | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
   const [avatarFailed, setAvatarFailed] = useState<ReadonlySet<string>>(() => new Set());
 
+  const { W, H, NODE_R } = useMemo(
+    () =>
+      compact
+        ? { W: 520, H: 364, NODE_R: 32 }
+        : { W: 680, H: 468, NODE_R: 40 },
+    [compact]
+  );
+
   const { positions, edges } = useMemo(() => {
     const pos = new Map<string, { x: number; y: number }>();
     const payerX = W / 2;
-    const payerY = 96;
+    const payerY = compact ? 60 : 84;
     pos.set(paidByUserId, { x: payerX, y: payerY });
 
     const others = members
@@ -73,7 +87,7 @@ export function TransactionSplitGraph({
     others.forEach((uid, i) => {
       const t = n === 1 ? 0.5 : i / (n - 1);
       const x = W * (0.1 + 0.8 * t);
-      const y = H - 72;
+      const y = H - (compact ? 94 : 112);
       pos.set(uid, { x, y });
     });
 
@@ -124,15 +138,45 @@ export function TransactionSplitGraph({
     }
 
     return { positions: pos, edges: edgeList };
-  }, [members, paidByUserId, splits]);
+  }, [members, paidByUserId, splits, W, H, NODE_R, compact]);
+
+  function edgeStroke(e: (typeof edges)[0]): string {
+    if (!lensUserId) return "var(--color-balance-owe)";
+    if (lensUserId === paidByUserId) return "var(--color-balance-owed)";
+    if (e.to === lensUserId) return "var(--color-balance-owe)";
+    return "var(--color-outline-variant)";
+  }
+
+  function edgeMarkerEnd(e: (typeof edges)[0]): string {
+    const stroke = edgeStroke(e);
+    return stroke.includes("balance-owed") ? markerOwedId : markerId;
+  }
+
+  function edgeStrokeWidth(e: (typeof edges)[0]): number {
+    if (!lensUserId) return hoverEdge === e.key ? 3.4 : 2.4;
+    if (lensUserId === paidByUserId) return hoverEdge === e.key ? 4 : 3;
+    if (e.to === lensUserId) return hoverEdge === e.key ? 4 : 3.2;
+    return hoverEdge === e.key ? 2.2 : 1.6;
+  }
 
   function nameFor(id: string): string {
     return members.find((m) => m.userId === id)?.displayName ?? id.slice(0, 8);
   }
 
   function nodeOpacity(uid: string): number {
-    if (!hoverUser && !hoverEdge && (!activeUserIds || activeUserIds.size === 0))
+    if (!hoverUser && !hoverEdge && (!activeUserIds || activeUserIds.size === 0)) {
+      if (lensUserId) {
+        const rel = new Set<string>([paidByUserId, lensUserId]);
+        for (const ed of edges) {
+          if (ed.to === lensUserId || ed.from === lensUserId) {
+            rel.add(ed.from);
+            rel.add(ed.to);
+          }
+        }
+        return rel.has(uid) ? 1 : 0.32;
+      }
       return 1;
+    }
     if (hoverEdge) {
       const e = edges.find((x) => x.key === hoverEdge);
       if (!e) return 0.35;
@@ -162,6 +206,11 @@ export function TransactionSplitGraph({
     if (activeUserIds?.size) {
       return activeUserIds.has(e.from) && activeUserIds.has(e.to) ? 1 : 0.25;
     }
+    if (lensUserId) {
+      if (lensUserId === paidByUserId) return 1;
+      if (e.to === lensUserId) return 1;
+      return 0.2;
+    }
     return 0.88;
   }
 
@@ -188,24 +237,17 @@ export function TransactionSplitGraph({
         }}
       />
 
-      <div className="relative z-[1] flex items-start justify-between gap-md px-md pt-md pb-0 sm:px-lg">
-        <div>
-          <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-            Split flow
-          </p>
-          <p className="font-headline-sm text-on-surface mt-xs tabular-nums">
-            {currencyLabel}
-          </p>
-        </div>
-        <div className="rounded-full border border-outline-variant/70 bg-surface/80 backdrop-blur-sm px-sm py-xs font-label-sm text-on-surface-variant shrink-0">
-          Hover nodes or arrows
-        </div>
+      <div className="relative z-[1] px-md pt-md pb-0 sm:px-lg">
+        <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+          Split flow
+        </p>
+        <p className="font-headline-sm text-on-surface mt-xs tabular-nums">{currencyLabel}</p>
       </div>
 
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="relative z-[1] w-full h-auto block select-none"
-        style={{ minHeight: 300 }}
+        style={{ minHeight: compact ? 232 : 308 }}
         role="img"
         aria-label="Expense split from payer to members"
       >
@@ -221,6 +263,17 @@ export function TransactionSplitGraph({
           >
             <path d="M0,0 L0,9 L9,4.5 z" fill="var(--color-balance-owe)" />
           </marker>
+          <marker
+            id={markerOwedId}
+            markerWidth="9"
+            markerHeight="9"
+            refX="8"
+            refY="4.5"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L0,9 L9,4.5 z" fill="var(--color-balance-owed)" />
+          </marker>
           <filter id={`${reactId}-glow`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge>
@@ -235,12 +288,12 @@ export function TransactionSplitGraph({
             <path
               d={e.path}
               fill="none"
-              strokeWidth={hoverEdge === e.key ? 3.4 : 2.4}
-              stroke="var(--color-balance-owe)"
+              strokeWidth={edgeStrokeWidth(e)}
+              stroke={edgeStroke(e)}
               strokeLinecap="round"
               className="transition-all duration-150 cursor-pointer"
               style={{ opacity: edgeOpacity(e) }}
-              markerEnd={`url(#${markerId})`}
+              markerEnd={`url(#${edgeMarkerEnd(e)})`}
               filter={hoverEdge === e.key ? `url(#${reactId}-glow)` : undefined}
               onMouseEnter={() => setHoverEdge(e.key)}
               onMouseLeave={() => setHoverEdge(null)}
@@ -252,7 +305,7 @@ export function TransactionSplitGraph({
               height={30}
               rx="10"
               fill="var(--color-surface-container-highest)"
-              stroke="var(--color-balance-owe)"
+              stroke={edgeStroke(e)}
               strokeOpacity={hoverEdge === e.key ? 0.55 : 0.28}
               className="cursor-pointer transition-all duration-150"
               strokeWidth={hoverEdge === e.key ? 1.5 : 1}
@@ -268,7 +321,7 @@ export function TransactionSplitGraph({
               y={e.my + 5}
               textAnchor="middle"
               className="text-[11px] font-bold tabular-nums pointer-events-none"
-              fill="var(--color-balance-owe)"
+              fill={edgeStroke(e)}
               style={{ opacity: edgeOpacity(e) }}
             >
               {currencyLabel} {e.amount.toFixed(2)}
@@ -286,6 +339,8 @@ export function TransactionSplitGraph({
           const showPhoto = Boolean(avatar) && !avatarFailed.has(m.userId);
           const initials = m.displayName.slice(0, 2).toUpperCase();
 
+          const lensSelected = lensUserId && m.userId === lensUserId;
+
           return (
             <g
               key={m.userId}
@@ -294,6 +349,10 @@ export function TransactionSplitGraph({
               className="cursor-pointer transition-opacity duration-150"
               onMouseEnter={() => setHoverUser(m.userId)}
               onMouseLeave={() => setHoverUser(null)}
+              onClick={(ev) => {
+                ev.stopPropagation();
+                onMemberClick?.(m.userId);
+              }}
             >
               <defs>
                 <mask id={maskId} maskUnits="userSpaceOnUse" x={-NODE_R - 2} y={-NODE_R - 2} width={(NODE_R + 2) * 2} height={(NODE_R + 2) * 2}>
@@ -337,8 +396,14 @@ export function TransactionSplitGraph({
               <circle
                 r={NODE_R}
                 fill="none"
-                stroke={isPayer ? "var(--color-on-secondary)" : "var(--color-outline-variant)"}
-                strokeWidth={isPayer ? 3 : 2}
+                stroke={
+                  lensSelected
+                    ? "var(--color-secondary)"
+                    : isPayer
+                      ? "var(--color-on-secondary)"
+                      : "var(--color-outline-variant)"
+                }
+                strokeWidth={lensSelected ? 4 : isPayer ? 3 : 2}
                 style={{
                   filter: isPayer
                     ? "drop-shadow(0 0 10px rgba(0,0,0,0.2))"
@@ -377,6 +442,15 @@ export function TransactionSplitGraph({
                   Own share {currencyLabel} {payerSplit.toFixed(2)}
                 </text>
               ) : null}
+              <circle
+                r={NODE_R + 10}
+                cx={0}
+                cy={0}
+                fill="transparent"
+                pointerEvents="all"
+                className="cursor-pointer"
+                aria-hidden
+              />
             </g>
           );
         })}

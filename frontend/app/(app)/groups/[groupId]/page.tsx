@@ -8,7 +8,7 @@ import { TransactionDetailPanel } from "@/components/group-detail/transaction-de
 import { TransactionSplitGraph } from "@/components/group-detail/transaction-split-graph";
 import { InviteFriendToGroup } from "@/components/invite-friend-to-group";
 import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
-import { apiJson, mediaUrl } from "@/lib/api/client";
+import { apiJson, userAvatarSrc } from "@/lib/api/client";
 import type {
   FriendDto,
   GroupDetailDto,
@@ -78,7 +78,7 @@ function RosterAvatar({
   className?: string;
 }) {
   const m = members.find((x) => x.userId === userId);
-  const src = mediaUrl(m?.profilePictureUrl ?? undefined);
+  const src = userAvatarSrc(m?.profilePictureUrl ?? undefined);
   const initials = (m?.displayName ?? "?").slice(0, 2).toUpperCase();
   return (
     <div
@@ -130,6 +130,7 @@ export default function GroupDetailPage() {
   const selectedRowRef = useRef<HTMLLIElement | null>(null);
   const [graphMode, setGraphMode] = useState<"expense" | "group">("expense");
   const [balanceFocusUserId, setBalanceFocusUserId] = useState<string | null>(null);
+  const [splitLensUserId, setSplitLensUserId] = useState<string | null>(null);
 
   const balanceByUserId = useMemo(() => {
     const m = new Map<string, GroupMemberBalanceDto>();
@@ -142,6 +143,17 @@ export default function GroupDetailPage() {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [transactions]);
+
+  const visibleTransactions = useMemo(() => {
+    if (!splitLensUserId) return sortedTransactions;
+    return sortedTransactions.filter(
+      (t) =>
+        t.paidByUserId === splitLensUserId ||
+        t.members.some(
+          (m) => m.userId === splitLensUserId && (m.amountOwed ?? 0) > 0
+        )
+    );
+  }, [sortedTransactions, splitLensUserId]);
 
   const selectedListRow = useMemo(
     () => sortedTransactions.find((t) => t.id === selectedTxId) ?? null,
@@ -160,30 +172,26 @@ export default function GroupDetailPage() {
       (detail?.members ?? []).map((m) => ({
         userId: m.userId,
         displayName: rosterLabel(m, profile?.id),
-        avatarUrl: mediaUrl(m.profilePictureUrl ?? undefined),
+        avatarUrl: userAvatarSrc(m.profilePictureUrl ?? undefined),
       })),
     [detail?.members, profile?.id]
   );
 
   const graphSplits = useMemo(() => {
     if (!selectedListRow) return [];
-    if (txDetail?.members?.length) {
-      return txDetail.members.map((m) => ({
-        userId: m.userId,
-        amountOwed: m.remainingOwed,
-      }));
-    }
     return selectedListRow.members.map((m) => ({
       userId: m.userId,
       amountOwed: m.amountOwed,
     }));
-  }, [selectedListRow, txDetail]);
+  }, [selectedListRow]);
 
   const payerShareForGraph = useMemo(() => {
-    if (!selectedListRow || !txDetail?.members?.length) return null;
-    const row = txDetail.members.find((m) => m.userId === selectedListRow.paidByUserId);
-    return row?.totalOwed ?? null;
-  }, [selectedListRow, txDetail]);
+    if (!selectedListRow) return null;
+    return (
+      selectedListRow.members.find((m) => m.userId === selectedListRow.paidByUserId)
+        ?.amountOwed ?? null
+    );
+  }, [selectedListRow]);
 
   const graphCurrencyLabel = useMemo(() => {
     if (!detail) return "";
@@ -356,18 +364,19 @@ export default function GroupDetailPage() {
     setTxDetail(null);
     setOutgoingFriendRequestIds(new Set());
     setFriendActionErr(null);
+    setSplitLensUserId(null);
   }, [groupId]);
 
   useEffect(() => {
-    if (sortedTransactions.length === 0) {
+    if (visibleTransactions.length === 0) {
       setSelectedTxId(null);
       return;
     }
     setSelectedTxId((prev) => {
-      if (prev && sortedTransactions.some((t) => t.id === prev)) return prev;
-      return sortedTransactions[0].id;
+      if (prev && visibleTransactions.some((t) => t.id === prev)) return prev;
+      return visibleTransactions[0]!.id;
     });
-  }, [sortedTransactions]);
+  }, [visibleTransactions]);
 
   useEffect(() => {
     if (!selectedTxId || !accessToken || !emailConfirmed) {
@@ -565,8 +574,10 @@ export default function GroupDetailPage() {
                 <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high/40 p-md">
                   <p className="font-label-sm text-on-surface-variant mb-sm">Invite a friend</p>
                   <InviteFriendToGroup
+                    groupId={detail.id}
                     groupName={detail.name}
                     inviteToken={detail.inviteToken}
+                    memberUserIds={new Set(detail.members.map((m) => m.userId))}
                     accessToken={accessToken}
                     emailConfirmed={emailConfirmed}
                     apiErrorMessage={apiErrorMessage}
@@ -578,9 +589,6 @@ export default function GroupDetailPage() {
               <div className="lg:col-span-7 min-w-0">
                 <div className="flex items-end justify-between gap-md flex-wrap mb-md">
                   <h3 className="font-headline-sm text-on-surface">Members</h3>
-                  <p className="text-xs text-on-surface-variant">
-                    Tap a card to open the group balance map with that person highlighted
-                  </p>
                 </div>
                 {detail.members.length === 0 ? (
                   <p className="font-body-md text-on-surface-variant">No members listed.</p>
@@ -602,22 +610,35 @@ export default function GroupDetailPage() {
                         const net = netByMember.get(m.userId) ?? 0;
                         const netRounded = Math.round(net * 100) / 100;
                         const selectedCard = balanceFocusUserId === m.userId;
+                        function activateMemberCard() {
+                          setGraphMode("group");
+                          setBalanceFocusUserId((prev) =>
+                            prev === m.userId ? null : m.userId
+                          );
+                        }
+                        function onCardKeyDown(e: React.KeyboardEvent) {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            activateMemberCard();
+                          }
+                        }
                         return (
-                          <button
+                          <div
                             key={m.userId}
-                            type="button"
-                            onClick={() => {
-                              setGraphMode("group");
-                              setBalanceFocusUserId((prev) =>
-                                prev === m.userId ? null : m.userId
-                              );
-                            }}
-                            className={`text-left rounded-2xl border p-md flex flex-col gap-sm transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${
+                            className={`rounded-2xl border bg-surface flex flex-col transition-all focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-secondary ${
                               selectedCard
                                 ? "border-secondary bg-secondary-fixed/25 ring-1 ring-secondary/35 shadow-level-1"
-                                : "border-outline-variant/70 bg-surface hover:border-secondary/40 hover:bg-surface-container-high/50"
+                                : "border-outline-variant/70 hover:border-secondary/40 hover:bg-surface-container-high/50"
                             }`}
                           >
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={activateMemberCard}
+                              onKeyDown={onCardKeyDown}
+                              className="text-left p-md flex flex-col gap-sm cursor-pointer outline-none"
+                              aria-pressed={selectedCard}
+                            >
                             <div className="flex items-start gap-md">
                               <RosterAvatar
                                 members={detail.members}
@@ -683,18 +704,16 @@ export default function GroupDetailPage() {
                                 No expense splits recorded yet.
                               </p>
                             )}
+                            </div>
                             {profile?.id && !isSelf ? (
-                              <div className="flex flex-wrap items-center gap-sm pt-xs border-t border-outline-variant/30">
+                              <div className="flex flex-wrap items-center gap-sm px-md pb-md pt-0 border-t border-outline-variant/30">
                                 {isFriend ? (
                                   <span className="text-xs font-label-sm text-secondary">Friends</span>
                                 ) : hasIncomingRequest ? (
                                   <button
                                     type="button"
                                     disabled={busyThis}
-                                    onClick={(ev) => {
-                                      ev.stopPropagation();
-                                      void acceptFriendRequestFrom(m.userId);
-                                    }}
+                                    onClick={() => void acceptFriendRequestFrom(m.userId)}
                                     className="text-xs font-label-sm rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-xs hover:opacity-90 disabled:opacity-50"
                                   >
                                     {busyThis ? "Accepting…" : "Accept request"}
@@ -707,8 +726,7 @@ export default function GroupDetailPage() {
                                   <button
                                     type="button"
                                     disabled={busyThis}
-                                    onClick={(ev) => {
-                                      ev.stopPropagation();
+                                    onClick={() => {
                                       setFriendActionErr(null);
                                       void sendFriendRequestTo(m.userId);
                                     }}
@@ -719,7 +737,7 @@ export default function GroupDetailPage() {
                                 )}
                               </div>
                             ) : null}
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -731,11 +749,7 @@ export default function GroupDetailPage() {
 
           <section
             aria-label="Group transactions hub"
-            className={
-              graphMode === "group"
-                ? "w-full rounded-2xl border border-outline-variant/80 bg-gradient-to-br from-surface-container-low via-surface-container-lowest to-surface-container-low p-md sm:p-lg xl:p-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] flex flex-col gap-lg min-h-0"
-                : "w-full rounded-2xl border border-outline-variant/80 bg-gradient-to-br from-surface-container-low via-surface-container-lowest to-surface-container-low p-md sm:p-lg xl:p-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] flex flex-col gap-xl xl:grid xl:grid-cols-[minmax(260px,300px)_minmax(0,1fr)_minmax(300px,400px)] xl:items-start xl:gap-2xl"
-            }
+            className="w-full rounded-2xl border border-outline-variant/80 bg-gradient-to-br from-surface-container-low via-surface-container-lowest to-surface-container-low p-md sm:p-lg xl:p-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] flex flex-col gap-xl xl:grid xl:grid-cols-[minmax(260px,300px)_minmax(0,1fr)_minmax(300px,400px)] xl:items-start xl:gap-2xl min-h-0"
           >
             <div className="flex w-full min-w-0 flex-col gap-sm border-b border-outline-variant/50 pb-sm -mt-xs mb-xs xl:col-span-3">
               <div className="flex w-full min-w-0 flex-col gap-sm sm:flex-row sm:items-start sm:justify-between sm:gap-md">
@@ -749,8 +763,10 @@ export default function GroupDetailPage() {
                     </h2>
                     <p className="mt-px font-label-sm text-on-surface-variant text-pretty">
                       {graphMode === "group"
-                        ? "Whole hub · map only (list & details hidden)"
-                        : "List · maps · details"}
+                        ? "Member balances and transfer map"
+                        : splitLensUserId
+                          ? `Filtered by ${detail.members.find((x) => x.userId === splitLensUserId)?.displayName ?? "member"}`
+                          : "List · split map · receipt details"}
                     </p>
                   </div>
                 </div>
@@ -764,21 +780,45 @@ export default function GroupDetailPage() {
             </div>
 
             <aside
-              className={`order-1 xl:order-none min-h-0 flex flex-col gap-sm ${graphMode === "group" ? "hidden" : ""}`}
+              className={`order-1 xl:order-none xl:row-start-2 min-h-0 flex flex-col gap-sm ${graphMode === "group" ? "hidden" : ""}`}
             >
-              <h3 className="font-headline-sm text-headline-sm text-on-surface shrink-0 inline-flex items-center gap-xs">
-                <span className="material-symbols-outlined text-[22px] text-on-surface-variant">
-                  receipt_long
-                </span>
-                All expenses
-              </h3>
+              <div className="flex flex-wrap items-start justify-between gap-sm shrink-0">
+                <h3 className="font-headline-sm text-headline-sm text-on-surface inline-flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-[22px] text-on-surface-variant">
+                    receipt_long
+                  </span>
+                  All expenses
+                </h3>
+                {splitLensUserId ? (
+                  <button
+                    type="button"
+                    onClick={() => setSplitLensUserId(null)}
+                    className="text-xs font-label-sm text-secondary border border-outline-variant rounded-lg px-sm py-xs hover:bg-surface-container-high"
+                  >
+                    Clear person filter
+                  </button>
+                ) : null}
+              </div>
               <p className="font-label-sm text-on-surface-variant shrink-0">
-                {sortedTransactions.length} item
-                {sortedTransactions.length === 1 ? "" : "s"} · newest first
+                {splitLensUserId
+                  ? `${visibleTransactions.length} of ${sortedTransactions.length} shown`
+                  : `${sortedTransactions.length} item${sortedTransactions.length === 1 ? "" : "s"}`}{" "}
+                · newest first
               </p>
               {sortedTransactions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg font-body-md text-on-surface-variant">
                   No transactions in this group yet.
+                </div>
+              ) : visibleTransactions.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg font-body-md text-on-surface-variant space-y-sm">
+                  <p>No expenses include this person as payer or participant.</p>
+                  <button
+                    type="button"
+                    onClick={() => setSplitLensUserId(null)}
+                    className="font-label-sm text-secondary hover:underline"
+                  >
+                    Clear filter
+                  </button>
                 </div>
               ) : (
                 <ul
@@ -786,7 +826,7 @@ export default function GroupDetailPage() {
                   role="listbox"
                   aria-label="Transaction list"
                 >
-                  {sortedTransactions.map((t) => {
+                  {visibleTransactions.map((t) => {
                     const selected = t.id === selectedTxId;
                     return (
                       <li key={t.id} ref={selected ? selectedRowRef : undefined}>
@@ -848,7 +888,11 @@ export default function GroupDetailPage() {
               )}
             </aside>
 
-            <div className="order-2 flex min-h-0 w-full min-w-0 flex-1 flex-col gap-sm xl:order-none">
+            <div
+              className={`order-2 flex min-h-0 w-full min-w-0 flex-1 flex-col gap-sm xl:order-none xl:row-start-2 ${
+                graphMode === "group" ? "xl:col-span-3" : ""
+              }`}
+            >
               <div className="flex w-full min-w-0 flex-wrap items-center gap-sm">
                 <span className="font-label-sm text-on-surface-variant uppercase tracking-wider shrink-0">
                   Center view
@@ -880,14 +924,59 @@ export default function GroupDetailPage() {
               </div>
 
               {graphMode === "group" ? (
-                <div className="flex min-h-[420px] w-full min-w-0 flex-1 flex-col sm:min-h-[480px] xl:min-h-[560px]">
-                  <GroupBalanceFlowGraph
-                    members={graphMembers}
-                    edges={globalTransferEdges}
-                    currencyLabel={groupCurrencyLabel}
-                    focusUserId={balanceFocusUserId}
-                    onFocusUser={setBalanceFocusUserId}
-                  />
+                <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-lg xl:flex-row xl:items-stretch xl:gap-xl">
+                  <div className="w-full shrink-0 xl:w-64 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest/95 p-md overflow-y-auto max-h-[min(40vh,22rem)] xl:max-h-[min(72vh,40rem)] shadow-inner">
+                    <h3 className="font-headline-sm text-on-surface mb-xs">Members</h3>
+                    <p className="text-[11px] text-on-surface-variant mb-md leading-snug">
+                      Net after all expenses and settlements (positive = owed to them).
+                    </p>
+                    <ul className="space-y-sm">
+                      {(detail?.members ?? []).map((m) => {
+                        const net = netByMember.get(m.userId) ?? 0;
+                        const netRounded = Math.round(net * 100) / 100;
+                        const isYou = profile?.id === m.userId;
+                        return (
+                          <li
+                            key={m.userId}
+                            className="rounded-lg border border-outline-variant/50 bg-surface px-sm py-xs text-xs"
+                          >
+                            <p
+                              className={`truncate ${
+                                isYou
+                                  ? "font-extrabold text-on-surface text-sm tracking-tight"
+                                  : "font-semibold text-on-surface"
+                              }`}
+                            >
+                              {rosterLabel(m, profile?.id)}
+                            </p>
+                            <p className="tabular-nums mt-px">
+                              {Math.abs(netRounded) < 0.01 ? (
+                                <span className="text-on-surface-variant">Even</span>
+                              ) : netRounded > 0 ? (
+                                <span className={owedAmountClass(netRounded)}>
+                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} owed to them
+                                </span>
+                              ) : (
+                                <span className={oweAmountClass(-netRounded)}>
+                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} they owe
+                                </span>
+                              )}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                  <div className="flex min-h-[min(40vh,320px)] w-full min-w-0 flex-1 flex-col">
+                    <GroupBalanceFlowGraph
+                      members={graphMembers}
+                      edges={globalTransferEdges}
+                      currencyLabel={groupCurrencyLabel}
+                      focusUserId={balanceFocusUserId}
+                      onFocusUser={setBalanceFocusUserId}
+                      compact
+                    />
+                  </div>
                 </div>
               ) : selectedListRow ? (
                 <TransactionSplitGraph
@@ -896,6 +985,12 @@ export default function GroupDetailPage() {
                   splits={graphSplits}
                   currencyLabel={graphCurrencyLabel}
                   payerShareAmount={payerShareForGraph}
+                  lensUserId={splitLensUserId}
+                  onMemberClick={(uid) => {
+                    setSplitLensUserId((prev) => (prev === uid ? null : uid));
+                    setGraphMode("expense");
+                  }}
+                  compact
                 />
               ) : (
                 <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-xl min-h-[300px] flex flex-col items-center justify-center text-on-surface-variant font-body-md text-center gap-sm">
@@ -906,7 +1001,7 @@ export default function GroupDetailPage() {
             </div>
 
             <aside
-              className={`order-3 xl:order-none xl:sticky xl:top-4 min-w-0 ${graphMode === "group" ? "hidden" : ""}`}
+              className={`order-3 xl:order-none xl:row-start-2 xl:sticky xl:top-4 min-w-0 ${graphMode === "group" ? "hidden" : ""}`}
             >
               <TransactionDetailPanel
                 listRow={selectedListRow}
@@ -918,6 +1013,8 @@ export default function GroupDetailPage() {
                   selectedListRow ? categoryLabel(selectedListRow.category) : ""
                 }
                 settlementsTouching={settlementsTouching}
+                showPerMemberBalances={false}
+                showSettlementsTouching={false}
               />
             </aside>
           </section>

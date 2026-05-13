@@ -1,9 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { apiJson, apiMultipartJson, mediaUrl } from "@/lib/api/client";
+import {
+  apiJson,
+  apiMultipartJson,
+  isDefaultProfilePicture,
+  userAvatarSrc,
+} from "@/lib/api/client";
 import { ListboxSelect } from "@/components/listbox-select";
 import { CURRENCY_OPTIONS, currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -37,9 +41,11 @@ export default function ProfilePage() {
         "/api/users/me",
         { accessToken }
       );
+      const pic = (raw.profilePictureUrl ?? "").trim();
       const me: UserProfile = {
         ...raw,
         preferredCurrency: currencyValueFromApi(raw.preferredCurrency),
+        profilePictureUrl: isDefaultProfilePicture(pic) ? "" : pic,
       };
       setLocal(me);
       setName(me.name);
@@ -126,7 +132,9 @@ export default function ProfilePage() {
   }
 
   const display = local ?? profile;
-  const avatarUrl = mediaUrl(display?.profilePictureUrl);
+  const avatarSrc =
+    display != null ? userAvatarSrc(display.profilePictureUrl) : undefined;
+  const hasCustomPhoto = display != null && Boolean(avatarSrc);
 
   const currencyOptions = useMemo(
     () =>
@@ -187,18 +195,17 @@ export default function ProfilePage() {
         <div className="lg:col-span-5">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-lg shadow-level-1 flex flex-col items-center text-center">
             <div className="relative mb-md">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
                   alt=""
                   width={160}
                   height={160}
                   className="w-40 h-40 rounded-full object-cover border-4 border-surface shadow-level-2"
-                  unoptimized
                 />
               ) : (
-                <div className="w-40 h-40 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-display-lg text-display-lg border-4 border-surface shadow-level-2">
-                  {(display?.name ?? "?").slice(0, 1).toUpperCase()}
+                <div className="w-40 h-40 rounded-full bg-primary-fixed flex items-center justify-center text-on-surface font-display-lg text-display-lg font-bold border-4 border-surface shadow-level-2">
+                  {(display?.name ?? "?").slice(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
@@ -241,7 +248,7 @@ export default function ProfilePage() {
               >
                 Change photo
               </button>
-              {avatarUrl && (
+              {hasCustomPhoto && (
                 <button
                   type="button"
                   disabled={pending}

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   Suspense,
   useCallback,
@@ -9,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
-import { apiJson, mediaUrl } from "@/lib/api/client";
+import { apiJson, userAvatarSrc } from "@/lib/api/client";
 import type {
   FriendDto,
   PendingFriendRequestDto,
@@ -377,18 +376,17 @@ function FriendsPageContent() {
               {selectedUser ? (
                 <div className="flex flex-row gap-md items-center">
                   <div className="min-w-0 flex-1 rounded-lg border border-secondary/40 bg-secondary-fixed/20 p-md flex items-center gap-md">
-                    {mediaUrl(selectedUser.profilePictureUrl) ? (
-                      <Image
-                        src={mediaUrl(selectedUser.profilePictureUrl)!}
+                    {userAvatarSrc(selectedUser.profilePictureUrl) ? (
+                      <img
+                        src={userAvatarSrc(selectedUser.profilePictureUrl)!}
                         alt=""
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-headline-md shrink-0 border border-outline-variant">
-                        {selectedUser.name.slice(0, 1).toUpperCase()}
+                        {selectedUser.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
@@ -446,7 +444,7 @@ function FriendsPageContent() {
                           ) : (
                             <ul className="py-xs">
                               {searchResults.map((u) => {
-                                const src = mediaUrl(u.profilePictureUrl);
+                                const src = userAvatarSrc(u.profilePictureUrl);
                                 return (
                                   <li key={u.id} role="presentation">
                                     <button
@@ -456,17 +454,16 @@ function FriendsPageContent() {
                                       className="w-full flex items-center gap-md px-md py-sm text-left hover:bg-secondary-fixed/40 transition-colors"
                                     >
                                       {src ? (
-                                        <Image
+                                        <img
                                           src={src}
                                           alt=""
                                           width={40}
                                           height={40}
                                           className="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0"
-                                          unoptimized
                                         />
                                       ) : (
                                         <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-label-sm shrink-0 border border-outline-variant">
-                                          {u.name.slice(0, 1).toUpperCase()}
+                                          {u.name.slice(0, 2).toUpperCase()}
                                         </div>
                                       )}
                                       <div className="min-w-0 flex-1">
@@ -556,7 +553,7 @@ function FriendsPageContent() {
         ) : (
           <ul className="divide-y divide-outline-variant/40">
             {pending.map((p) => {
-              const src = mediaUrl(p.profilePictureUrl);
+              const src = userAvatarSrc(p.profilePictureUrl);
               return (
                 <li
                   key={p.userId}
@@ -564,17 +561,16 @@ function FriendsPageContent() {
                 >
                   <div className="flex items-center gap-md min-w-0 flex-1">
                     {src ? (
-                      <Image
+                      <img
                         src={src}
                         alt=""
                         width={40}
                         height={40}
                         className="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-label-sm shrink-0 border border-outline-variant">
-                        {p.name.slice(0, 1).toUpperCase()}
+                        {p.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -615,7 +611,7 @@ function FriendsPageContent() {
         ) : (
           <ul className="divide-y divide-outline-variant/40">
             {friends.map((f) => {
-              const src = mediaUrl(f.profilePictureUrl);
+              const src = userAvatarSrc(f.profilePictureUrl);
               return (
                 <li
                   key={f.userId}
@@ -623,17 +619,16 @@ function FriendsPageContent() {
                 >
                   <div className="flex items-center gap-md min-w-0 flex-1">
                     {src ? (
-                      <Image
+                      <img
                         src={src}
                         alt=""
                         width={40}
                         height={40}
                         className="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-label-sm shrink-0 border border-outline-variant">
-                        {f.name.slice(0, 1).toUpperCase()}
+                        {f.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0">

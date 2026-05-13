@@ -4,9 +4,9 @@ import { useCallback, useId, useMemo, useState } from "react";
 import type { GraphMember } from "@/components/group-detail/transaction-split-graph";
 import type { TransferEdge } from "@/lib/group-net-balances";
 
-const W = 960;
-const H = 720;
-const NODE_R = 48;
+const W_FULL = 960;
+const H_FULL = 720;
+const NODE_R_FULL = 48;
 
 type Props = {
   members: GraphMember[];
@@ -14,6 +14,8 @@ type Props = {
   currencyLabel: string;
   focusUserId: string | null;
   onFocusUser: (userId: string | null) => void;
+  /** Smaller diagram for side-by-side layouts */
+  compact?: boolean;
 };
 
 function shortenLine(
@@ -47,12 +49,22 @@ export function GroupBalanceFlowGraph({
   currencyLabel,
   focusUserId,
   onFocusUser,
+  compact,
 }: Props) {
   const reactId = useId().replace(/:/g, "");
   const markerId = `${reactId}-flow-arrow`;
+  const markerOwedId = `${reactId}-flow-arrow-owed`;
   const [hoverUser, setHoverUser] = useState<string | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
   const [avatarFailed, setAvatarFailed] = useState<ReadonlySet<string>>(() => new Set());
+
+  const { W, H, NODE_R } = useMemo(
+    () =>
+      compact
+        ? { W: 560, H: 400, NODE_R: 36 }
+        : { W: W_FULL, H: H_FULL, NODE_R: NODE_R_FULL },
+    [compact]
+  );
 
   const positions = useMemo(() => {
     const pos = new Map<string, { x: number; y: number }>();
@@ -69,7 +81,7 @@ export function GroupBalanceFlowGraph({
       });
     });
     return pos;
-  }, [members]);
+  }, [members, W, H, NODE_R]);
 
   const drawnEdges = useMemo(() => {
     return edges
@@ -107,7 +119,7 @@ export function GroupBalanceFlowGraph({
       mx: number;
       my: number;
     }[];
-  }, [edges, positions]);
+  }, [edges, positions, NODE_R]);
 
   const nameFor = useCallback(
     (id: string) => members.find((m) => m.userId === id)?.displayName ?? id.slice(0, 8),
@@ -139,6 +151,32 @@ export function GroupBalanceFlowGraph({
       return { opacity: 0.92, strokeW: 2.6 };
     },
     [focusUserId, hoverEdge, hoverUser]
+  );
+
+  const edgeStroke = useCallback(
+    (e: (typeof drawnEdges)[0]): string => {
+      if (hoverEdge) return "var(--color-balance-owe)";
+      if (hoverUser) {
+        const hit = e.from === hoverUser || e.to === hoverUser;
+        if (!hit) return "var(--color-outline-variant)";
+        if (e.to === hoverUser) return "var(--color-balance-owed)";
+        return "var(--color-balance-owe)";
+      }
+      if (focusUserId) {
+        const touches = e.from === focusUserId || e.to === focusUserId;
+        if (!touches) return "var(--color-outline-variant)";
+        if (e.to === focusUserId) return "var(--color-balance-owed)";
+        return "var(--color-balance-owe)";
+      }
+      return "var(--color-balance-owe)";
+    },
+    [focusUserId, hoverEdge, hoverUser]
+  );
+
+  const edgeMarkerEnd = useCallback(
+    (e: (typeof drawnEdges)[0]) =>
+      edgeStroke(e).includes("balance-owed") ? markerOwedId : markerId,
+    [edgeStroke, markerId, markerOwedId]
   );
 
   const nodeEmphasis = useCallback(
@@ -202,8 +240,8 @@ export function GroupBalanceFlowGraph({
           </p>
           <p className="font-headline-sm text-on-surface mt-xs tabular-nums">{currencyLabel}</p>
           <p className="font-body-md text-on-surface-variant mt-xs w-full max-w-full text-pretty sm:max-w-[42rem]">
-            Net balances from every expense and settlement. Arrows point to who is owed. Tap a
-            person to highlight their transfers; tap empty space to clear (Esc).
+            Net balances from every expense and settlement. Arrows point to who is owed. Press
+            Esc to clear focus.
           </p>
         </div>
         <div className="rounded-full border border-outline-variant/70 bg-surface/85 backdrop-blur-sm px-sm py-xs font-label-sm text-on-surface-variant shrink-0 self-start sm:self-auto pointer-events-auto">
@@ -218,7 +256,7 @@ export function GroupBalanceFlowGraph({
         preserveAspectRatio="xMidYMid meet"
         overflow="visible"
         className="relative z-[1] block h-auto w-full min-w-0 max-w-full select-none"
-        style={{ minHeight: 360 }}
+        style={{ minHeight: compact ? 280 : 360 }}
         role="img"
         aria-label="Group balance flow between members"
       >
@@ -244,21 +282,33 @@ export function GroupBalanceFlowGraph({
           >
             <path d="M0,0 L0,10 L10,5 z" fill="var(--color-balance-owe)" />
           </marker>
+          <marker
+            id={markerOwedId}
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="5"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L0,10 L10,5 z" fill="var(--color-balance-owed)" />
+          </marker>
         </defs>
 
         {drawnEdges.map((e) => {
           const v = edgeVisual(e);
+          const stroke = edgeStroke(e);
           return (
             <g key={e.key}>
               <path
                 d={e.path}
                 fill="none"
                 strokeWidth={v.strokeW}
-                stroke="var(--color-balance-owe)"
+                stroke={stroke}
                 strokeLinecap="round"
                 className="transition-all duration-200 cursor-pointer"
                 style={{ opacity: v.opacity }}
-                markerEnd={`url(#${markerId})`}
+                markerEnd={`url(#${edgeMarkerEnd(e)})`}
                 onMouseEnter={() => setHoverEdge(e.key)}
                 onMouseLeave={() => setHoverEdge(null)}
                 onClick={(ev) => ev.stopPropagation()}
@@ -270,7 +320,7 @@ export function GroupBalanceFlowGraph({
                 height={32}
                 rx="12"
                 fill="var(--color-surface-container-highest)"
-                stroke="var(--color-balance-owe)"
+                stroke={stroke}
                 strokeOpacity={0.35}
                 className="cursor-pointer transition-all duration-200"
                 strokeWidth={1}
@@ -284,7 +334,7 @@ export function GroupBalanceFlowGraph({
                 y={e.my + 5}
                 textAnchor="middle"
                 className="text-[12px] font-bold tabular-nums pointer-events-none"
-                fill="var(--color-balance-owe)"
+                fill={stroke}
                 style={{ opacity: v.opacity }}
               >
                 {currencyLabel} {e.amount.toFixed(2)}
@@ -387,6 +437,16 @@ export function GroupBalanceFlowGraph({
                   ? `${m.displayName.slice(0, 17)}…`
                   : m.displayName}
               </text>
+
+              <circle
+                r={NODE_R + 10}
+                cx={0}
+                cy={0}
+                fill="transparent"
+                pointerEvents="all"
+                className="cursor-pointer"
+                aria-hidden
+              />
             </g>
           );
         })}

@@ -18,6 +18,45 @@ public class GroupController : ControllerBase
         _groupService = groupService;
     }
 
+    [HttpGet("pending-invites")]
+    public async Task<ActionResult<IReadOnlyList<PendingGroupInviteDto>>> GetPendingInvites()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _groupService.GetPendingGroupInvitesAsync(Guid.Parse(userId));
+        return Ok(result);
+    }
+
+    [HttpDelete("pending-invites/{notificationId:guid}")]
+    public async Task<IActionResult> DismissInvite(Guid notificationId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        await _groupService.DismissGroupInviteNotificationAsync(Guid.Parse(userId), notificationId);
+        return NoContent();
+    }
+
+    [HttpPost("{groupId:guid}/invite-friend")]
+    public async Task<IActionResult> InviteFriend(Guid groupId, [FromBody] InviteFriendToGroupDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        await _groupService.SendGroupInviteToFriendAsync(Guid.Parse(userId), groupId, dto);
+        return NoContent();
+    }
+
     [HttpPost]
     public async Task<ActionResult<GroupResponseDto>> CreateGroup(CreateGroupDto dto)
     {

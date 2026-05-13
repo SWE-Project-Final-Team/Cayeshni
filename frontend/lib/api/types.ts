@@ -6,6 +6,17 @@ export type GroupDto = {
   defaultCurrency: number;
 };
 
+/** GET /api/groups/pending-invites */
+export type PendingGroupInviteDto = {
+  notificationId: string;
+  groupId: string;
+  groupName: string;
+  inviteToken: string;
+  invitedByUserId: string;
+  invitedByName: string;
+  createdAt: string;
+};
+
 /** From GET /api/groups/{groupId} — roster with display names. */
 export type GroupMemberSummaryDto = {
   userId: string;

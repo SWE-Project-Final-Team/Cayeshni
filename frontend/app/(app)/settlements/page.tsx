@@ -11,6 +11,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { ListboxSelect } from "@/components/listbox-select";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
 import { currencyApiName, currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -55,6 +56,15 @@ export default function SettlementsPage() {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [notePending, setNotePending] = useState(false);
+
+  const [payeeMaxByUserId, setPayeeMaxByUserId] = useState<Record<
+    string,
+    number
+  > | null>(null);
+  const [settlementToDelete, setSettlementToDelete] = useState<SettlementDto | null>(
+    null
+  );
+  const [deletePending, setDeletePending] = useState(false);
 
   const payerId = profile?.id ?? "";
 
@@ -172,6 +182,57 @@ export default function SettlementsPage() {
     };
   }, [accessToken, emailConfirmed, groupId, payerId, payeeUserId, txs, apiErrorMessage]);
 
+  useEffect(() => {
+    if (
+      !accessToken ||
+      !emailConfirmed ||
+      !groupId ||
+      !payerId ||
+      !detail ||
+      txs.length === 0
+    ) {
+      setPayeeMaxByUserId({});
+      return;
+    }
+    const payees = detail.members.filter((m) => m.userId !== payerId);
+    let cancelled = false;
+    setPayeeMaxByUserId(null);
+    void (async () => {
+      const out: Record<string, number> = {};
+      await Promise.all(
+        payees.map(async (m) => {
+          const ids = candidateTransactionIds(txs, payerId, m.userId);
+          if (ids.length === 0) {
+            out[m.userId] = 0;
+            return;
+          }
+          try {
+            const details = await Promise.all(
+              ids.map((id) =>
+                apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
+                  accessToken,
+                })
+              )
+            );
+            out[m.userId] = maxSettleableTowardPayee(details, payerId);
+          } catch {
+            out[m.userId] = 0;
+          }
+        })
+      );
+      if (!cancelled) setPayeeMaxByUserId(out);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, emailConfirmed, groupId, payerId, detail, txs]);
+
+  useEffect(() => {
+    if (!payeeMaxByUserId || !payeeUserId) return;
+    const max = payeeMaxByUserId[payeeUserId];
+    if (max !== undefined && max <= 0.005) setPayeeUserId("");
+  }, [payeeMaxByUserId, payeeUserId]);
+
   const maxTowardPayee = useMemo(
     () => maxSettleableTowardPayee(payeeDetails, payerId),
     [payeeDetails, payerId]
@@ -236,10 +297,10 @@ export default function SettlementsPage() {
     }
   }
 
-  async function deleteSettlement(s: SettlementDto) {
-    if (!accessToken) return;
-    if (!window.confirm("Remove this settlement record? Balances on linked expenses will update."))
-      return;
+  async function deleteSettlementConfirmed() {
+    const s = settlementToDelete;
+    if (!accessToken || !s) return;
+    setDeletePending(true);
     setErr(null);
     try {
       await apiJson("/api/settlements", {
@@ -257,9 +318,12 @@ export default function SettlementsPage() {
           allocations: s.allocations,
         },
       });
+      setSettlementToDelete(null);
       await loadGroupContext();
     } catch (e) {
       setErr(apiErrorMessage(e));
+    } finally {
+      setDeletePending(false);
     }
   }
 
@@ -316,14 +380,14 @@ export default function SettlementsPage() {
     [groups]
   );
 
-  const payeeListboxOptions = useMemo(
-    () =>
-      payeeOptions.map((m) => ({
-        value: m.userId,
-        label: m.displayName,
-      })),
-    [payeeOptions]
-  );
+  const payeeListboxOptions = useMemo(() => {
+    const base = payeeOptions.map((m) => ({
+      value: m.userId,
+      label: m.displayName,
+    }));
+    if (payeeMaxByUserId === null) return [];
+    return base.filter((o) => (payeeMaxByUserId[o.value] ?? 0) > 0.005);
+  }, [payeeOptions, payeeMaxByUserId]);
 
   return (
     <div className="space-y-xl max-w-5xl">
@@ -421,8 +485,14 @@ export default function SettlementsPage() {
                       value={payeeUserId}
                       onChange={setPayeeUserId}
                       options={payeeListboxOptions}
-                      placeholder="Select member…"
-                      emptyMessage="No other members in this group"
+                      placeholder={
+                        payeeMaxByUserId === null
+                          ? "Loading payees…"
+                          : payeeListboxOptions.length === 0
+                            ? "No one you owe in this group"
+                            : "Select member…"
+                      }
+                      emptyMessage="No one you currently owe through shared expenses"
                       leadingIcon="person"
                       className="w-full"
                     />
@@ -507,7 +577,8 @@ export default function SettlementsPage() {
                       formPending ||
                       !payeeUserId ||
                       previewLoading ||
-                      maxTowardPayee <= 0
+                      maxTowardPayee <= 0 ||
+                      payeeMaxByUserId === null
                     }
                     className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
                   >
@@ -601,7 +672,7 @@ export default function SettlementsPage() {
                           {canDelete && (
                             <button
                               type="button"
-                              onClick={() => void deleteSettlement(s)}
+                              onClick={() => setSettlementToDelete(s)}
                               className="text-xs font-label-sm text-error hover:underline"
                             >
                               Delete
@@ -617,6 +688,17 @@ export default function SettlementsPage() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={settlementToDelete != null}
+        title="Remove this settlement?"
+        description="Balances on the linked expenses will update to reflect that this payment no longer happened."
+        confirmLabel="Remove settlement"
+        cancelLabel="Keep it"
+        danger
+        pending={deletePending}
+        onClose={() => !deletePending && setSettlementToDelete(null)}
+        onConfirm={() => void deleteSettlementConfirmed()}
+      />
     </div>
   );
 }

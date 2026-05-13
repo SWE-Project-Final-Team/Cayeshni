@@ -12,16 +12,26 @@ export default function AppGroupLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { accessToken, bootstrapping } = useAuth();
+  const { accessToken, emailConfirmed, bootstrapping } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (bootstrapping || accessToken) return;
+    if (bootstrapping) return;
     if (typeof window === "undefined") return;
     const path = window.location.pathname + window.location.search;
     const safe = sanitizePostAuthPath(path) ?? "/dashboard";
-    router.replace(`/login?next=${encodeURIComponent(safe)}`);
-  }, [bootstrapping, accessToken, router]);
+
+    if (!accessToken) {
+      router.replace(`/login?next=${encodeURIComponent(safe)}`);
+      return;
+    }
+
+    if (!emailConfirmed) {
+      router.replace(
+        `/login?pendingVerification=1&next=${encodeURIComponent(safe)}`
+      );
+    }
+  }, [bootstrapping, accessToken, emailConfirmed, router]);
 
   if (bootstrapping) {
     return (
@@ -29,7 +39,7 @@ export default function AppGroupLayout({
     );
   }
 
-  if (!accessToken) {
+  if (!accessToken || !emailConfirmed) {
     return null;
   }
 

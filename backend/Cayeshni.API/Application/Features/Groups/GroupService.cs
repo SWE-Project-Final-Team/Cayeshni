@@ -1,6 +1,8 @@
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Domain.Entities;
+using Cayeshni.API.Domain.Enums;
+using Cayeshni.API.Infrastructure.Identity;
 using Cayeshni.API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -193,6 +195,121 @@ public class GroupService : IGroupService
 
         entity.Name = group.Name;
         entity.DefaultCurrency = group.DefaultCurrency;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task SendGroupInviteToFriendAsync(
+        Guid inviterId,
+        Guid groupId,
+        InviteFriendToGroupDto dto)
+    {
+        var friendUserId = dto.FriendUserId;
+        if (friendUserId == Guid.Empty)
+            throw new ValidationException("Friend user id is required.");
+
+        if (inviterId == friendUserId)
+            throw new ValidationException("You cannot invite yourself.");
+
+        var group = await _context.Groups
+                .Include(g => g.Members)
+                .FirstOrDefaultAsync(g => g.Id == groupId)
+            ?? throw new NotFoundException(nameof(Group), groupId);
+
+        if (!group.Members.Any(m => m.UserId == inviterId))
+            throw new ValidationException("You are not a member of this group.");
+
+        if (group.Members.Any(m => m.UserId == friendUserId))
+            throw new ValidationException("That person is already in this group.");
+
+        var areFriends = await _context.Friendships.AnyAsync(f =>
+            f.Status == FriendshipStatus.Friends &&
+            ((f.UserIdA == inviterId && f.UserIdB == friendUserId) ||
+             (f.UserIdB == inviterId && f.UserIdA == friendUserId)));
+
+        if (!areFriends)
+            throw new ValidationException(
+                "You can only send in-app invites to users who are your friends on Cayeshni.");
+
+        var inviter = await _context.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == inviterId)
+            ?? throw new NotFoundException(nameof(AppUser), inviterId);
+
+        var oldInvites = await _context.Notifications
+            .Where(n =>
+                n.RecipientId == friendUserId &&
+                n.GroupId == groupId &&
+                n.Type == NotificationType.GroupInviteReceived &&
+                !n.IsRead)
+            .ToListAsync();
+
+        if (oldInvites.Count > 0)
+            _context.Notifications.RemoveRange(oldInvites);
+
+        _context.Notifications.Add(new Notification
+        {
+            Type = NotificationType.GroupInviteReceived,
+            RecipientId = friendUserId,
+            SenderId = inviterId,
+            GroupId = group.Id,
+            Text = $"{inviter.Name} invited you to join the group \"{group.Name}\"."
+        });
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<PendingGroupInviteDto>> GetPendingGroupInvitesAsync(Guid userId)
+    {
+        var notifications = await _context.Notifications
+            .AsNoTracking()
+            .Where(n =>
+                n.RecipientId == userId &&
+                n.Type == NotificationType.GroupInviteReceived &&
+                n.GroupId != null)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+
+        var results = new List<PendingGroupInviteDto>();
+
+        foreach (var n in notifications)
+        {
+            var gid = n.GroupId!.Value;
+            var g = await _context.Groups
+                .Include(x => x.Members)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == gid);
+
+            if (g == null)
+                continue;
+
+            if (g.Members.Any(m => m.UserId == userId))
+                continue;
+
+            var inviter = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == n.SenderId);
+
+            results.Add(new PendingGroupInviteDto(
+                n.Id,
+                g.Id,
+                g.Name,
+                g.InviteToken,
+                n.SenderId,
+                inviter?.Name ?? "Someone",
+                n.CreatedAt));
+        }
+
+        return results;
+    }
+
+    public async Task DismissGroupInviteNotificationAsync(Guid userId, Guid notificationId)
+    {
+        var n = await _context.Notifications
+            .FirstOrDefaultAsync(x => x.Id == notificationId && x.RecipientId == userId)
+            ?? throw new NotFoundException(nameof(Notification), notificationId);
+
+        if (n.Type != NotificationType.GroupInviteReceived)
+            throw new ValidationException("This notification cannot be dismissed here.");
+
+        _context.Notifications.Remove(n);
         await _context.SaveChangesAsync();
     }
 }

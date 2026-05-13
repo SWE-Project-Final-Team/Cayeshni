@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { apiJson, mediaUrl } from "@/lib/api/client";
+import { userAvatarSrc } from "@/lib/api/client";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
@@ -18,44 +17,13 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { profile, accountEmail, emailConfirmed, logout, apiErrorMessage } =
-    useAuth();
+  const { profile, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
-  const avatar = profile?.profilePictureUrl ? mediaUrl(profile.profilePictureUrl) : null;
-
-  async function resendConfirmation() {
-    const email = profile?.email ?? accountEmail;
-    if (!email) return;
-    setResendMsg(null);
-    try {
-      await apiJson("/api/auth/resend-confirmation", {
-        method: "POST",
-        json: { email },
-      });
-      setResendMsg("If your account is unconfirmed, check your inbox.");
-    } catch (e) {
-      setResendMsg(apiErrorMessage(e));
-    }
-  }
+  const avatar = userAvatarSrc(profile?.profilePictureUrl);
 
   return (
     <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
-      {!emailConfirmed && (
-        <div className="shrink-0 bg-tertiary-fixed text-on-tertiary-fixed px-container-margin py-sm flex flex-wrap items-center justify-center gap-md text-center font-label-sm text-label-sm border-b border-outline-variant/30">
-          <span>Confirm your email to unlock group expenses and settlements.</span>
-          <button
-            type="button"
-            onClick={() => void resendConfirmation()}
-            className="underline font-semibold hover:opacity-90"
-          >
-            Resend link
-          </button>
-          {resendMsg && <span className="text-on-tertiary-fixed/90">{resendMsg}</span>}
-        </div>
-      )}
-
       <div className="flex flex-1 min-h-0">
       <aside
         className={`${
@@ -83,17 +51,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="flex items-center gap-md mb-lg px-xs rounded-lg -mx-xs py-xs hover:bg-surface-container-high transition-colors outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
         >
           {avatar ? (
-            <Image
+            <img
               src={avatar}
               alt=""
               width={40}
               height={40}
               className="w-10 h-10 rounded-full object-cover border border-outline-variant"
-              unoptimized
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-label-sm text-label-sm">
-              {(profile?.name ?? "?").slice(0, 1).toUpperCase()}
+            <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-surface font-label-sm text-label-sm font-bold">
+              {(profile?.name ?? "?").slice(0, 2).toUpperCase()}
             </div>
           )}
           <div className="min-w-0 text-left">

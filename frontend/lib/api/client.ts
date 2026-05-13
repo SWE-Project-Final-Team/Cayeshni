@@ -35,6 +35,34 @@ export function setAccessTokenRefreshHandler(
   refreshAccessTokenHandler = handler;
 }
 
+/** Clears client session (e.g. stale JWT after user deleted server-side). App layout redirects to login when token is null. */
+let sessionInvalidationHandler: (() => void) | null = null;
+
+export function setSessionInvalidationHandler(handler: (() => void) | null): void {
+  sessionInvalidationHandler = handler;
+}
+
+/**
+ * Call when an authenticated request fails in a way that means this client should not stay "logged in".
+ * - 401 with Bearer: refresh failed or token rejected
+ * - 404 on GET /api/users/me: user row removed but JWT may still decode
+ */
+function maybeInvalidateSession(
+  status: number,
+  path: string,
+  hadBearerToken: boolean
+): void {
+  if (!hadBearerToken || !sessionInvalidationHandler) return;
+  const p = pathWithoutQuery(path);
+  if (status === 401) {
+    sessionInvalidationHandler();
+    return;
+  }
+  if (status === 404 && p === "/api/users/me") {
+    sessionInvalidationHandler();
+  }
+}
+
 function pathWithoutQuery(path: string): string {
   const q = path.indexOf("?");
   return q === -1 ? path : path.slice(0, q);
@@ -124,6 +152,8 @@ export async function apiJson<T>(
   }
 
   if (!res.ok) {
+    const hadBearer = Boolean(init.accessToken);
+    maybeInvalidateSession(res.status, path, hadBearer);
     const body = await readBodyAsJsonOrText(res);
     throw new ApiError("Request failed", res.status, body);
   }
@@ -166,6 +196,7 @@ export async function apiMultipartJson<T>(
   }
 
   if (!res.ok) {
+    maybeInvalidateSession(res.status, path, true);
     const body = await readBodyAsJsonOrText(res);
     throw new ApiError("Request failed", res.status, body);
   }
@@ -180,4 +211,22 @@ export function mediaUrl(pathOrUrl: string | null | undefined): string | undefin
   }
   const p = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
   return `${API_BASE}${p}`;
+}
+
+/** True when the user has no custom upload (default avatar path or empty). */
+export function isDefaultProfilePicture(
+  pathOrUrl: string | null | undefined
+): boolean {
+  if (pathOrUrl == null || typeof pathOrUrl !== "string") return true;
+  const s = pathOrUrl.replace(/\\/g, "/").trim();
+  if (!s) return true;
+  return s.toLowerCase().includes("defaults/avatar.webp");
+}
+
+/** Resolved URL for `<img src>`, or `undefined` when the UI should show initials instead. */
+export function userAvatarSrc(
+  pathOrUrl: string | null | undefined
+): string | undefined {
+  if (isDefaultProfilePicture(pathOrUrl)) return undefined;
+  return mediaUrl(pathOrUrl);
 }

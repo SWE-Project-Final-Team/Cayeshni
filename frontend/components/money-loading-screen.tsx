@@ -20,7 +20,7 @@ export function MoneyLoadingScreen({
       className={
         isFull
           ? "min-h-screen w-full flex flex-col items-center justify-center bg-background relative overflow-hidden px-lg"
-          : "w-full max-w-md mx-auto flex flex-col items-center justify-center py-2xl px-lg relative overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest/80"
+          : "w-full max-w-[min(100vw-1.5rem,72rem)] mx-auto flex flex-col items-center justify-center py-xl px-lg md:px-xl relative overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest/80"
       }
       role="status"
       aria-live="polite"
@@ -39,7 +39,7 @@ export function MoneyLoadingScreen({
         aria-hidden
       />
 
-      <div className="relative z-10 flex flex-col items-center gap-lg text-center max-w-[min(100%,22rem)]">
+      <div className="relative z-10 flex flex-col items-center gap-lg text-center w-full max-w-[min(100%,48rem)] px-sm">
         <div className="relative w-[5.5rem] h-[5.5rem] flex items-center justify-center">
           <div
             className="absolute inset-0 rounded-full border-[3px] border-outline-variant/50 border-t-secondary border-r-secondary/40 motion-safe:animate-spin"

@@ -7,6 +7,7 @@ import type { FriendDto } from "@/lib/api/types";
 import { buildGroupJoinUrl } from "@/lib/group-invite";
 
 type Props = {
+  groupId: string;
   groupName: string;
   inviteToken: string;
   accessToken: string | null;
@@ -14,15 +15,19 @@ type Props = {
   apiErrorMessage: (e: unknown) => string;
   /** Your display name for the email body */
   inviterName?: string | null;
+  /** Friends already in the group are hidden from the picker */
+  memberUserIds?: ReadonlySet<string>;
 };
 
 export function InviteFriendToGroup({
+  groupId,
   groupName,
   inviteToken,
   accessToken,
   emailConfirmed,
   apiErrorMessage,
   inviterName,
+  memberUserIds,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [friends, setFriends] = useState<FriendDto[] | null>(null);
@@ -30,6 +35,8 @@ export function InviteFriendToGroup({
   const [err, setErr] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [copyFailMessage, setCopyFailMessage] = useState<string | null>(null);
+  const [inAppBusyId, setInAppBusyId] = useState<string | null>(null);
+  const [inAppMsg, setInAppMsg] = useState<string | null>(null);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
@@ -66,6 +73,7 @@ export function InviteFriendToGroup({
     setErr(null);
     setLinkCopied(false);
     setCopyFailMessage(null);
+    setInAppMsg(null);
     clearCopyResetTimer();
   }
 
@@ -74,6 +82,7 @@ export function InviteFriendToGroup({
     setErr(null);
     setLinkCopied(false);
     setCopyFailMessage(null);
+    setInAppMsg(null);
     clearCopyResetTimer();
     setOpen(true);
   }
@@ -82,14 +91,30 @@ export function InviteFriendToGroup({
   const fromLine = inviterName?.trim() ? inviterName.trim() : "A friend";
 
   function mailtoForFriend(friend: FriendDto) {
-    const subject = encodeURIComponent(
-      `Join “${groupName}” on Cayeshni`
-    );
+    const subject = encodeURIComponent(`Join “${groupName}” on Cayeshni`);
     const body = encodeURIComponent(
       `${fromLine} invited you to split expenses in “${groupName}” on Cayeshni.\n\nOpen this link to join (log in or sign up first):\n${joinUrl}\n\nOr in Cayeshni go to Groups → Join with invite code and paste:\n${inviteToken}\n`
     );
     const addr = encodeURIComponent(friend.email).replace(/%20/g, "");
     window.location.href = `mailto:${addr}?subject=${subject}&body=${body}`;
+  }
+
+  async function sendInAppInvite(friend: FriendDto) {
+    if (!accessToken) return;
+    setInAppMsg(null);
+    setInAppBusyId(friend.userId);
+    try {
+      await apiJson(`/api/groups/${groupId}/invite-friend`, {
+        method: "POST",
+        accessToken,
+        json: { friendUserId: friend.userId },
+      });
+      setInAppMsg(`Invite sent to ${friend.name}. They’ll see it under Groups.`);
+    } catch (e) {
+      setErr(apiErrorMessage(e));
+    } finally {
+      setInAppBusyId(null);
+    }
   }
 
   async function copyJoinLink() {
@@ -147,6 +172,9 @@ export function InviteFriendToGroup({
 
   if (!emailConfirmed) return null;
 
+  const friendsFiltered =
+    friends?.filter((f) => !memberUserIds?.has(f.userId)) ?? null;
+
   return (
     <>
       <button
@@ -189,8 +217,8 @@ export function InviteFriendToGroup({
             </div>
             <p className="font-body-md text-on-surface-variant mb-md">
               <span className="font-semibold text-on-surface">{groupName}</span>{" "}
-              — pick a friend to open an email with the join link, or copy / share
-              the link yourself.
+              — send an in-app invite to a Cayeshni friend, open email with the join link, or
+              copy / share the link yourself.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-sm mb-lg">
@@ -236,17 +264,21 @@ export function InviteFriendToGroup({
             {err ? (
               <p className="text-sm text-error mb-md font-body-md">{err}</p>
             ) : null}
+            {inAppMsg ? (
+              <p className="text-sm text-secondary font-body-md mb-md">{inAppMsg}</p>
+            ) : null}
 
             <p className="font-label-sm text-label-sm text-on-surface-variant mb-sm">
               Your Cayeshni friends
             </p>
             {loading ? (
               <p className="font-body-md text-on-surface-variant py-md">Loading…</p>
-            ) : friends && friends.length === 0 ? (
+            ) : friendsFiltered && friendsFiltered.length === 0 ? (
               <div className="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md space-y-sm">
                 <p className="font-body-md text-on-surface-variant">
-                  You don&apos;t have friends on Cayeshni yet. Add friends first, or
-                  use copy / share above.
+                  {friends && friends.length > 0
+                    ? "Everyone here is already in this group, or add more friends first."
+                    : "You don&apos;t have friends on Cayeshni yet. Add friends first, or use copy / share above."}
                 </p>
                 <Link
                   href="/friends"
@@ -258,10 +290,10 @@ export function InviteFriendToGroup({
               </div>
             ) : (
               <ul className="divide-y divide-outline-variant/50 border border-outline-variant/60 rounded-lg overflow-hidden max-h-[min(50vh,22rem)] sm:max-h-72 overflow-y-auto">
-                {friends?.map((f) => (
+                {friendsFiltered?.map((f) => (
                   <li
                     key={f.userId}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-sm p-md bg-surface-container-lowest"
+                    className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-sm p-md bg-surface-container-lowest"
                   >
                     <div className="min-w-0">
                       <p className="font-body-md font-semibold text-on-surface truncate">
@@ -271,16 +303,29 @@ export function InviteFriendToGroup({
                         {f.email}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => mailtoForFriend(f)}
-                      className="shrink-0 inline-flex items-center justify-center gap-xs rounded-lg border border-primary bg-primary text-on-primary px-md py-sm font-label-sm text-label-sm hover:bg-primary-container w-full sm:w-auto"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">
-                        mail
-                      </span>
-                      Email invite
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-sm shrink-0">
+                      <button
+                        type="button"
+                        disabled={inAppBusyId === f.userId}
+                        onClick={() => void sendInAppInvite(f)}
+                        className="inline-flex items-center justify-center gap-xs rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-sm font-label-sm hover:bg-secondary/90 disabled:opacity-60"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          notifications
+                        </span>
+                        {inAppBusyId === f.userId ? "Sending…" : "In-app invite"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => mailtoForFriend(f)}
+                        className="inline-flex items-center justify-center gap-xs rounded-lg border border-primary bg-primary text-on-primary px-md py-sm font-label-sm hover:bg-primary-container"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          mail
+                        </span>
+                        Email
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

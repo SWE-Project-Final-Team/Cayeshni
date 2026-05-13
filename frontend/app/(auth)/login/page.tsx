@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { apiJson } from "@/lib/api/client";
 import {
   resolvePostAuthDestination,
   sanitizePostAuthPath,
@@ -15,11 +16,21 @@ import { CURRENCY_OPTIONS } from "@/lib/currency";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, register, accessToken, bootstrapping, apiErrorMessage } =
-    useAuth();
+  const {
+    login,
+    register,
+    logout,
+    accessToken,
+    bootstrapping,
+    emailConfirmed,
+    profile,
+    accountEmail,
+    apiErrorMessage,
+  } = useAuth();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   const currencyOptions = useMemo(
     () =>
@@ -47,8 +58,24 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (bootstrapping || !accessToken) return;
+    if (!emailConfirmed) return;
     router.replace(resolvePostAuthDestination());
-  }, [bootstrapping, accessToken, router]);
+  }, [bootstrapping, accessToken, emailConfirmed, router]);
+
+  async function resendConfirmation() {
+    const email = profile?.email ?? accountEmail;
+    if (!email) return;
+    setResendMsg(null);
+    try {
+      await apiJson("/api/auth/resend-confirmation", {
+        method: "POST",
+        json: { email },
+      });
+      setResendMsg("If your account is unconfirmed, check your inbox.");
+    } catch (err) {
+      setResendMsg(apiErrorMessage(err));
+    }
+  }
 
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -119,6 +146,37 @@ export default function LoginPage() {
             Cayeshni
           </h1>
         </div>
+
+        {accessToken && !emailConfirmed && (
+          <div
+            className="mb-lg rounded-xl border border-outline-variant/40 bg-tertiary-fixed/25 text-on-surface px-md py-md space-y-sm"
+            role="status"
+          >
+            <p className="font-body-md text-body-md text-on-surface">
+              Your email is not verified yet. Open the link we sent you to unlock
+              your account, or request a new message below.
+            </p>
+            <div className="flex flex-wrap items-center gap-sm">
+              <button
+                type="button"
+                onClick={() => void resendConfirmation()}
+                className="inline-flex items-center gap-xs bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90"
+              >
+                Resend verification link
+              </button>
+              <button
+                type="button"
+                onClick={() => void logout()}
+                className="font-label-sm text-secondary hover:underline"
+              >
+                Sign out
+              </button>
+            </div>
+            {resendMsg && (
+              <p className="font-body-sm text-on-surface-variant">{resendMsg}</p>
+            )}
+          </div>
+        )}
 
         <div className="flex mb-xl border-b border-outline-variant/30">
           <button

@@ -51,7 +51,7 @@ export default function ConfirmEmailPage() {
   }
 
   return (
-    <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-level-2 p-lg md:p-xl">
+    <div className="w-full max-w-full bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-level-2 p-lg md:p-xl md:px-12">
       <h1 className="font-headline-md text-headline-md text-primary mb-sm">
         Confirm email
       </h1>
