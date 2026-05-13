@@ -8,6 +8,7 @@ import type {
   GroupDto,
   TransactionDto,
 } from "@/lib/api/types";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { equalParts, toCents } from "@/lib/money-split";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -79,6 +80,8 @@ function ExpensesPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [formErr, setFormErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<TransactionDto | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -188,6 +191,14 @@ function ExpensesPageInner() {
     [groupDetail?.members]
   );
 
+  const sortedTxs = useMemo(
+    () =>
+      [...txs].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [txs]
+  );
+
   useEffect(() => {
     const total = parseFloat(amount.replace(",", ".")) || 0;
     if (!equalSplit || memberIds.length === 0 || total <= 0) return;
@@ -262,6 +273,25 @@ function ExpensesPageInner() {
     }
   }
 
+  async function deleteTransactionConfirmed() {
+    const tx = transactionToDelete;
+    if (!accessToken || !tx) return;
+    setDeletePending(true);
+    setFormErr(null);
+    try {
+      await apiJson(`/api/transactions/${tx.id}`, {
+        method: "DELETE",
+        accessToken,
+      });
+      setTransactionToDelete(null);
+      await loadTx();
+    } catch (e) {
+      setFormErr(apiErrorMessage(e));
+    } finally {
+      setDeletePending(false);
+    }
+  }
+
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
@@ -316,13 +346,13 @@ function ExpensesPageInner() {
             <div className="bg-surface-container-low px-lg py-sm font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant">
               Transactions
             </div>
-            {txs.length === 0 ? (
+            {sortedTxs.length === 0 ? (
               <div className="p-lg font-body-md text-on-surface-variant">
                 No transactions in this group yet.
               </div>
             ) : (
               <ul>
-                {txs.map((t, i) => (
+                {sortedTxs.map((t, i) => (
                   <li
                     key={t.id}
                     className={`flex items-start p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
@@ -358,6 +388,17 @@ function ExpensesPageInner() {
                           )}{" "}
                           · {categoryLabel(t.category)}
                         </div>
+                        {profile?.id === t.paidByUserId && (
+                          <div className="mt-sm flex gap-sm">
+                            <button
+                              type="button"
+                              onClick={() => setTransactionToDelete(t)}
+                              className="text-xs font-label-sm text-error hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>
@@ -527,6 +568,18 @@ function ExpensesPageInner() {
           </form>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={transactionToDelete != null}
+        title="Delete this expense?"
+        description="This will remove the transaction. If it already has settlements, the API may reject the delete until those are removed first."
+        confirmLabel="Delete expense"
+        cancelLabel="Keep it"
+        danger
+        pending={deletePending}
+        onClose={() => !deletePending && setTransactionToDelete(null)}
+        onConfirm={() => void deleteTransactionConfirmed()}
+      />
     </div>
   );
 }

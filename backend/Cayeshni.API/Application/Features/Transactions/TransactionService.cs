@@ -96,6 +96,7 @@ public class TransactionService
         var transactions = await _context.Transactions
             .Where(t => t.GroupId == groupId)
             .Include(t => t.TransactionMembers)
+            .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
 
         var payerIds = transactions.Select(t => t.PaidByUserId).Distinct().ToList();
@@ -196,6 +197,7 @@ public class TransactionService
 
         // Sum all transaction amounts owed
         var transactionMembers = await _context.TransactionMembers
+            .AsSplitQuery()
             .Include(tm => tm.Transaction)
             .Where(tm => tm.Transaction.GroupId == groupId)
             .Include(tm => tm.Allocations)

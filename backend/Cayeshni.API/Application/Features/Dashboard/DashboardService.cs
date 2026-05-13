@@ -16,6 +16,7 @@ public class DashboardService
     {
         var memberships = await _db.GroupMembers
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(m => m.UserId == userId)
             .Include(m => m.Group)
             .OrderBy(m => m.Group.Name)
@@ -37,6 +38,7 @@ public class DashboardService
 
         var transactions = await _db.Transactions
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(t => groupIds.Contains(t.GroupId))
             .Include(t => t.TransactionMembers)
             .ToListAsync();
@@ -111,6 +113,7 @@ public class DashboardService
 
         var recentTx = await _db.Transactions
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(t => groupIds.Contains(t.GroupId))
             .Include(t => t.Group)
             .OrderByDescending(t => t.CreatedAt)
@@ -119,6 +122,7 @@ public class DashboardService
 
         var recentSettlements = await _db.Settlements
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(s => groupIds.Contains(s.GroupId))
             .Include(s => s.Group)
             .OrderByDescending(s => s.CreatedAt)
