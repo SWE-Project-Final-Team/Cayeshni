@@ -11,6 +11,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { ListboxSelect } from "@/components/listbox-select";
+import ErrorBoundary from "@/components/error-boundary";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
 import { currencyApiName, currencyCode, currencyValueFromApi } from "@/lib/currency";
@@ -235,6 +236,23 @@ export default function SettlementsPage() {
     return buildAllocationsFifo(payeeDetails, payerId, n);
   }, [amountStr, payerId, payeeDetails]);
 
+  const payeeOptions =
+    detail?.members.filter((m) => m.userId !== payerId) ?? [];
+
+  const groupListboxOptions = useMemo(
+    () => groups.map((g) => ({ value: g.id, label: g.name })),
+    [groups]
+  );
+
+  const payeeListboxOptions = useMemo(() => {
+    const base = payeeOptions.map((m) => ({
+      value: m.userId,
+      label: m.displayName,
+    }));
+    if (payeeMaxByUserId === null) return [];
+    return base.filter((o) => (payeeMaxByUserId[o.value] ?? 0) > 0.005);
+  }, [payeeOptions, payeeMaxByUserId]);
+
   async function submitSettlement(e: React.FormEvent) {
     e.preventDefault();
     if (!accessToken || !payerId || !detail) return;
@@ -362,25 +380,9 @@ export default function SettlementsPage() {
     );
   }
 
-  const payeeOptions =
-    detail?.members.filter((m) => m.userId !== payerId) ?? [];
-
-  const groupListboxOptions = useMemo(
-    () => groups.map((g) => ({ value: g.id, label: g.name })),
-    [groups]
-  );
-
-  const payeeListboxOptions = useMemo(() => {
-    const base = payeeOptions.map((m) => ({
-      value: m.userId,
-      label: m.displayName,
-    }));
-    if (payeeMaxByUserId === null) return [];
-    return base.filter((o) => (payeeMaxByUserId[o.value] ?? 0) > 0.005);
-  }, [payeeOptions, payeeMaxByUserId]);
-
   return (
-    <div className="space-y-xl max-w-5xl">
+    <ErrorBoundary>
+      <div className="space-y-xl max-w-5xl">
       <header className="border-b border-outline-variant pb-lg">
         <h1 className="font-display-lg text-display-lg text-primary">
           Settlements
@@ -725,6 +727,7 @@ export default function SettlementsPage() {
         onClose={() => !deletePending && setSettlementToDelete(null)}
         onConfirm={() => void deleteSettlementConfirmed()}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

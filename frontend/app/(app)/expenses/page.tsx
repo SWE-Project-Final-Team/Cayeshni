@@ -13,6 +13,7 @@ import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { equalParts, toCents } from "@/lib/money-split";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ListboxSelect } from "@/components/listbox-select";
+import ErrorBoundary from "@/components/error-boundary";
 
 const CATEGORIES: { value: number; label: string }[] = [
   { value: 0, label: "Transport" },
@@ -64,7 +65,9 @@ export default function ExpensesPage() {
         </div>
       }
     >
-      <ExpensesPageInner />
+      <ErrorBoundary>
+        <ExpensesPageInner />
+      </ErrorBoundary>
     </Suspense>
   );
 }
