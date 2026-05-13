@@ -11,6 +11,7 @@
 \usepackage{parskip}
 \usepackage{microtype}
 \usepackage[hidelinks]{hyperref}
+\usepackage{url}
 
 % Plain text in \title/\author avoids hyperref PDF-string brace errors at \maketitle.
 \title{Software Development Life Cycle (SDLC) Report\\[0.6em]Cayeshni --- Group Expense Management System}
@@ -82,10 +83,6 @@ Cayeshni is a small web system for groups that share costs: one place to log who
 %------------------------------------------------------------------
 \section{Introduction}
 %------------------------------------------------------------------
-
-\subsection{Why this report exists}
-
-The module asks for a written report that follows the life cycle, not only working code. This document states what we built, why, and how we checked it, without pasting source listings.
 
 \subsection{What the report covers}
 
@@ -200,12 +197,12 @@ The server is split into layers (HTTP, application services, domain, persistence
 \toprule
 \textbf{Type} & \textbf{Files} \\
 \midrule
-Use case & \texttt{auth/auth-use-cases.md}, \texttt{groups/group-use-case-diagram.md}, \texttt{friends/friend-use-case-diagram.md}, \texttt{transactions/transaction-use-cases.md}, \texttt{settlements/settlement-use-cases.md} \\
-Sequence & \texttt{auth/auth-sequence-diagrams.md}, \texttt{groups/group-sequence-diagrams.md}, \texttt{friends/friend-sequence-diagrams.md}, \texttt{transactions/transaction-sequence-diagram.md}, \texttt{settlements/settlement-sequence-diagram.md} \\
-Activity & \texttt{design/activity-diagrams.md} \\
-State machine & \texttt{design/state-machine-diagrams.md} \\
-Class & \texttt{class\_diagram.md} \\
-Extra sketches & \texttt{auth/auth-architecture.md}, \texttt{groups/group-architecture.md}, \texttt{friends/friend-architecture.md}, \texttt{architecture/transaction-settlement-architecture.md} \\
+Use case & \path{auth/auth-use-cases.md}, \path{groups/group-use-case-diagram.md}, \path{friends/friend-use-case-diagram.md}, \path{transactions/transaction-use-cases.md}, \path{settlements/settlement-use-cases.md} \\
+Sequence & \path{auth/auth-sequence-diagrams.md}, \path{groups/group-sequence-diagrams.md}, \path{friends/friend-sequence-diagrams.md}, \path{transactions/transaction-sequence-diagram.md}, \path{settlements/settlement-sequence-diagram.md} \\
+Activity & \path{design/activity-diagrams.md} \\
+State machine & \path{design/state-machine-diagrams.md} \\
+Class & \path{class\_diagram.md} \\
+Extra sketches & \path{auth/auth-architecture.md}, \path{groups/group-architecture.md}, \path{friends/friend-architecture.md}, \path{architecture/transaction-settlement-architecture.md} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -258,17 +255,23 @@ TC-03 & Someone who is not in the group cannot read that group transactions. \\
 
 \subsection{Maintenance}
 
-Day to day: keep the application running, apply security patches to dependencies and runtime, rotate secrets, back up the database according to institutional policy.
+\subsubsection{How to maintain the system}
+\begin{enumerate}
+	\item Repair bugs and faults discovered after deployment. Issues should be reproduced, fixed on a feature branch, reviewed through pull requests, and merged following the project's CI checks.
+	\item Modify or add functionality to improve performance, reliability, or usability. Feature work follows the same branching and review process; backward-compatible changes should be prioritised when the service is live.
+\end{enumerate}
 
-When bugs appear: reproduce, fix on a branch, review, merge---the same workflow as during development.
+\subsubsection{Future improvements}
+\begin{enumerate}
+  \item Consider general content-protection and access-control measures for any sensitive shared media; examples include stricter authentication/authorization, short-lived signed URLs, watermarking, and rate-limiting.
+  \item Implement real-time push notifications (e.g. WebSockets or server-sent events) to notify users of invites, settlements, or friend activity.
+\end{enumerate}
 
-Future ideas (not part of this submission): receipt photos, CSV export, push or email reminders, a real payment provider.
-
-%------------------------------------------------------------------
-\section{Submission checklist}
-%------------------------------------------------------------------
-
-The brief asks for: (1)~working software, (2)~a project report as PDF, (3)~the UML set. This repository contains (1) and the source text plus diagram files for (2) and (3). Before the deadline, compile this report to PDF, attach or embed diagrams as required, and submit according to course instructions.
+\subsubsection{Scalability and updates}
+\begin{enumerate}
+	\item Scalability can be managed using load distribution and container orchestration (Docker + load balancers, or Kubernetes) to scale the API and frontend instances as traffic grows.
+	\item System updates are performed through continuous integration and controlled rollouts. Maintain semantic versioning, automated tests, and migration scripts; strive to preserve backward compatibility for client integrations.
+\end{enumerate}
 
 %------------------------------------------------------------------
 \section{References and annexes}
