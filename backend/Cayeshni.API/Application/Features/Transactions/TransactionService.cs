@@ -177,17 +177,18 @@ public class TransactionService
 
     public async Task<List<TransactionMemberBalanceDto>> GetGroupDebtsAsync(Guid groupId)
     {
-        var groupMembers = await _context.Groups
-            .Where(g => g.Id == groupId)
-            .Include(g => g.Members)
-            .Select(g => g.Members.Select(m => m.UserId))
-            .FirstOrDefaultAsync()
-            ?? throw new NotFoundException(nameof(Group), groupId);
+        if (!await _context.Groups.AnyAsync(g => g.Id == groupId))
+            throw new NotFoundException(nameof(Group), groupId);
+
+        var groupMemberIds = await _context.GroupMembers
+            .Where(gm => gm.GroupId == groupId)
+            .Select(gm => gm.UserId)
+            .ToListAsync();
 
         var debts = new Dictionary<Guid, (decimal owed, decimal settled)>();
 
         // Initialize all members
-        foreach (var memberId in groupMembers)
+        foreach (var memberId in groupMemberIds)
         {
             debts[memberId] = (0, 0);
         }

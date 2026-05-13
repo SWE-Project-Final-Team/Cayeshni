@@ -4,8 +4,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api/client";
 import type {
+  GroupDetailDto,
   GroupDto,
-  GroupMemberBalanceDto,
   TransactionDto,
 } from "@/lib/api/types";
 import { currencyCode, currencyValueFromApi } from "@/lib/currency";
@@ -45,6 +45,15 @@ function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): Gr
   };
 }
 
+function normalizeGroupDetail(
+  d: GroupDetailDto & { defaultCurrency?: string | number }
+): GroupDetailDto {
+  return {
+    ...d,
+    defaultCurrency: currencyValueFromApi(d.defaultCurrency),
+  };
+}
+
 export default function ExpensesPage() {
   return (
     <Suspense
@@ -65,8 +74,8 @@ function ExpensesPageInner() {
   const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
+  const [groupDetail, setGroupDetail] = useState<GroupDetailDto | null>(null);
   const [txs, setTxs] = useState<TransactionDto[]>([]);
-  const [members, setMembers] = useState<GroupMemberBalanceDto[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [formErr, setFormErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -132,19 +141,19 @@ function ExpensesPageInner() {
     }
   }, [accessToken, emailConfirmed, groupId, apiErrorMessage]);
 
-  const loadMembers = useCallback(async () => {
+  const loadGroupDetail = useCallback(async () => {
     if (!accessToken || !emailConfirmed || !groupId) {
-      setMembers([]);
+      setGroupDetail(null);
       return;
     }
     try {
-      const data = await apiJson<GroupMemberBalanceDto[]>(
-        `/api/transactions/group/${groupId}/debts`,
+      const data = await apiJson<GroupDetailDto & { defaultCurrency?: string | number }>(
+        `/api/groups/${groupId}`,
         { accessToken }
       );
-      setMembers(data);
+      setGroupDetail(normalizeGroupDetail(data));
     } catch {
-      setMembers([]);
+      setGroupDetail(null);
     }
   }, [accessToken, emailConfirmed, groupId]);
 
@@ -166,12 +175,17 @@ function ExpensesPageInner() {
   }, [loadTx]);
 
   useEffect(() => {
-    void loadMembers();
-  }, [loadMembers]);
+    void loadGroupDetail();
+  }, [loadGroupDetail]);
 
   const memberIds = useMemo(
-    () => members.map((m) => m.userId).sort(),
-    [members]
+    () => groupDetail?.members.map((m) => m.userId).sort() ?? [],
+    [groupDetail?.members]
+  );
+
+  const memberById = useMemo(
+    () => new Map((groupDetail?.members ?? []).map((m) => [m.userId, m])),
+    [groupDetail?.members]
   );
 
   useEffect(() => {
@@ -463,28 +477,32 @@ function ExpensesPageInner() {
 
                 {!equalSplit && memberIds.length > 0 && (
                   <div className="space-y-sm max-h-48 overflow-y-auto pr-xs">
-                    {memberIds.map((id) => (
-                      <div
-                        key={id}
-                        className="flex items-center justify-between gap-sm"
-                      >
-                        <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
-                          {id === profile?.id ? "You" : `${id.slice(0, 8)}…`}
-                        </span>
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={customParts[id] ?? ""}
-                          onChange={(e) =>
-                            setCustomParts((prev) => ({
-                              ...prev,
-                              [id]: e.target.value,
-                            }))
-                          }
-                          className="w-28 bg-surface border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
-                        />
-                      </div>
-                    ))}
+                    {memberIds.map((id) => {
+                      const memberInfo = memberById.get(id);
+                      const displayName = memberInfo?.displayName || `${id.slice(0, 8)}…`;
+                      return (
+                        <div
+                          key={id}
+                          className="flex items-center justify-between gap-sm"
+                        >
+                          <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
+                            {id === profile?.id ? "You" : displayName}
+                          </span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={customParts[id] ?? ""}
+                            onChange={(e) =>
+                              setCustomParts((prev) => ({
+                                ...prev,
+                                [id]: e.target.value,
+                              }))
+                            }
+                            className="w-28 bg-surface border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 

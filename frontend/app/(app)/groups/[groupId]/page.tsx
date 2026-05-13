@@ -54,6 +54,15 @@ function rosterLabel(m: GroupMemberSummaryDto, selfId: string | undefined): stri
   return m.displayName;
 }
 
+function memberNameById(
+  members: GroupMemberSummaryDto[],
+  userId: string,
+  selfId: string | undefined
+): string {
+  if (selfId && userId === selfId) return "You";
+  return members.find((m) => m.userId === userId)?.displayName ?? `${userId.slice(0, 8)}…`;
+}
+
 function paidByLabel(
   paidByUserId: string,
   selfId: string | undefined,
@@ -143,6 +152,12 @@ export default function GroupDetailPage() {
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [transactions]);
+
+  const sortedSettlements = useMemo(() => {
+    return [...settlements].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [settlements]);
 
   const visibleTransactions = useMemo(() => {
     if (!splitLensUserId) return sortedTransactions;
@@ -924,6 +939,7 @@ export default function GroupDetailPage() {
               </div>
 
               {graphMode === "group" ? (
+                <>
                 <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-lg xl:flex-row xl:items-stretch xl:gap-xl">
                   <div className="w-full shrink-0 xl:w-64 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest/95 p-md overflow-y-auto max-h-[min(40vh,22rem)] xl:max-h-[min(72vh,40rem)] shadow-inner">
                     <h3 className="font-headline-sm text-on-surface mb-xs">Members</h3>
@@ -978,6 +994,59 @@ export default function GroupDetailPage() {
                     />
                   </div>
                 </div>
+                <div className="rounded-2xl border border-outline-variant/70 bg-surface-container-lowest/95 p-md shadow-inner">
+                  <div className="flex flex-wrap items-center justify-between gap-sm mb-sm">
+                    <div>
+                      <h3 className="font-headline-sm text-on-surface">Settlements in this group</h3>
+                      <p className="text-[11px] text-on-surface-variant mt-px">
+                        Payments already recorded between members, newest first.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-outline-variant/70 bg-surface px-sm py-0.5 text-[11px] font-label-sm text-on-surface-variant tabular-nums">
+                      {sortedSettlements.length} settlement{sortedSettlements.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  {sortedSettlements.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg text-sm text-on-surface-variant">
+                      No settlements recorded yet.
+                    </div>
+                  ) : (
+                    <ul className="space-y-sm max-h-[18rem] overflow-y-auto pr-xs">
+                      {sortedSettlements.map((s) => {
+                        const sc = currencyValueFromApi(s.currency);
+                        return (
+                          <li
+                            key={s.id}
+                            className="rounded-xl border border-outline-variant/60 bg-surface px-md py-sm text-sm"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-sm">
+                              <p className="font-medium text-on-surface">
+                                {memberNameById(detail.members, s.payerUserId, profile?.id)}
+                                <span className="mx-1 text-on-surface-variant">→</span>
+                                {memberNameById(detail.members, s.payeeUserId, profile?.id)}
+                              </p>
+                              <span className={`tabular-nums font-semibold ${owedAmountClass(s.amount)}`}>
+                                {currencyCode(sc)} {s.amount.toFixed(2)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-on-surface-variant mt-xs tabular-nums">
+                              {new Date(s.createdAt).toLocaleString(undefined, {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
+                            </p>
+                            {s.note?.trim() ? (
+                              <p className="text-xs text-on-surface-variant mt-xs italic">
+                                {s.note}
+                              </p>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+                </>
               ) : selectedListRow ? (
                 <TransactionSplitGraph
                   members={graphMembers}
