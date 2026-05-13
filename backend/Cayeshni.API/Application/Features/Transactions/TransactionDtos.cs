@@ -29,6 +29,12 @@ public record TransactionResponseDto(
     List<TransactionMemberDto> Members
 );
 
+public record UpdateTransactionDto(
+    Guid Id,
+    string? Description = null,
+    TransactionCategory? Category = null
+);
+
 public record TransactionMemberBalanceDto(
     Guid UserId,
     decimal TotalOwed,

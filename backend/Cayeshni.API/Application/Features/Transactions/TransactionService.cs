@@ -217,4 +217,46 @@ public class TransactionService
             kvp.Value.owed - kvp.Value.settled
         )).ToList();
     }
+
+    public async Task<TransactionResponseDto> UpdateTransactionAsync(Guid userId, UpdateTransactionDto dto)
+    {
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == dto.Id)
+            ?? throw new NotFoundException(nameof(Transaction), dto.Id);
+
+        // Only the person who paid can edit
+        if (transaction.PaidByUserId != userId)
+            throw new ValidationException("Only the person who paid for this transaction can edit it.");
+
+        // For now we only allow updating description and category to avoid mutating amounts/splits when settlements exist
+        if (dto.Description is not null)
+            transaction.Description = dto.Description;
+
+        if (dto.Category is not null)
+            transaction.Category = dto.Category.Value;
+
+        await _context.SaveChangesAsync();
+
+        var members = transaction.TransactionMembers
+            .Select(tm => new TransactionMemberDto(tm.UserId, tm.AmountOwed))
+            .ToList();
+
+        var payerName = await _context.Users
+            .Where(u => u.Id == transaction.PaidByUserId)
+            .Select(u => u.Name)
+            .FirstOrDefaultAsync() ?? string.Empty;
+
+        return new TransactionResponseDto(
+            transaction.Id,
+            transaction.GroupId,
+            transaction.PaidByUserId,
+            payerName,
+            transaction.TotalAmount,
+            transaction.Currency,
+            transaction.Category,
+            transaction.Description,
+            transaction.CreatedAt,
+            members
+        );
+    }
 }

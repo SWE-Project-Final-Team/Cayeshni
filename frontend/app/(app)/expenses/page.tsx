@@ -82,6 +82,10 @@ function ExpensesPageInner() {
   const [submitting, setSubmitting] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<TransactionDto | null>(null);
   const [deletePending, setDeletePending] = useState(false);
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState<number>(6);
+  const [editPending, setEditPending] = useState(false);
 
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -390,6 +394,21 @@ function ExpensesPageInner() {
                         </div>
                         {profile?.id === t.paidByUserId && (
                           <div className="mt-sm flex gap-sm">
+                            {editingTxId !== t.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingTxId(t.id);
+                                    setEditDescription(t.description ?? "");
+                                    setEditCategory(t.category ?? 6);
+                                  }}
+                                  className="text-xs font-label-sm text-primary hover:underline"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            ) : null}
                             <button
                               type="button"
                               onClick={() => setTransactionToDelete(t)}
@@ -397,6 +416,63 @@ function ExpensesPageInner() {
                             >
                               Delete
                             </button>
+                          </div>
+                        )}
+                        {editingTxId === t.id && (
+                          <div className="mt-sm pt-sm border-t border-outline-variant/30 w-full">
+                            <div className="flex flex-col gap-sm">
+                              <input
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                placeholder="Description"
+                                className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm text-sm"
+                              />
+                              <div className="flex gap-sm items-center">
+                                <ListboxSelect
+                                  value={String(editCategory)}
+                                  onChange={(v) => setEditCategory(Number(v))}
+                                  options={categoryOptions}
+                                  className="w-40"
+                                />
+                                <div className="flex gap-sm ml-auto">
+                                  <button
+                                    type="button"
+                                    disabled={editPending}
+                                    onClick={async () => {
+                                      if (!accessToken) return;
+                                      setEditPending(true);
+                                      try {
+                                        await apiJson<TransactionDto>("/api/transactions", {
+                                          method: "PUT",
+                                          accessToken,
+                                          json: {
+                                            id: t.id,
+                                            description: editDescription.trim() || null,
+                                            category: editCategory,
+                                          },
+                                        });
+                                        setEditingTxId(null);
+                                        await loadTx();
+                                      } catch (e) {
+                                        setFormErr(apiErrorMessage(e));
+                                      } finally {
+                                        setEditPending(false);
+                                      }
+                                    }}
+                                    className="text-sm font-label-sm bg-secondary text-on-secondary px-md py-xs rounded-lg disabled:opacity-60"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingTxId(null)}
+                                    className="text-sm font-label-sm text-primary border border-outline-variant px-md py-xs rounded-lg"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>

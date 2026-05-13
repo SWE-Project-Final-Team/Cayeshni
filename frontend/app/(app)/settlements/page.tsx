@@ -20,6 +20,7 @@ import {
   candidateTransactionIds,
   maxSettleableTowardPayee,
 } from "@/lib/settlements/build-allocations";
+import { computePayeeMaxByUserId } from "@/lib/settlements/payee-max";
 
 function displayName(
   members: { userId: string; displayName: string }[] | undefined,
@@ -65,6 +66,8 @@ export default function SettlementsPage() {
     null
   );
   const [deletePending, setDeletePending] = useState(false);
+  const [visibleAllocationsBySettlement, setVisibleAllocationsBySettlement] =
+    useState<Record<string, boolean>>({});
 
   const payerId = profile?.id ?? "";
 
@@ -194,33 +197,20 @@ export default function SettlementsPage() {
       setPayeeMaxByUserId({});
       return;
     }
-    const payees = detail.members.filter((m) => m.userId !== payerId);
     let cancelled = false;
     setPayeeMaxByUserId(null);
     void (async () => {
-      const out: Record<string, number> = {};
-      await Promise.all(
-        payees.map(async (m) => {
-          const ids = candidateTransactionIds(txs, payerId, m.userId);
-          if (ids.length === 0) {
-            out[m.userId] = 0;
-            return;
-          }
-          try {
-            const details = await Promise.all(
-              ids.map((id) =>
-                apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
-                  accessToken,
-                })
-              )
-            );
-            out[m.userId] = maxSettleableTowardPayee(details, payerId);
-          } catch {
-            out[m.userId] = 0;
-          }
-        })
-      );
-      if (!cancelled) setPayeeMaxByUserId(out);
+      try {
+        const out = await computePayeeMaxByUserId(
+          accessToken ?? "",
+          payerId,
+          txs,
+          detail.members.filter((m) => m.userId !== payerId)
+        );
+        if (!cancelled) setPayeeMaxByUserId(out);
+      } catch {
+        if (!cancelled) setPayeeMaxByUserId({});
+      }
     })();
     return () => {
       cancelled = true;
@@ -618,10 +608,26 @@ export default function SettlementsPage() {
                             {s.note ? ` · ${s.note}` : ""}
                           </p>
                           {s.allocations.length > 0 && (
-                            <p className="text-xs text-on-surface-variant mt-xs">
-                              {s.allocations.length} expense allocation
-                              {s.allocations.length === 1 ? "" : "s"}
-                            </p>
+                            <div className="mt-xs">
+                              <p className="text-xs text-on-surface-variant">
+                                {s.allocations.length} expense allocation
+                                {s.allocations.length === 1 ? "" : "s"}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setVisibleAllocationsBySettlement((prev) => ({
+                                    ...prev,
+                                    [s.id]: !prev[s.id],
+                                  }))
+                                }
+                                className="text-xs font-label-sm text-primary hover:underline"
+                              >
+                                {visibleAllocationsBySettlement[s.id]
+                                  ? "Hide allocations"
+                                  : "Show allocations"}
+                              </button>
+                            </div>
                           )}
                         </div>
                         <div className={`font-financial-xl text-[20px] shrink-0 tabular-nums ${owedAmountClass(s.amount)}`}>
@@ -680,6 +686,26 @@ export default function SettlementsPage() {
                           )}
                         </div>
                       )}
+                        {visibleAllocationsBySettlement[s.id] && s.allocations.length > 0 && (
+                          <div className="mt-sm border-t border-outline-variant/30 pt-sm">
+                            <ul className="text-sm space-y-xs">
+                              {s.allocations.map((a) => {
+                                const tx = txs.find((t) => t.id === a.transactionId);
+                                return (
+                                  <li key={a.transactionId} className="flex justify-between">
+                                    <div className="text-on-surface-variant">
+                                      {tx?.description?.trim() || "—"}
+                                      {tx ? ` · ${new Date(tx.createdAt).toLocaleDateString()}` : ""}
+                                    </div>
+                                    <div className={`font-medium ${oweAmountClass(a.allocatedAmount)}`}>
+                                      {a.allocatedAmount.toFixed(2)} {currencyCode(detail?.defaultCurrency ?? 0)}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
                     </li>
                   );
                 })}

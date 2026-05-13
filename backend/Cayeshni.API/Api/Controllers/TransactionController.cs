@@ -69,6 +69,19 @@ public class TransactionController : ControllerBase
         return Ok();
     }
 
+    [HttpPut]
+    public async Task<ActionResult<TransactionResponseDto>> UpdateTransaction(UpdateTransactionDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
+
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _transactionService.UpdateTransactionAsync(Guid.Parse(userId), dto);
+        return Ok(result);
+    }
+
     [HttpGet("group/{groupId}/debts")]
     public async Task<ActionResult<List<TransactionMemberBalanceDto>>> GetGroupDebts(Guid groupId)
     {
