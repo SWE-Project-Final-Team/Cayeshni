@@ -16,6 +16,7 @@ export default function ResetPasswordPage() {
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, setPending] = useState(false);
+  const hasRequiredParams = Boolean(email && token);
 
   useEffect(() => {
     setEmail(params.get("email") ?? "");
@@ -57,35 +58,20 @@ export default function ResetPasswordPage() {
           <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
             Choose a new password for your account.
           </p>
+          {!hasRequiredParams && (
+            <div className="mb-md rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
+              Invalid or incomplete reset link. Please request a new one.
+            </div>
+          )}
           {err && (
             <div className="mb-md rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
               {err}
             </div>
           )}
           <form className="space-y-md" onSubmit={onSubmit}>
-            <div>
-              <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-              />
-            </div>
-            <div>
-              <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Token
-              </label>
-              <input
-                type="text"
-                required
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface font-mono text-sm"
-              />
+            <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low px-md py-sm">
+              <p className="font-label-sm text-label-sm text-on-surface-variant">Account</p>
+              <p className="font-body-md text-on-surface break-all">{email || "—"}</p>
             </div>
             <div>
               <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
@@ -101,12 +87,17 @@ export default function ResetPasswordPage() {
             </div>
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || !hasRequiredParams}
               className="w-full bg-secondary text-on-secondary font-label-sm py-md rounded-lg hover:bg-secondary/90 disabled:opacity-60"
             >
               Update password
             </button>
           </form>
+          <p className="mt-md text-center font-label-sm text-on-surface-variant">
+            <Link href="/forgot-password" className="text-secondary hover:underline">
+              Request a new reset link
+            </Link>
+          </p>
         </>
       )}
       <p className="mt-lg text-center font-label-sm text-on-surface-variant">

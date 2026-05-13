@@ -8,6 +8,8 @@ public sealed class FakeFileStorageService : IFileStorageService
 {
     public Task DeleteAsync(string fileUrl) => Task.CompletedTask;
 
+    public string GetBaseUrl() => "https://files.test";
+
     public string? GetUrl(string? profilePicturePath) =>
         string.IsNullOrWhiteSpace(profilePicturePath)
             ? null

@@ -17,14 +17,22 @@ export default function ConfirmEmailPage() {
   const [done, setDone] = useState(false);
   const [pending, setPending] = useState(false);
   const [continueHref, setContinueHref] = useState("/dashboard");
+  const [attemptedAutoConfirm, setAttemptedAutoConfirm] = useState(false);
 
   useEffect(() => {
     setUserId(params.get("userId") ?? "");
     setToken(params.get("token") ?? "");
   }, [params]);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    if (attemptedAutoConfirm || done || pending) return;
+    if (!userId || !token) return;
+    setAttemptedAutoConfirm(true);
+    void onSubmit();
+  }, [attemptedAutoConfirm, done, pending, userId, token]);
+
+  async function onSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
     setErr(null);
     setPending(true);
     try {
@@ -57,7 +65,7 @@ export default function ConfirmEmailPage() {
       ) : (
         <>
           <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
-            Confirm the address for your Cayeshni account.
+            We&apos;re confirming your email now. If needed, you can retry below.
           </p>
           {err && (
             <div className="mb-md rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
@@ -65,38 +73,19 @@ export default function ConfirmEmailPage() {
             </div>
           )}
           <form className="space-y-md" onSubmit={onSubmit}>
-            <div>
-              <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                User ID
-              </label>
-              <input
-                type="text"
-                required
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface font-mono text-sm"
-              />
-            </div>
-            <div>
-              <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Token
-              </label>
-              <input
-                type="text"
-                required
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface font-mono text-sm break-all"
-              />
-            </div>
             <button
               type="submit"
               disabled={pending || !userId || !token}
               className="w-full bg-secondary text-on-secondary font-label-sm py-md rounded-lg hover:bg-secondary/90 disabled:opacity-60"
             >
-              Confirm
+              {pending ? "Confirming…" : "Confirm email"}
             </button>
           </form>
+          {!userId || !token ? (
+            <p className="mt-md font-body-sm text-on-surface-variant">
+              This link is missing required information. Request a new confirmation email from the app banner.
+            </p>
+          ) : null}
         </>
       )}
       <p className="mt-lg text-center font-label-sm text-on-surface-variant">

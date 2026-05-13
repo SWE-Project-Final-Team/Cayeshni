@@ -132,7 +132,9 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath  = "/uploads"
 });
 
-app.UseHttpsRedirection();
+app.UseStaticFiles(); // For wwwroot and default static files
+
+// app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();

@@ -7,6 +7,8 @@ using Cayeshni.API.Domain.Enums;
 using Cayeshni.API.Infrastructure.Persistence.Options;
 using Cayeshni.API.Infrastructure.Services;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Cayeshni.Tests.Storage;
@@ -18,13 +20,14 @@ public class LocalFileStorageServiceTests : IDisposable
 
     public LocalFileStorageServiceTests()
     {
-        _basePath = Path.Combine(Path.GetTempPath(), "cayeshni-storage-tests", Guid.NewGuid().ToString("N"));
+        var contentRootPath = Path.Combine(Path.GetTempPath(), "cayeshni-storage-tests", Guid.NewGuid().ToString("N"));
+        _basePath = Path.Combine(contentRootPath, "uploads");
         Directory.CreateDirectory(_basePath);
 
-        _service = new LocalFileStorageService(Options.Create(new FileStorageOptions
+        _service = new LocalFileStorageService(new FakeWebHostEnvironment(contentRootPath), Options.Create(new FileStorageOptions
         {
             BasePath = _basePath,
-            BaseUrl = "https://cdn.example.com/uploads"
+            BaseUrl = "https://cdn.example.com"
         }));
     }
 
@@ -52,7 +55,7 @@ public class LocalFileStorageServiceTests : IDisposable
         var url = _service.GetUrl(relativePath);
 
         Assert.Equal("https://cdn.example.com/uploads/profiles/test-avatar.png", url);
-        Assert.Null(_service.GetUrl("profiles/missing.png"));
+        Assert.Equal("https://cdn.example.com/uploads/profiles/missing.png", _service.GetUrl("profiles/missing.png"));
     }
 
     [Fact]
@@ -81,6 +84,26 @@ public class LocalFileStorageServiceTests : IDisposable
         {
             // best effort cleanup for temp test files
         }
+    }
+
+    private sealed class FakeWebHostEnvironment : IWebHostEnvironment
+    {
+        public FakeWebHostEnvironment(string contentRootPath)
+        {
+            ContentRootPath = contentRootPath;
+            ContentRootFileProvider = new Microsoft.Extensions.FileProviders.NullFileProvider();
+            EnvironmentName = "Development";
+            ApplicationName = "Cayeshni.Tests";
+            WebRootPath = Path.Combine(contentRootPath, "wwwroot");
+            WebRootFileProvider = new Microsoft.Extensions.FileProviders.NullFileProvider();
+        }
+
+        public string EnvironmentName { get; set; }
+        public string ApplicationName { get; set; }
+        public string WebRootPath { get; set; }
+        public IFileProvider WebRootFileProvider { get; set; }
+        public string ContentRootPath { get; set; }
+        public IFileProvider ContentRootFileProvider { get; set; }
     }
 }
 

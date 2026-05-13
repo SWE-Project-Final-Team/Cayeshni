@@ -7,6 +7,8 @@ using Cayeshni.API.Application.Features.Settlements;
 using Cayeshni.API.Application.Features.Transactions;
 using Cayeshni.API.Application.Features.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Infrastructure.Services;
 
 namespace Cayeshni.API.Application;
 
@@ -22,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<TransactionService>();
         services.AddScoped<DashboardService>();
+        services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
 
         // Register other application services, handlers, etc.
 

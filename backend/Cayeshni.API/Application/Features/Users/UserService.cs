@@ -1,6 +1,7 @@
 using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Interfaces;
 
 namespace Cayeshni.API.Application.Features.Users;
 
@@ -8,11 +9,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IProfileImageProcessor _profileImageProcessor;
 
-    public UserService(IUserRepository userRepository, IFileStorageService fileStorage)
+    public UserService(IUserRepository userRepository, IFileStorageService fileStorage, IProfileImageProcessor profileImageProcessor)
     {
         _userRepository = userRepository;
         _fileStorageService = fileStorage;
+        _profileImageProcessor = profileImageProcessor;
     }
 
     public async Task<UserProfileDto> GetProfileAsync(Guid userId)
@@ -20,7 +23,9 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(userId)
             ?? throw new NotFoundException("User", userId);
 
-        var pictureUrl = _fileStorageService.GetUrl(user.ProfilePicturePath);
+        var pictureUrl = string.IsNullOrEmpty(user.ProfilePicturePath)
+            ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
+            : _fileStorageService.GetUrl(user.ProfilePicturePath);
 
         return new UserProfileDto(
             Id: user.Id,
@@ -47,7 +52,9 @@ public class UserService : IUserService
         var list = new List<UserProfileSearchDto>(users.Count);
         foreach (var u in users)
         {
-            var pictureUrl = _fileStorageService.GetUrl(u.ProfilePicturePath);
+            var pictureUrl = string.IsNullOrEmpty(u.ProfilePicturePath)
+            ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
+            : _fileStorageService.GetUrl(u.ProfilePicturePath);
             list.Add(new UserProfileSearchDto(
                 u.Id,
                 u.Name,
@@ -70,11 +77,14 @@ public class UserService : IUserService
 
     public async Task<UploadPictureResponseDto> UploadPictureAsync(Guid userId, Stream fileStream, string fileName, string contentType)
     {
-        var newPath = await _fileStorageService.SaveAsync(fileStream, fileName, contentType, FileFolder.Profiles);
+        // Process image (resize and convert to webp)
+        var processedStream = await _profileImageProcessor.ProcessAsync(fileStream);
+
+        var webpFileName = $"{Guid.NewGuid()}.webp";
+        var newPath = await _fileStorageService.SaveAsync(processedStream, webpFileName, "image/webp", FileFolder.Profiles);
 
         // delete old picture if exists
         var oldPath = await _userRepository.GetPicturePathAsync(userId);
-
         if (!string.IsNullOrEmpty(oldPath))
             await _fileStorageService.DeleteAsync(oldPath);
 

@@ -43,7 +43,7 @@ public class GroupDetailTests
         await ctx.SaveChangesAsync();
 
         var service = new GroupService(ctx, new FakeFileStorageService());
-        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("G1"));
+        var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Group One"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.GetGroupDetailAsync(outsiderId, group.Id));

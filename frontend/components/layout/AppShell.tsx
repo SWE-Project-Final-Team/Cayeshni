@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resendMsg, setResendMsg] = useState<string | null>(null);
 
-  const avatar = mediaUrl(profile?.profilePictureUrl);
+  const avatar = profile?.profilePictureUrl ? mediaUrl(profile.profilePictureUrl) : null;
 
   async function resendConfirmation() {
     const email = profile?.email ?? accountEmail;

@@ -32,7 +32,7 @@ export type UserProfile = {
   id: string;
   name: string;
   email: string;
-  profilePictureUrl: string | null;
+  profilePictureUrl: string;
   preferredCurrency: number;
   createdAt: string;
 };
@@ -160,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const me: UserProfile = {
         ...raw,
         preferredCurrency: currencyValueFromApi(raw.preferredCurrency),
+        profilePictureUrl: raw.profilePictureUrl || `${API_BASE}/defaults/avatar.webp`,
       };
       setProfile(me);
       if (me.email) persistAccountEmail(me.email);

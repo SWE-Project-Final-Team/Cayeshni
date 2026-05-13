@@ -907,6 +907,8 @@ public class FriendServiceTests
             return Task.CompletedTask;
         }
 
+        public string GetBaseUrl() => _baseUrl;
+
         public string? GetUrl(string? profilePicturePath)
         {
             if (string.IsNullOrWhiteSpace(profilePicturePath))

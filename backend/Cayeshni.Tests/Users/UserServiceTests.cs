@@ -8,6 +8,7 @@ using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Application.Features.Users;
 using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Interfaces;
 using Xunit;
 
 namespace Cayeshni.Tests.Users;
@@ -32,7 +33,7 @@ public class UserServiceTests
         var storage = new FakeFileStorageService("https://cdn.example.com/uploads");
         storage.MarkExists("profiles/avatar.png");
 
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
 
         var profile = await service.GetProfileAsync(userId);
 
@@ -50,7 +51,7 @@ public class UserServiceTests
         var user = new User { Id = userId, Email = "user@test.com", Name = "Old", PreferredCurrency = Currency.EGP, CreatedAt = DateTime.UtcNow };
         var repo = new FakeUserRepository(user);
         var storage = new FakeFileStorageService();
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
 
         await service.UpdateProfileAsync(userId, new UpdateProfileDto("  New Name  ", Currency.USD));
 
@@ -67,7 +68,7 @@ public class UserServiceTests
         var user = new User { Id = userId, Email = "user@test.com", Name = "Old", PreferredCurrency = Currency.EGP, CreatedAt = DateTime.UtcNow };
         var repo = new FakeUserRepository(user);
         var storage = new FakeFileStorageService();
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
 
         await Assert.ThrowsAsync<ValidationException>(() => service.UpdateProfileAsync(userId, new UpdateProfileDto("  ", Currency.USD)));
     }
@@ -90,7 +91,7 @@ public class UserServiceTests
         var storage = new FakeFileStorageService("https://cdn.example.com/uploads");
         storage.MarkExists("profiles/old.png");
 
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
         await using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
 
         var response = await service.UploadPictureAsync(userId, stream, "avatar.png", "image/png");
@@ -122,7 +123,7 @@ public class UserServiceTests
         var storage = new FakeFileStorageService();
         storage.MarkExists("profiles/old.png");
 
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
 
         await service.DeletePictureAsync(userId);
 
@@ -146,7 +147,7 @@ public class UserServiceTests
 
         var repo = new FakeUserRepository(user);
         var storage = new FakeFileStorageService();
-        var service = new UserService(repo, storage);
+        var service = new UserService(repo, storage, new FakeProfileImageProcessor());
 
         await service.DeletePictureAsync(userId);
 
@@ -239,6 +240,8 @@ public class UserServiceTests
             return Task.CompletedTask;
         }
 
+        public string GetBaseUrl() => _baseUrl;
+
         public string? GetUrl(string? profilePicturePath)
         {
             if (string.IsNullOrWhiteSpace(profilePicturePath))
@@ -251,6 +254,17 @@ public class UserServiceTests
         }
 
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');
+    }
+
+    private sealed class FakeProfileImageProcessor : IProfileImageProcessor
+    {
+        public async Task<Stream> ProcessAsync(Stream stream)
+        {
+            var output = new MemoryStream();
+            await stream.CopyToAsync(output);
+            output.Position = 0;
+            return output;
+        }
     }
 }
 

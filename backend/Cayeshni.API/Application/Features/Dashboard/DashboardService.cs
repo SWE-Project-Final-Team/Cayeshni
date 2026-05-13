@@ -29,8 +29,11 @@ public class DashboardService
         var membersByGroup = await _db.GroupMembers
             .AsNoTracking()
             .Where(m => groupIds.Contains(m.GroupId))
+            .ToListAsync();
+
+        var membersByGroupLookup = membersByGroup
             .GroupBy(m => m.GroupId)
-            .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.UserId).ToHashSet());
+            .ToDictionary(g => g.Key, g => g.Select(x => x.UserId).ToHashSet());
 
         var transactions = await _db.Transactions
             .AsNoTracking()
@@ -49,7 +52,7 @@ public class DashboardService
         {
             var gid = gm.GroupId;
             var group = gm.Group;
-            if (!membersByGroup.TryGetValue(gid, out var memberIds))
+            if (!membersByGroupLookup.TryGetValue(gid, out var memberIds))
                 memberIds = new HashSet<Guid>();
 
             var balance = memberIds.ToDictionary(id => id, _ => 0m);
