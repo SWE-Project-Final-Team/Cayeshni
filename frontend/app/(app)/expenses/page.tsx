@@ -596,14 +596,14 @@ function ExpensesPageInner() {
                 </div>
 
                 {!equalSplit && memberIds.length > 0 && (
-                  <div className="space-y-sm max-h-48 overflow-y-auto pr-xs">
+                  <div className="space-y-sm max-h-56 overflow-y-auto pr-3 [scrollbar-gutter:stable]">
                     {memberIds.map((id) => {
                       const memberInfo = memberById.get(id);
                       const displayName = memberInfo?.displayName || `${id.slice(0, 8)}…`;
                       return (
                         <div
                           key={id}
-                          className="flex items-center justify-between gap-sm"
+                          className="flex items-center justify-between gap-sm rounded-lg border border-outline-variant/40 bg-surface px-sm py-xs"
                         >
                           <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
                             {id === profile?.id ? "You" : displayName}
@@ -618,7 +618,7 @@ function ExpensesPageInner() {
                                 [id]: e.target.value,
                               }))
                             }
-                            className="w-28 bg-surface border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
+                            className="w-28 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
                           />
                         </div>
                       );

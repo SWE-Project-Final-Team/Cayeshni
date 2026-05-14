@@ -137,6 +137,7 @@ export default function GroupDetailPage() {
     undefined
   );
   const selectedRowRef = useRef<HTMLLIElement | null>(null);
+  const groupGraphRef = useRef<HTMLDivElement | null>(null);
   const [graphMode, setGraphMode] = useState<"expense" | "group">("expense");
   const [balanceFocusUserId, setBalanceFocusUserId] = useState<string | null>(null);
   const [splitLensUserId, setSplitLensUserId] = useState<string | null>(null);
@@ -428,6 +429,25 @@ export default function GroupDetailPage() {
   }, [selectedTxId]);
 
   useEffect(() => {
+    if (graphMode !== "group" || !balanceFocusUserId) return;
+    const t = window.requestAnimationFrame(() => {
+      groupGraphRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(t);
+  }, [balanceFocusUserId, graphMode]);
+
+  useEffect(() => {
+    if (!balanceFocusUserId) return;
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") {
+        setBalanceFocusUserId(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [balanceFocusUserId]);
+
+  useEffect(() => {
     setInviteCopied(false);
     if (inviteCopyResetRef.current) {
       clearTimeout(inviteCopyResetRef.current);
@@ -640,7 +660,7 @@ export default function GroupDetailPage() {
                         return (
                           <div
                             key={m.userId}
-                            className={`rounded-2xl border bg-surface flex flex-col transition-all focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-secondary ${
+                            className={`rounded-2xl border bg-surface flex flex-col transition-all ${
                               selectedCard
                                 ? "border-secondary bg-secondary-fixed/25 ring-1 ring-secondary/35 shadow-level-1"
                                 : "border-outline-variant/70 hover:border-secondary/40 hover:bg-surface-container-high/50"
@@ -651,65 +671,63 @@ export default function GroupDetailPage() {
                               tabIndex={0}
                               onClick={activateMemberCard}
                               onKeyDown={onCardKeyDown}
-                              className="text-left p-md flex flex-col gap-sm cursor-pointer outline-none"
+                              className="text-left p-xs sm:p-sm flex flex-col gap-1 cursor-pointer outline-none rounded-2xl"
                               aria-pressed={selectedCard}
                             >
-                            <div className="flex items-start gap-md">
+                            <div className="flex items-start gap-sm">
                               <RosterAvatar
                                 members={detail.members}
                                 userId={m.userId}
-                                className="h-12 w-12 shrink-0"
+                                className="h-9 w-9 sm:h-10 sm:w-10 shrink-0"
                               />
                               <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-baseline gap-x-sm gap-y-xs">
-                                  <span className="font-semibold text-on-surface truncate">
+                                <div className="flex flex-wrap items-center gap-x-xs gap-y-0.5">
+                                  <span className="font-semibold text-on-surface truncate text-sm leading-tight">
                                     {rosterLabel(m, profile?.id)}
                                   </span>
                                   {m.isCreator ? (
-                                    <span className="text-[10px] font-label-sm uppercase tracking-wider text-secondary shrink-0">
+                                    <span className="text-[10px] font-label-sm uppercase tracking-wider text-secondary shrink-0 leading-none">
                                       Creator
                                     </span>
                                   ) : null}
                                 </div>
-                                <p className="text-xs text-on-surface-variant mt-px">
-                                  Joined{" "}
-                                  {new Date(m.joinedAt).toLocaleDateString(undefined, {
-                                    dateStyle: "medium",
-                                  })}
+                                <p className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
+                                  Joined {new Date(m.joinedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
                                 </p>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-surface-container-low/80 px-sm py-xs text-xs tabular-nums">
-                              <span className="text-on-surface-variant">Net in group: </span>
+                            <div className="flex flex-wrap items-center justify-between gap-xs rounded-lg bg-surface-container-low/80 px-sm py-1 text-[11px] tabular-nums leading-tight">
+                              <span className="text-on-surface-variant">Net in group</span>
                               {Math.abs(netRounded) < 0.01 ? (
                                 <span className="font-semibold text-on-surface">Even</span>
                               ) : netRounded > 0 ? (
                                 <span className={`font-semibold ${owedAmountClass(netRounded)}`}>
-                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} (owed to them)
+                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} owed to them
                                 </span>
                               ) : (
                                 <span className={`font-semibold ${oweAmountClass(-netRounded)}`}>
-                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} (they owe)
+                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} they owe
                                 </span>
                               )}
                             </div>
 
-                            </div>
                             {profile?.id && !isSelf ? (
-                              <div className="flex flex-wrap items-center gap-sm px-md pb-md pt-0 border-t border-outline-variant/30">
+                              <div className="flex flex-wrap items-center gap-xs px-sm pb-sm pt-0">
                                 {isFriend ? (
-                                  <span className="text-xs font-label-sm text-secondary">Friends</span>
+                                  <span className="text-[11px] font-label-sm text-secondary rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5">
+                                    Friends
+                                  </span>
                                 ) : hasIncomingRequest ? (
                                   <button
                                     type="button"
                                     disabled={busyThis}
                                     onClick={() => void acceptFriendRequestFrom(m.userId)}
-                                    className="text-xs font-label-sm rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-xs hover:opacity-90 disabled:opacity-50"
+                                    className="text-[11px] font-label-sm rounded-lg border border-secondary bg-secondary text-on-secondary px-2.5 py-1 hover:opacity-90 disabled:opacity-50"
                                   >
                                     {busyThis ? "Accepting…" : "Accept request"}
                                   </button>
                                 ) : requestSent ? (
-                                  <span className="text-xs font-label-sm text-on-surface-variant">
+                                  <span className="text-[11px] font-label-sm text-on-surface-variant">
                                     Request sent
                                   </span>
                                 ) : (
@@ -720,13 +738,14 @@ export default function GroupDetailPage() {
                                       setFriendActionErr(null);
                                       void sendFriendRequestTo(m.userId);
                                     }}
-                                    className="text-xs font-label-sm text-secondary hover:underline disabled:opacity-50"
+                                    className="text-[11px] font-label-sm text-secondary hover:underline disabled:opacity-50"
                                   >
                                     {busyThis ? "Sending…" : "Add friend"}
                                   </button>
                                 )}
                               </div>
                             ) : null}
+                          </div>
                           </div>
                         );
                       })}
@@ -958,7 +977,7 @@ export default function GroupDetailPage() {
                       })}
                     </ul>
                   </div>
-                  <div className="flex min-h-[min(40vh,320px)] w-full min-w-0 flex-1 flex-col">
+                  <div ref={groupGraphRef} className="flex min-h-[min(40vh,320px)] w-full min-w-0 flex-1 flex-col scroll-mt-6">
                     <GroupBalanceFlowGraph
                       members={graphMembers}
                       edges={globalTransferEdges}
