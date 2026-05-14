@@ -21,28 +21,53 @@ export async function computePayeeMaxByUserId(
     for (const p of payees) out[p.userId] = 0;
     return out;
   }
+  // Collect candidate transaction ids for all payees, then fetch details once.
+  const payeeToIds = new Map<string, string[]>();
+  const allIds = new Set<string>();
+  for (const p of payees) {
+    if (p.userId === payerId) {
+      payeeToIds.set(p.userId, []);
+      out[p.userId] = 0;
+      continue;
+    }
+    const ids = candidateTransactionIds(txs, payerId, p.userId);
+    payeeToIds.set(p.userId, ids);
+    for (const id of ids) allIds.add(id);
+  }
 
-  await Promise.all(
-    payees.map(async (p) => {
-      if (p.userId === payerId) {
-        out[p.userId] = 0;
-        return;
-      }
-      const ids = candidateTransactionIds(txs, payerId, p.userId);
-      if (ids.length === 0) {
-        out[p.userId] = 0;
-        return;
-      }
-      try {
-        const details: TransactionDetailDto[] = await Promise.all(
-          ids.map((id) => apiJson<TransactionDetailDto>(`/api/transactions/${id}`, { accessToken }))
-        );
-        out[p.userId] = maxSettleableTowardPayee(details, payerId);
-      } catch (_) {
-        out[p.userId] = 0;
-      }
-    })
-  );
+  if (allIds.size === 0) {
+    // Nothing to fetch — return zeros for payees we haven't set yet.
+    for (const p of payees) if (!(p.userId in out)) out[p.userId] = 0;
+    return out;
+  }
+
+  // Fetch all transaction details in parallel (single flight)
+  let details: TransactionDetailDto[];
+  try {
+    details = await Promise.all(
+      Array.from(allIds).map((id) => apiJson<TransactionDetailDto>(`/api/transactions/${id}`, { accessToken }))
+    );
+  } catch (_) {
+    // On failure, return zeros for remaining payees
+    for (const p of payees) if (!(p.userId in out)) out[p.userId] = 0;
+    return out;
+  }
+
+  const detailsById = new Map(details.map((d) => [d.id, d] as const));
+
+  for (const p of payees) {
+    if (p.userId === payerId) {
+      out[p.userId] = 0;
+      continue;
+    }
+    const ids = payeeToIds.get(p.userId) ?? [];
+    if (ids.length === 0) {
+      out[p.userId] = 0;
+      continue;
+    }
+    const dets = ids.map((id) => detailsById.get(id)).filter((x): x is TransactionDetailDto => Boolean(x));
+    out[p.userId] = maxSettleableTowardPayee(dets, payerId);
+  }
 
   return out;
 }

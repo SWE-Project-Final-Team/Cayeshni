@@ -5,7 +5,6 @@ import { apiJson } from "@/lib/api/client";
 import type {
   GroupDetailDto,
   GroupDto,
-  GroupMemberBalanceDto,
   SettlementDto,
   TransactionDetailDto,
   TransactionDto,
@@ -21,7 +20,10 @@ import {
   candidateTransactionIds,
   maxSettleableTowardPayee,
 } from "@/lib/settlements/build-allocations";
-import { computePayeeMaxByUserId } from "@/lib/settlements/payee-max";
+import {
+  computeMemberNetBalances,
+  simplifyToTransferEdges,
+} from "@/lib/group-net-balances";
 
 function displayName(
   members: { userId: string; displayName: string }[] | undefined,
@@ -42,7 +44,6 @@ export default function SettlementsPage() {
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
   const [detail, setDetail] = useState<GroupDetailDto | null>(null);
-  const [debts, setDebts] = useState<GroupMemberBalanceDto[]>([]);
   const [txs, setTxs] = useState<TransactionDto[]>([]);
   const [rows, setRows] = useState<SettlementDto[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -59,10 +60,6 @@ export default function SettlementsPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const [notePending, setNotePending] = useState(false);
 
-  const [payeeMaxByUserId, setPayeeMaxByUserId] = useState<Record<
-    string,
-    number
-  > | null>(null);
   const [settlementToDelete, setSettlementToDelete] = useState<SettlementDto | null>(
     null
   );
@@ -90,37 +87,29 @@ export default function SettlementsPage() {
   const loadGroupContext = useCallback(async () => {
     if (!accessToken || !emailConfirmed || !groupId) {
       setDetail(null);
-      setDebts([]);
       setTxs([]);
       setRows([]);
       return;
     }
     setErr(null);
     try {
-      const [d, b, t, s] = await Promise.all([
+      const [d, t, s] = await Promise.all([
         apiJson<GroupDetailDto>(`/api/groups/${groupId}`, { accessToken }),
-        apiJson<GroupMemberBalanceDto[]>(
-          `/api/transactions/group/${groupId}/debts`,
-          { accessToken }
-        ),
         apiJson<TransactionDto[]>(`/api/transactions/group/${groupId}`, {
           accessToken,
         }),
         apiJson<SettlementDto[]>(`/api/settlements/${groupId}`, { accessToken }),
       ]);
       setDetail(d);
-      setDebts(b);
       setTxs(t);
       setRows(s);
       setPayeeUserId("");
       setAmountStr("");
       setNote("");
-      setPayeeDetails([]);
       setFormErr(null);
     } catch (e) {
       setErr(apiErrorMessage(e));
       setDetail(null);
-      setDebts([]);
       setTxs([]);
       setRows([]);
     }
@@ -147,18 +136,22 @@ export default function SettlementsPage() {
   }, [loadGroupContext]);
 
   useEffect(() => {
-    if (!accessToken || !emailConfirmed || !groupId || !payerId || !payeeUserId) {
+    if (!accessToken || !emailConfirmed || !groupId || !payerId) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
-    if (payeeUserId === payerId) {
+
+    if (!payeeUserId || payeeUserId === payerId) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
 
     const ids = candidateTransactionIds(txs, payerId, payeeUserId);
     if (ids.length === 0) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
 
@@ -167,7 +160,7 @@ export default function SettlementsPage() {
     void (async () => {
       try {
         const details = await Promise.all(
-          ids.map((id) =>
+          ids.map((id: string) =>
             apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
               accessToken,
             })
@@ -186,48 +179,41 @@ export default function SettlementsPage() {
     };
   }, [accessToken, emailConfirmed, groupId, payerId, payeeUserId, txs, apiErrorMessage]);
 
-  useEffect(() => {
-    if (
-      !accessToken ||
-      !emailConfirmed ||
-      !groupId ||
-      !payerId ||
-      !detail ||
-      txs.length === 0
-    ) {
-      setPayeeMaxByUserId({});
-      return;
-    }
-    let cancelled = false;
-    setPayeeMaxByUserId(null);
-    void (async () => {
-      try {
-        const out = await computePayeeMaxByUserId(
-          accessToken ?? "",
-          payerId,
-          txs,
-          detail.members.filter((m) => m.userId !== payerId)
-        );
-        if (!cancelled) setPayeeMaxByUserId(out);
-      } catch {
-        if (!cancelled) setPayeeMaxByUserId({});
+  const owedToMemberById = useMemo(() => {
+    if (!detail) return new Map<string, number>();
+    const memberIdsOrdered = detail.members.map((m) => m.userId);
+    const netByMember = computeMemberNetBalances(memberIdsOrdered, txs, rows);
+    const transferEdges = simplifyToTransferEdges(netByMember);
+    const owed = new Map<string, number>();
+    for (const edge of transferEdges) {
+      if (edge.from === payerId) {
+        owed.set(edge.to, edge.amount);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [accessToken, emailConfirmed, groupId, payerId, detail, txs]);
+    }
+    return owed;
+  }, [detail, payerId, rows, txs]);
 
-  useEffect(() => {
-    if (!payeeMaxByUserId || !payeeUserId) return;
-    const max = payeeMaxByUserId[payeeUserId];
-    if (max !== undefined && max <= 0.005) setPayeeUserId("");
-  }, [payeeMaxByUserId, payeeUserId]);
+  const balanceRows = useMemo(() => {
+    if (!detail) return [];
+    return (detail.members ?? [])
+      .filter((m) => m.userId !== payerId)
+      .map((m) => ({
+        userId: m.userId,
+        displayName: m.displayName,
+        remainingOwed: owedToMemberById.get(m.userId) ?? 0,
+      }))
+      .filter((row) => row.remainingOwed > 0.005)
+      .sort((a, b) => b.remainingOwed - a.remainingOwed);
+  }, [detail, payerId, owedToMemberById]);
 
-  const maxTowardPayee = useMemo(
-    () => maxSettleableTowardPayee(payeeDetails, payerId),
-    [payeeDetails, payerId]
-  );
+  const maxTowardPayee = useMemo(() => {
+    if (!payeeUserId || payeeUserId === payerId) return 0;
+    const remainingForThisPayee = owedToMemberById.get(payeeUserId) ?? 0;
+    const detailedRemaining = maxSettleableTowardPayee(payeeDetails, payerId);
+    return Math.min(remainingForThisPayee, detailedRemaining);
+  }, [owedToMemberById, payeeDetails, payerId, payeeUserId]);
+
+  const hasSelectedPayee = Boolean(payeeUserId && payeeUserId !== payerId);
 
   const previewAllocations = useMemo(() => {
     const n = Number.parseFloat(amountStr.replace(",", "."));
@@ -236,22 +222,27 @@ export default function SettlementsPage() {
     return buildAllocationsFifo(payeeDetails, payerId, n);
   }, [amountStr, payerId, payeeDetails]);
 
-  const payeeOptions =
-    detail?.members.filter((m) => m.userId !== payerId) ?? [];
-
   const groupListboxOptions = useMemo(
     () => groups.map((g) => ({ value: g.id, label: g.name })),
     [groups]
   );
 
   const payeeListboxOptions = useMemo(() => {
-    const base = payeeOptions.map((m) => ({
-      value: m.userId,
-      label: m.displayName,
-    }));
-    if (payeeMaxByUserId === null) return [];
-    return base.filter((o) => (payeeMaxByUserId[o.value] ?? 0) > 0.005);
-  }, [payeeOptions, payeeMaxByUserId]);
+    return (detail?.members ?? [])
+      .filter((m) => m.userId !== payerId)
+      .map((m) => ({
+        value: m.userId,
+        label: m.displayName,
+        description: (() => {
+          const owed = owedToMemberById.get(m.userId) ?? 0;
+          return owed > 0.005
+            ? `You still owe ${currencyCode(detail?.defaultCurrency ?? 0)} ${owed.toFixed(2)}`
+            : "No remaining balance";
+        })(),
+      }))
+        .filter((o) => (owedToMemberById.get(o.value) ?? 0) > 0.005)
+        .sort((a, b) => (owedToMemberById.get(b.value) ?? 0) - (owedToMemberById.get(a.value) ?? 0));
+  }, [detail?.members, detail?.defaultCurrency, owedToMemberById, payerId]);
 
   async function submitSettlement(e: React.FormEvent) {
     e.preventDefault();
@@ -269,7 +260,7 @@ export default function SettlementsPage() {
     }
     if (amount > maxTowardPayee + 0.005) {
       setFormErr(
-        `Amount cannot exceed what you still owe this member on shared expenses (${maxTowardPayee.toFixed(2)} ${currencyCode(detail.defaultCurrency)}).`
+        `Amount cannot exceed what you still owe this member on their shared expenses (${maxTowardPayee.toFixed(2)} ${currencyCode(detail.defaultCurrency)}).`
       );
       return;
     }
@@ -423,23 +414,23 @@ export default function SettlementsPage() {
           <div className="space-y-lg">
             <div className="bg-surface rounded-xl border border-outline-variant shadow-level-1 p-lg">
               <h2 className="font-headline-md text-headline-md text-primary mb-md">
-                Balances
+                Members you still owe
               </h2>
               {detail == null ? (
                 <p className="font-body-md text-on-surface-variant">Loading…</p>
-              ) : debts.length === 0 ? (
+              ) : balanceRows.length === 0 ? (
                 <p className="font-body-md text-on-surface-variant">
-                  No members or debt data.
+                  No members you currently owe.
                 </p>
               ) : (
                 <ul className="divide-y divide-outline-variant/40 max-h-80 overflow-y-auto tabular-nums">
-                  {debts.map((b) => (
+                  {balanceRows.map((b) => (
                     <li
                       key={b.userId}
                       className="py-sm flex flex-wrap justify-between gap-sm text-sm"
                     >
                       <span className="text-on-surface font-medium">
-                        {displayName(detail.members, b.userId)}
+                        {b.displayName}
                       </span>
                       <span className="text-on-surface-variant">
                         Remaining owed:{" "}
@@ -462,8 +453,8 @@ export default function SettlementsPage() {
                 Record payment
               </h2>
               <p className="font-body-md text-on-surface-variant text-sm">
-                You record a payment <strong>from you</strong> to someone you owe
-                through expenses <strong>they paid for</strong> in this group.
+                Choose a member you still owe in this group. The payment will
+                apply to your oldest unsettled expenses with that person.
               </p>
               {detail == null ? (
                 <p className="text-sm text-on-surface-variant">Loading group…</p>
@@ -478,13 +469,13 @@ export default function SettlementsPage() {
                       onChange={setPayeeUserId}
                       options={payeeListboxOptions}
                       placeholder={
-                        payeeMaxByUserId === null
-                          ? "Loading payees…"
+                        previewLoading
+                          ? "Loading members…"
                           : payeeListboxOptions.length === 0
-                            ? "No one you owe in this group"
+                            ? "No members you still owe"
                             : "Select member…"
                       }
-                      emptyMessage="No one you currently owe through shared expenses"
+                      emptyMessage="No members you still owe"
                       leadingIcon="person"
                       className="w-full"
                     />
@@ -504,20 +495,20 @@ export default function SettlementsPage() {
                       />
                       <button
                         type="button"
-                        disabled={maxTowardPayee <= 0 || previewLoading}
+                        disabled={maxTowardPayee <= 0 || previewLoading || !hasSelectedPayee}
                         onClick={() => setAmountStr(maxTowardPayee.toFixed(2))}
                         className={`text-sm font-label-sm border border-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high disabled:opacity-50 ${
                           maxTowardPayee > 0 ? "text-balance-owe" : "text-on-surface-variant"
                         }`}
                       >
-                        Use max ({maxTowardPayee.toFixed(2)})
+                        {hasSelectedPayee ? `Use max (${maxTowardPayee.toFixed(2)})` : "Select a member first"}
                       </button>
                     </div>
                     {previewLoading ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
                         Loading expense breakdown…
                       </p>
-                    ) : payeeUserId && payeeUserId !== payerId ? (
+                    ) : hasSelectedPayee ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
                         Max toward {displayName(detail.members, payeeUserId)}:{" "}
                         <span className={`tabular-nums font-medium ${oweAmountClass(maxTowardPayee)}`}>
@@ -570,7 +561,7 @@ export default function SettlementsPage() {
                       !payeeUserId ||
                       previewLoading ||
                       maxTowardPayee <= 0 ||
-                      payeeMaxByUserId === null
+                      payeeListboxOptions.length === 0
                     }
                     className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
                   >

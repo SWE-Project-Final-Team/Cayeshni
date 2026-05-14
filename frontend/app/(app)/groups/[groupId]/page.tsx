@@ -693,32 +693,7 @@ export default function GroupDetailPage() {
                                 </span>
                               )}
                             </div>
-                            {b ? (
-                              <div className="grid grid-cols-3 gap-xs text-[10px] text-on-surface-variant tabular-nums leading-tight border-t border-outline-variant/40 pt-sm">
-                                <span>
-                                  Share{" "}
-                                  <span className={`block font-medium ${oweAmountClass(b.totalOwed)}`}>
-                                    {b.totalOwed.toFixed(2)}
-                                  </span>
-                                </span>
-                                <span>
-                                  Settled
-                                  <span className={`block font-medium ${owedAmountClass(b.settledAmount)}`}>
-                                    {b.settledAmount.toFixed(2)}
-                                  </span>
-                                </span>
-                                <span>
-                                  Left
-                                  <span className={`block font-medium ${oweAmountClass(b.remainingOwed)}`}>
-                                    {b.remainingOwed.toFixed(2)}
-                                  </span>
-                                </span>
-                              </div>
-                            ) : (
-                              <p className="text-[10px] text-on-surface-variant border-t border-outline-variant/40 pt-sm">
-                                No expense splits recorded yet.
-                              </p>
-                            )}
+
                             </div>
                             {profile?.id && !isSelf ? (
                               <div className="flex flex-wrap items-center gap-sm px-md pb-md pt-0 border-t border-outline-variant/30">
