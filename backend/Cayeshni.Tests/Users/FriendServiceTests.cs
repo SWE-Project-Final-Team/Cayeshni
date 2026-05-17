@@ -9,6 +9,7 @@ using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
 using Cayeshni.API.Infrastructure.Identity;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -22,7 +23,7 @@ public class FriendServiceTests
     private readonly FakeFileStorageService _fileStorage = new();
 
     private FriendService CreateService()
-        => new FriendService(_db, _emailNormalizer, _fileStorage);
+        => new FriendService(new FakeFriendRepository(_db), _emailNormalizer.NormalizeEmail, _fileStorage);
 
     #region SendRequestAsync Tests
 
@@ -378,7 +379,7 @@ public class FriendServiceTests
         };
 
         _db.Friendships.Add(friendship);
-
+        await _db.SaveChangesAsync();
         var service = CreateService();
 
         // Act
@@ -427,6 +428,7 @@ public class FriendServiceTests
         };
 
         _db.Friendships.Add(friendship);
+        await _db.SaveChangesAsync();
         var service = CreateService();
 
         // Act
@@ -839,7 +841,7 @@ public class FriendServiceTests
         public new DbSet<AppUser> Users => Set<AppUser>();
     }
 
-    private sealed class FakeEmailNormalizer : ILookupNormalizer
+    private sealed class FakeEmailNormalizer
     {
         public string? InvalidEmail { get; set; }
 

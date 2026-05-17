@@ -42,7 +42,7 @@ public class GroupDetailTests
         SeedUser(ctx, creatorId, "c@test.com", "Creator");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Group One"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
@@ -59,7 +59,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "Joiner Name");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Trip"));
         await service.JoinGroupAsync(joinerId, new JoinGroupDto(group.InviteToken));
 
@@ -88,7 +88,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "J");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var created = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Return"));
 
         var joined = await service.JoinGroupAsync(joinerId, new JoinGroupDto(created.InviteToken));

@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <ProjectReference Include="..\Cayeshni.Application\Cayeshni.Application.csproj" />
+    <ProjectReference Include="..\Cayeshni.Infrastructure\Cayeshni.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7"/>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7"/>
     <PackageReference Include="Scalar.AspNetCore" Version="2.14.11"/>
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7"/>
     <PackageReference Include="DotNetEnv" Version="3.2.0"/>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7"/>
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1"/>
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.18.0"/>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0"/>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12"/>
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

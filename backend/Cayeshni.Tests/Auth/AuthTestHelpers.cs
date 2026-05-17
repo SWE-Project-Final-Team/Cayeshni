@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Cayeshni.API.Api.Controllers;
+using Cayeshni.API.Controllers;
 using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Application.Features.Auth;
 using Cayeshni.API.Infrastructure.Identity;
@@ -66,7 +66,7 @@ public static class AuthTestHelpers
         var jwt = new JwtOptions { RefreshExpiry = TimeSpan.FromDays(7) };
         var controller = new AuthController(
             new AuthService(identityService),
-            new Cayeshni.API.Api.Services.CookieService(jwt, new TestWebHostEnvironment()));
+            new Cayeshni.API.Services.CookieService(jwt, new TestWebHostEnvironment()));
         controller.ControllerContext = CreateControllerContext();
         return controller;
     }

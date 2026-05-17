@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Cayeshni.API.Api.Middleware;
+using Cayeshni.API.Middleware;
 using Cayeshni.API.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;

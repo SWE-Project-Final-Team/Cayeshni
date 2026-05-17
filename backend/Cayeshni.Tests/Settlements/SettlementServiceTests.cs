@@ -4,6 +4,7 @@ using Cayeshni.API.Application.Common.Exceptions;
 using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Settlements;
@@ -74,7 +75,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -106,7 +107,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var otherId = Guid.NewGuid();
@@ -135,7 +136,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -162,7 +163,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -189,7 +190,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         // Create first settlement for 60
@@ -232,7 +233,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto1 = new CreateSettlementDto(
@@ -275,7 +276,7 @@ public class SettlementServiceTests
     public async Task GetGroupSettlementsAsync_NonMember_Throws()
     {
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (_, _, groupId, _) = await SetupTestDataAsync(context);
         var outsider = Guid.NewGuid();
 
@@ -287,7 +288,7 @@ public class SettlementServiceTests
     public async Task CreateSettlementAsync_PayerAndPayeeSame_Throws()
     {
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (_, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -312,7 +313,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -342,7 +343,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -373,7 +374,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -414,7 +415,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         var dto = new CreateSettlementDto(
@@ -458,7 +459,7 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new SettlementService(context);
+        var service = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         // Create another transaction
@@ -512,8 +513,8 @@ public class SettlementServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var transactionService = new TransactionService(context);
-        var settlementService = new SettlementService(context);
+        var transactionService = new TransactionService(new FakeTransactionRepository(context));
+        var settlementService = new SettlementService(new FakeSettlementRepository(context));
         var (userId1, userId2, groupId, transactionId) = await SetupTestDataAsync(context);
 
         // Create settlement

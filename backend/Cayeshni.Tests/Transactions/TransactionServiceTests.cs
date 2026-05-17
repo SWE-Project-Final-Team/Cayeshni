@@ -4,6 +4,7 @@ using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
 using Cayeshni.API.Infrastructure.Identity;
 using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Transactions;
@@ -64,7 +65,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
         
         var memberId = Guid.NewGuid();
@@ -97,7 +98,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
         
         var memberId = Guid.NewGuid();
@@ -131,7 +132,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -159,7 +160,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
 
@@ -187,7 +188,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -218,7 +219,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -259,7 +260,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -314,7 +315,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -345,7 +346,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var memberId = Guid.NewGuid();
@@ -394,7 +395,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var bobId = Guid.NewGuid();
@@ -438,7 +439,7 @@ public class TransactionServiceTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new TransactionService(context);
+        var service = new TransactionService(new FakeTransactionRepository(context));
         var (userId, groupId) = await SetupTestDataAsync(context);
 
         var bobId = Guid.NewGuid();

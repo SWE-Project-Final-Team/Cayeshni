@@ -8,7 +8,6 @@ using Cayeshni.API.Application.Common.Interfaces;
 using Cayeshni.API.Application.Features.Users;
 using Cayeshni.API.Domain.Entities;
 using Cayeshni.API.Domain.Enums;
-using Cayeshni.Application.Common.Interfaces;
 using Xunit;
 
 namespace Cayeshni.Tests.Users;

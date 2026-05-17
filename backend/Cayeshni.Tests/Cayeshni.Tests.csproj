@@ -16,6 +16,9 @@
     <Using Include="Xunit"/>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Cayeshni.Application\Cayeshni.Application.csproj"/>
+    <ProjectReference Include="..\Cayeshni.Domain\Cayeshni.Domain.csproj"/>
+    <ProjectReference Include="..\Cayeshni.Infrastructure\Cayeshni.Infrastructure.csproj"/>
     <ProjectReference Include="..\Cayeshni.API\Cayeshni.API.csproj"/>
   </ItemGroup>
 </Project>
