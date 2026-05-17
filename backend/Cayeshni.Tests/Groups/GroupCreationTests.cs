@@ -1,5 +1,5 @@
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -75,4 +75,5 @@ public class GroupCreationTests
         Assert.NotEqual(group1.InviteToken, group2.InviteToken);
     }
 }
+
 

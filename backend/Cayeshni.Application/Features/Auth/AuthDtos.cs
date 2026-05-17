@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Auth;
+namespace Cayeshni.Application.Features.Auth;
 
 public record RegisterDto(
     string Email,
@@ -48,3 +48,4 @@ public record ConfirmEmailDto(
     string UserId,
     string Token
 );
+

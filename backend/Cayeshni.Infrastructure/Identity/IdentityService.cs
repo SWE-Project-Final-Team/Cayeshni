@@ -1,13 +1,13 @@
 using System.Text;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Auth;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Cayeshni.API.Infrastructure.Identity;
+namespace Cayeshni.Infrastructure.Identity;
 
 public class IdentityService : IIdentityService
 {
@@ -250,3 +250,4 @@ public class IdentityService : IIdentityService
         );
     }
 }
+

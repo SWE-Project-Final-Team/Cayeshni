@@ -1,5 +1,5 @@
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Domain.Enums;
 
 namespace Cayeshni.Tests.TestDoubles;
 
@@ -22,3 +22,4 @@ public sealed class FakeFileStorageService : IFileStorageService
         FileFolder folder) =>
         Task.FromResult($"{folder.ToString().ToLowerInvariant()}/fake-{Guid.NewGuid():N}");
 }
+

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 public class Group
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -25,3 +25,4 @@ public class Group
     public ICollection<Settlement> Settlements { get; set; } = new List<Settlement>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
+

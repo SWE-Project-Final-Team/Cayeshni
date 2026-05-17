@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 
 public class User
 {
@@ -11,3 +11,4 @@ public class User
     public Currency PreferredCurrency { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+

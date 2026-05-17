@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 public class Settlement
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -24,3 +24,4 @@ public class Settlement
     public Group Group { get; set; } = null!;
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
 }
+

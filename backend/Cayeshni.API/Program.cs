@@ -1,5 +1,5 @@
-using Cayeshni.API.Application;
-using Cayeshni.API.Infrastructure;
+using Cayeshni.Application;
+using Cayeshni.Infrastructure;
 using Cayeshni.API.Extensions;
 using Cayeshni.API.Middleware;
 using Scalar.AspNetCore;

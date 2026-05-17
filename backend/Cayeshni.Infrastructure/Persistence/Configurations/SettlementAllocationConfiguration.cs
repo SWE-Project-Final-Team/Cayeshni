@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Configurations;
+namespace Cayeshni.Infrastructure.Persistence.Configurations;
 
 public class SettlementAllocationConfiguration : IEntityTypeConfiguration<SettlementAllocation>
 {
@@ -38,4 +38,5 @@ public class SettlementAllocationConfiguration : IEntityTypeConfiguration<Settle
         builder.HasIndex(sa => sa.DebtorUserId);
     }
 }
+
 

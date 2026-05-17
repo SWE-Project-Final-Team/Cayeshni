@@ -1,5 +1,5 @@
-using Cayeshni.API.Domain.Enums;
-namespace Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Enums;
+namespace Cayeshni.Domain.Entities;
 
 public class Friendship
 {
@@ -11,3 +11,4 @@ public class Friendship
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }
+

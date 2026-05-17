@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Dashboard;
 
 public interface IDashboardRepository
 {
@@ -10,3 +10,4 @@ public interface IDashboardRepository
     Task<List<Settlement>> GetSettlementsByGroupIdsAsync(IEnumerable<Guid> groupIds);
     Task<Dictionary<Guid, string>> GetUserNamesByIdsAsync(IEnumerable<Guid> ids);
 }
+

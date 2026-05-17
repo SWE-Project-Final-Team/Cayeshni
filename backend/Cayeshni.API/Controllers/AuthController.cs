@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Cayeshni.API.Application.Features.Auth;
-using Cayeshni.API.Application.Common.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Cayeshni.Application.Features.Auth;
+using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.API.Services;
 using Cayeshni.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -113,3 +113,4 @@ public class AuthController : ControllerBase
         return claim?.Value == "true";
     }
 }
+

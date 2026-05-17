@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 
 public class Notification
 {
@@ -25,3 +25,4 @@ public class Notification
     public Settlement? Settlement { get; set; }
     
 }
+

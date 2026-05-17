@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Cayeshni.API.Application.Features.Users.Friends;
+using Cayeshni.Application.Features.Friends;
 
 namespace Cayeshni.API.Controllers;
 

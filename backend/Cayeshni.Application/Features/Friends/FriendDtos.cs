@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Application.Features.Users.Friends;
+namespace Cayeshni.Application.Features.Friends;
 
 /// <summary>
 /// Send a friend request by either the target's user id or their account email (not both).
@@ -22,3 +22,4 @@ public record PendingFriendRequestDto(
     DateTime CreatedAt,
     string? ProfilePictureUrl
 );
+

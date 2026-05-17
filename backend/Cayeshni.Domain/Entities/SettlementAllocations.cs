@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 
 public class SettlementAllocation
 {
@@ -14,3 +14,4 @@ public class SettlementAllocation
     public Transaction Transaction { get; set; } = null!;
     public TransactionMember TransactionMember { get; set; } = null!;
 }
+

@@ -1,4 +1,4 @@
-﻿using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.API.Extensions;
@@ -46,3 +46,4 @@ public static class DatabaseInitializationExtensions
         }
     }
 }
+

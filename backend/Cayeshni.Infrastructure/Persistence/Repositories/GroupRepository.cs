@@ -1,9 +1,9 @@
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Repositories;
+namespace Cayeshni.Infrastructure.Persistence.Repositories;
 
 public class GroupRepository : IGroupRepository
 {
@@ -111,3 +111,4 @@ public class GroupRepository : IGroupRepository
         await _db.SaveChangesAsync();
     }
 }
+

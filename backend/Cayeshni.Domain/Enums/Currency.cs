@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Domain.Enums;
+namespace Cayeshni.Domain.Enums;
 
 public enum Currency
 {
@@ -14,3 +14,4 @@ public enum Currency
     CHF = 9,
     CNY = 10
 }
+

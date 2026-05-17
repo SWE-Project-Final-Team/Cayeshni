@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Cayeshni.API.Infrastructure.Persistence.Migrations
+namespace Cayeshni.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class AddSenderIDToFriendship : Migration
@@ -28,3 +28,4 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
         }
     }
 }
+

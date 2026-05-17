@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Settlements;
+namespace Cayeshni.Application.Features.Settlements;
 
 public record SettlementAllocationDto(
     Guid TransactionId,

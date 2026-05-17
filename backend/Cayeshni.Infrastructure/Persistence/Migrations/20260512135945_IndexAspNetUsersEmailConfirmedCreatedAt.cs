@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Cayeshni.API.Infrastructure.Persistence.Migrations
+namespace Cayeshni.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class IndexAspNetUsersEmailConfirmedCreatedAt : Migration
@@ -25,3 +25,4 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
         }
     }
 }
+

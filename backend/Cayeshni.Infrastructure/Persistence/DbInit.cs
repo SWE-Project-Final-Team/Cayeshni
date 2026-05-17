@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Cayeshni.API.Infrastructure.Persistence;
+namespace Cayeshni.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
@@ -17,3 +17,4 @@ public static class DbInitializer
         );
     }
 }
+

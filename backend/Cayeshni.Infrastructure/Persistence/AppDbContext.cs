@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
-namespace Cayeshni.API.Infrastructure.Persistence;
+namespace Cayeshni.Infrastructure.Persistence;
 
 public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
 {
@@ -37,3 +37,4 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
             w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
     }
 }
+

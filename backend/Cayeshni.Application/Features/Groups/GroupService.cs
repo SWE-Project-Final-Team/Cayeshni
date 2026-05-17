@@ -1,11 +1,12 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Groups;
+namespace Cayeshni.Application.Features.Groups;
 
-public class GroupService : IGroupService
+public class GroupService
 {
     private readonly IGroupRepository _groups;
     private readonly IFileStorageService _fileStorage;
@@ -270,3 +271,4 @@ public class GroupService : IGroupService
         await _groups.SaveChangesAsync();
     }
 }
+

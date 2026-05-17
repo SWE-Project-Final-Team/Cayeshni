@@ -1,10 +1,10 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Infrastructure.Persistence.Options;
 
-namespace Cayeshni.API.Infrastructure.Services;
+namespace Cayeshni.Infrastructure.Services;
 
 public class BrevoEmailService : IEmailService
 {
@@ -44,3 +44,4 @@ public class BrevoEmailService : IEmailService
         }
     }
 }
+

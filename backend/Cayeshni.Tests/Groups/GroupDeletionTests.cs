@@ -1,6 +1,6 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,7 +61,7 @@ public class GroupDeletionTests
         var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var nonExistentGroupId = Guid.NewGuid();
-        var groupDto = new GroupResponseDto(nonExistentGroupId, "Fake", "fake-token", userId, Cayeshni.API.Domain.Enums.Currency.USD);
+        var groupDto = new GroupResponseDto(nonExistentGroupId, "Fake", "fake-token", userId, Cayeshni.Domain.Enums.Currency.USD);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(
@@ -94,4 +94,5 @@ public class GroupDeletionTests
         Assert.Empty(members);
     }
 }
+
 

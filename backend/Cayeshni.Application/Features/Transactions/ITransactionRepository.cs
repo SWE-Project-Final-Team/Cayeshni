@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Transactions;
 
 public interface ITransactionRepository
 {
@@ -16,3 +16,4 @@ public interface ITransactionRepository
     Task RemoveTransactionAsync(Transaction transaction);
     Task<List<Guid>> GetGroupMemberIdsAsync(Guid groupId);
 }
+

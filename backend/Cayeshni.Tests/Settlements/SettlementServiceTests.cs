@@ -1,9 +1,9 @@
-using Cayeshni.API.Application.Features.Settlements;
-using Cayeshni.API.Application.Features.Transactions;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Settlements;
+using Cayeshni.Application.Features.Transactions;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -543,3 +543,4 @@ public class SettlementServiceTests
         Assert.Equal(40m, result.Members[0].RemainingOwed);
     }
 }
+

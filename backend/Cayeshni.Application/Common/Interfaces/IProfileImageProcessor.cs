@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Common.Interfaces;
 
 public interface IProfileImageProcessor
 {

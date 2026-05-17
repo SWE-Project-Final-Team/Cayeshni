@@ -1,7 +1,7 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
-namespace Cayeshni.API.Infrastructure.Identity;
+namespace Cayeshni.Infrastructure.Identity;
 
 public class AppUser : IdentityUser<Guid>
 {
@@ -10,3 +10,4 @@ public class AppUser : IdentityUser<Guid>
     public Currency PreferredCurrency { get; set; } = Currency.EGP; // Default to EGP
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+

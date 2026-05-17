@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Features.Auth;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Features.Auth;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 
@@ -139,4 +139,5 @@ public class IdentityServiceTests
         Assert.Contains("Not enabled", ex.Message);
     }
 }
+
 

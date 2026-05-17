@@ -1,4 +1,4 @@
-﻿using Cayeshni.API.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Exceptions;
 
 namespace Cayeshni.API.Middleware;
 
@@ -64,3 +64,4 @@ public sealed class ExceptionHandlingMiddleware
         });
     }
 }
+

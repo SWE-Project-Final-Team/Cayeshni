@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Configurations;
+namespace Cayeshni.Infrastructure.Persistence.Configurations;
 
 public class TransactionMemberConfiguration : IEntityTypeConfiguration<TransactionMember>
 {
@@ -29,4 +29,5 @@ public class TransactionMemberConfiguration : IEntityTypeConfiguration<Transacti
         builder.HasIndex(tm => tm.UserId);
     }
 }
+
 

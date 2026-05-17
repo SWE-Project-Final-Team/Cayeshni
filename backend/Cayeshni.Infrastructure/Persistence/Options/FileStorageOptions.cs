@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Infrastructure.Persistence.Options;
+namespace Cayeshni.Infrastructure.Persistence.Options;
 
 public class FileStorageOptions
 {
@@ -12,3 +12,4 @@ public class FileStorageOptions
     // Public base URL returned to clients
     public string BaseUrl  { get; set; } = "http://localhost:8080";
 }
+

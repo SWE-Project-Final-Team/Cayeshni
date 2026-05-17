@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Users;
+namespace Cayeshni.Application.Features.Users;
 
 public record UserProfileDto(
     Guid      Id,
@@ -27,3 +27,4 @@ public record UserProfileSearchDto(
     string Email,
     string? ProfilePictureUrl
 );
+

@@ -1,8 +1,8 @@
-using Cayeshni.API.Application.Features.Dashboard;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,3 +93,4 @@ public class DashboardServiceBalanceTests
         Assert.Equal(0m, aliceRow.YouAreOwed);
     }
 }
+

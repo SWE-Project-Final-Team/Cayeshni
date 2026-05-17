@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Domain.Enums;
+namespace Cayeshni.Domain.Enums;
 
 public enum TransactionCategory
 {
@@ -10,3 +10,4 @@ public enum TransactionCategory
     Shopping = 5,
     Other = 6
 }
+

@@ -1,6 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Cayeshni.API.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Exceptions;
 
 namespace Cayeshni.API.Extensions;
 
@@ -19,3 +19,4 @@ public static class ClaimsPrincipalExtensions
         return Guid.Parse(sub);
     }
 }
+

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Cayeshni.API.Application.Features.Transactions;
+using Cayeshni.Application.Features.Transactions;
 
 namespace Cayeshni.API.Controllers;
 
@@ -95,3 +95,4 @@ public class TransactionController : ControllerBase
         return Ok(result);
     }
 }
+

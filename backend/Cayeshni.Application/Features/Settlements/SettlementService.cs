@@ -1,10 +1,11 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Settlements;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Features.Settlements;
+namespace Cayeshni.Application.Features.Settlements;
 
-public class SettlementService : ISettlementService
+public class SettlementService
 {
     private readonly ISettlementRepository _repo;
 
@@ -159,3 +160,4 @@ public class SettlementService : ISettlementService
         )).ToList();
     }
 }
+

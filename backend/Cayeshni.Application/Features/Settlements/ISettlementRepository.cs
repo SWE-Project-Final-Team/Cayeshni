@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Settlements;
 
 public interface ISettlementRepository
 {
@@ -14,3 +14,4 @@ public interface ISettlementRepository
     Task<decimal> SumExistingAllocationsForTransactionAndDebtorAsync(Guid transactionId, Guid debtorUserId);
     Task<List<Transaction>> GetTransactionsByGroupIdAsync(Guid groupId);
 }
+

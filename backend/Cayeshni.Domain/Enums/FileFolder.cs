@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Domain.Enums;
+namespace Cayeshni.Domain.Enums;
 
 public enum FileFolder
 {
@@ -6,3 +6,4 @@ public enum FileFolder
     Groups = 1,
     Receipts = 2,
 }
+

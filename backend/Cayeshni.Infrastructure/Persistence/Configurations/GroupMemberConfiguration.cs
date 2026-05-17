@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Configurations;
+namespace Cayeshni.Infrastructure.Persistence.Configurations;
 
 public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
 {
@@ -24,4 +24,5 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
         builder.HasIndex(gm => gm.JoinedAt);
     }
 }
+
 

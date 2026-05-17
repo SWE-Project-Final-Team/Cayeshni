@@ -1,8 +1,8 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Features.Transactions;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Features.Transactions;
+namespace Cayeshni.Application.Features.Transactions;
 
 public class TransactionService
 {
@@ -235,3 +235,4 @@ public class TransactionService
         );
     }
 }
+

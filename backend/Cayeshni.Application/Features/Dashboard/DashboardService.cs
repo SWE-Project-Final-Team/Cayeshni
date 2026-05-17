@@ -1,6 +1,6 @@
-using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Dashboard;
 
-namespace Cayeshni.API.Application.Features.Dashboard;
+namespace Cayeshni.Application.Features.Dashboard;
 
 public class DashboardService
 {
@@ -143,3 +143,4 @@ public class DashboardService
             .ToList();
     }
 }
+

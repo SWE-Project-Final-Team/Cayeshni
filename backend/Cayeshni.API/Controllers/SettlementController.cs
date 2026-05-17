@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Cayeshni.API.Application.Features.Settlements;
-using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Settlements;
 
 namespace Cayeshni.API.Controllers;
 
@@ -11,9 +10,9 @@ namespace Cayeshni.API.Controllers;
 [Authorize]
 public class SettlementController : ControllerBase
 {
-    private readonly ISettlementService _settlementService;
+    private readonly SettlementService _settlementService;
 
-    public SettlementController(ISettlementService settlementService)
+    public SettlementController(SettlementService settlementService)
     {
         _settlementService = settlementService;
     }
@@ -70,3 +69,4 @@ public class SettlementController : ControllerBase
         return Ok();
     }
 }
+

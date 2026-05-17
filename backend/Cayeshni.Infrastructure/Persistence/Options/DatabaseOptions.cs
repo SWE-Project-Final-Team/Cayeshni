@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Infrastructure.Persistence.Options;
+namespace Cayeshni.Infrastructure.Persistence.Options;
 
 public class BrevoOptions
 {
@@ -8,3 +8,4 @@ public class BrevoOptions
     public string FromEmail { get; set; } = null!;
     public string FromName  { get; set; } = "Cayeshni";
 }
+

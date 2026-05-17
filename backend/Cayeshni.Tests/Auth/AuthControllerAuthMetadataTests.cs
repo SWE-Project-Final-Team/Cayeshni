@@ -27,3 +27,4 @@ public class AuthControllerAuthMetadataTests
         Assert.Contains(method!.GetCustomAttributes(inherit: true), a => a is AuthorizeAttribute);
     }
 }
+

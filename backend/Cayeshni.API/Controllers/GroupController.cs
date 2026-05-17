@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Groups;
 
 namespace Cayeshni.API.Controllers;
 
@@ -11,9 +10,9 @@ namespace Cayeshni.API.Controllers;
 [Authorize]
 public class GroupController : ControllerBase
 {
-    private readonly IGroupService _groupService;
+    private readonly GroupService _groupService;
 
-    public GroupController(IGroupService groupService)
+    public GroupController(GroupService groupService)
     {
         _groupService = groupService;
     }
@@ -146,3 +145,4 @@ public class GroupController : ControllerBase
         return Ok();
     }
 }
+

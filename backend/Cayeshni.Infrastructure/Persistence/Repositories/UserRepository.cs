@@ -1,11 +1,11 @@
-﻿using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Identity;
+using Cayeshni.Application.Features.Users;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Repositories;
+namespace Cayeshni.Infrastructure.Persistence.Repositories;
 
 public class UserRepository : IUserRepository
 {
@@ -92,3 +92,4 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 }
+

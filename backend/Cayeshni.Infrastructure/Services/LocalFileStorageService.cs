@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Cayeshni.API.Infrastructure.Services;
+namespace Cayeshni.Infrastructure.Services;
 
 public class LocalFileStorageService : IFileStorageService
 {
@@ -75,3 +75,4 @@ public class LocalFileStorageService : IFileStorageService
 
     public string GetBaseUrl() => _options.BaseUrl.TrimEnd('/');
 }
+

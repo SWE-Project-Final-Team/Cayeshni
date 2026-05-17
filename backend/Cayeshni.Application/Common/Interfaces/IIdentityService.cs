@@ -1,6 +1,6 @@
-using Cayeshni.API.Application.Features.Auth;
+using Cayeshni.Application.Features.Auth;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Common.Interfaces;
 
 public interface IIdentityService
 {
@@ -17,3 +17,4 @@ public interface IIdentityService
     Task ConfirmEmailAsync(ConfirmEmailDto dto);
     Task ResendConfirmationAsync(string email);
 }
+

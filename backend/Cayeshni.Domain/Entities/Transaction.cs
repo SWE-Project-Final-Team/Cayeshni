@@ -1,7 +1,7 @@
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
 
 public class Transaction
@@ -26,3 +26,4 @@ public class Transaction
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
+

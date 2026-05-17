@@ -1,7 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Persistence.Options;
 using Cayeshni.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -62,3 +62,4 @@ public static class AuthenticationExtensions
         services.AddScoped<CookieService>();
     }
 }
+

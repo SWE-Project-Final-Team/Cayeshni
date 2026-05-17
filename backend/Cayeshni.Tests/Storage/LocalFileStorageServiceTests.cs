@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence.Options;
-using Cayeshni.API.Infrastructure.Services;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
@@ -106,4 +106,5 @@ public class LocalFileStorageServiceTests : IDisposable
         public IFileProvider ContentRootFileProvider { get; set; }
     }
 }
+
 

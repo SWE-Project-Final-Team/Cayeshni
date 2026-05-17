@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Friends;
 
 public interface IFriendRepository
 {
@@ -14,3 +14,4 @@ public interface IFriendRepository
     void RemoveFriendship(Friendship friendship);
     Task<List<Friendship>> GetFriendsForUserAsync(Guid userId);
 }
+

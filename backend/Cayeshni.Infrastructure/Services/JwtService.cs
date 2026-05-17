@@ -2,11 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Infrastructure.Persistence.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Cayeshni.API.Infrastructure.Services;
+namespace Cayeshni.Infrastructure.Services;
 
 public class JwtService : IJwtService
 {
@@ -88,3 +88,4 @@ public class JwtService : IJwtService
         }
     }
 }
+

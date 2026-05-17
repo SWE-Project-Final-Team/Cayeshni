@@ -1,9 +1,9 @@
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Cayeshni.API.Infrastructure.Services;
+namespace Cayeshni.Infrastructure.Services;
 
 /// <summary>
 /// Periodically deletes unconfirmed accounts older than the cutoff (matches backend_ref behavior).
@@ -34,3 +34,4 @@ public class UnverifiedUserCleanupService : BackgroundService
         }
     }
 }
+

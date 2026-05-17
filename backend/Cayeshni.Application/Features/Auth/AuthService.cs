@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
 
-namespace Cayeshni.API.Application.Features.Auth;
+namespace Cayeshni.Application.Features.Auth;
 
 public class AuthService
 {
@@ -51,3 +51,4 @@ public class AuthService
     public Task ResendConfirmationAsync(string email) =>
         _identity.ResendConfirmationAsync(email);
 }
+

@@ -1,6 +1,6 @@
-﻿using Cayeshni.API.Extensions;
-using Cayeshni.API.Application.Features.Dashboard;
-using Cayeshni.API.Application.Features.Users;
+using Cayeshni.API.Extensions;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Application.Features.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +10,10 @@ namespace Cayeshni.API.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly UserService _userService;
     private readonly DashboardService _dashboardService;
 
-    public UsersController(IUserService userService, DashboardService dashboardService)
+    public UsersController(UserService userService, DashboardService dashboardService)
     {
         _userService = userService;
         _dashboardService = dashboardService;
@@ -94,3 +94,4 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 }
+

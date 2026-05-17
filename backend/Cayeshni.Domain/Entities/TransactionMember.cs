@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Cayeshni.API.Domain.Entities;
+namespace Cayeshni.Domain.Entities;
 
 public class TransactionMember
 {
@@ -11,3 +11,4 @@ public class TransactionMember
     public Transaction Transaction { get; set; } = null!;
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
 }
+

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Cayeshni.API.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Identity;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Configurations;
+namespace Cayeshni.Infrastructure.Persistence.Configurations;
 
 public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 {
@@ -29,3 +29,4 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasIndex(u => new { u.EmailConfirmed, u.CreatedAt });
     }
 }
+

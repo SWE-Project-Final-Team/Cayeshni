@@ -1,7 +1,7 @@
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Users;
 
 public interface IUserRepository
 {
@@ -16,3 +16,4 @@ public interface IUserRepository
     /// <summary>Case-insensitive substring match on display name; excludes <paramref name="excludeUserId"/>.</summary>
     Task<IReadOnlyList<User>> SearchByDisplayNameAsync(string query, Guid excludeUserId, int take);
 }
+

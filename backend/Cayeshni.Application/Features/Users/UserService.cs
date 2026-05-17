@@ -1,10 +1,11 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Users;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Users;
+namespace Cayeshni.Application.Features.Users;
 
-public class UserService : IUserService
+public class UserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IFileStorageService _fileStorageService;

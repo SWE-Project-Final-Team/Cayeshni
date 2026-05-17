@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Configurations;
+namespace Cayeshni.Infrastructure.Persistence.Configurations;
 
 public class SettlementConfiguration : IEntityTypeConfiguration<Settlement>
 {
@@ -50,4 +50,5 @@ public class SettlementConfiguration : IEntityTypeConfiguration<Settlement>
         builder.HasIndex(s => new { s.PayerUserId, s.PayeeUserId });
     }
 }
+
 

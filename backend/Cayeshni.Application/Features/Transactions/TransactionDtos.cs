@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Transactions;
+namespace Cayeshni.Application.Features.Transactions;
 
 public record TransactionMemberDto(
     Guid UserId,
@@ -53,3 +53,4 @@ public record TransactionDetailDto(
     DateTime CreatedAt,
     List<TransactionMemberBalanceDto> Members
 );
+

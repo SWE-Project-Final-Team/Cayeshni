@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Features.Dashboard;
+namespace Cayeshni.Application.Features.Dashboard;
 
 public record DashboardGroupBalanceDto(
     Guid GroupId,
@@ -28,3 +28,4 @@ public record DashboardActivityItemDto(
     string? CounterpartyName,
     string? Note
 );
+

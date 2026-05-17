@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Cayeshni.API.Infrastructure.Persistence.Migrations
+namespace Cayeshni.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -570,4 +570,5 @@ namespace Cayeshni.API.Infrastructure.Persistence.Migrations
         }
     }
 }
+
 

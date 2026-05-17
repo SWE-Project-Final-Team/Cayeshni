@@ -1,8 +1,8 @@
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Repositories;
+namespace Cayeshni.Infrastructure.Persistence.Repositories;
 
 public class DashboardRepository : IDashboardRepository
 {
@@ -59,3 +59,4 @@ public class DashboardRepository : IDashboardRepository
             .ToDictionaryAsync(u => u.Id, u => u.Name);
     }
 }
+

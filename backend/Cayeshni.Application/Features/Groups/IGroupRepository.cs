@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Domain.Entities;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Features.Groups;
 
 public interface IGroupRepository
 {
@@ -20,3 +20,4 @@ public interface IGroupRepository
     Task RemoveNotificationAsync(Notification notification);
     Task SaveChangesAsync();
 }
+

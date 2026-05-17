@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Domain.Enums;
+namespace Cayeshni.Domain.Enums;
 
 public enum NotificationType
 {
@@ -18,3 +18,4 @@ public enum NotificationType
     // Settlement events
     PaymentReceived       = 7,
 }
+

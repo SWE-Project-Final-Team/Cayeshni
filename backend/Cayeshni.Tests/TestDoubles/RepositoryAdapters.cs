@@ -2,10 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Application.Features.Transactions;
+using Cayeshni.Application.Features.Settlements;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Application.Features.Friends;
+using Cayeshni.Application.Features.Users;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.TestDoubles;
@@ -229,3 +234,4 @@ public sealed class FakeSettlementRepository : ISettlementRepository
     public Task<List<Transaction>> GetTransactionsByGroupIdAsync(Guid groupId)
         => _db.Transactions.Include(t => t.TransactionMembers).Where(t => t.GroupId == groupId).ToListAsync();
 }
+

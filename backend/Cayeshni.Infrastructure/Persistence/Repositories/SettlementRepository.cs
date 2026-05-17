@@ -1,8 +1,8 @@
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Entities;
+using Cayeshni.Application.Features.Settlements;
+using Cayeshni.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cayeshni.API.Infrastructure.Persistence.Repositories;
+namespace Cayeshni.Infrastructure.Persistence.Repositories;
 
 public class SettlementRepository : ISettlementRepository
 {
@@ -69,3 +69,4 @@ public class SettlementRepository : ISettlementRepository
             .ToListAsync();
     }
 }
+

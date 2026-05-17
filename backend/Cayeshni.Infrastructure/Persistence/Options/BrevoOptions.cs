@@ -1,4 +1,4 @@
-namespace Cayeshni.API.Infrastructure.Persistence.Options;
+namespace Cayeshni.Infrastructure.Persistence.Options;
 
 public class DatabaseOptions
 {
@@ -13,3 +13,4 @@ public class DatabaseOptions
     public string ToConnectionString() =>
         $"Host={Host};Port={Port};Database={Name};Username={User};Password={Password}";
 }
+

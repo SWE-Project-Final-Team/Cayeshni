@@ -1,17 +1,23 @@
-using Cayeshni.API.Infrastructure.Persistence;
-using Cayeshni.API.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
+using Cayeshni.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
-using Cayeshni.API.Infrastructure.Services;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Infrastructure.Persistence.Options;
-using Cayeshni.API.Infrastructure.Persistence.Repositories;
+using Cayeshni.Infrastructure.Services;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Application.Features.Transactions;
+using Cayeshni.Application.Features.Settlements;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Application.Features.Friends;
+using Cayeshni.Application.Features.Users;
+using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
-namespace Cayeshni.API.Infrastructure;
+namespace Cayeshni.Infrastructure;
 
 public static class DependencyInjection
 {
@@ -108,3 +114,4 @@ public static class DependencyInjection
         return services;
     }
 }
+

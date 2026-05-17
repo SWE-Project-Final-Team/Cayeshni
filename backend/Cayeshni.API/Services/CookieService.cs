@@ -1,4 +1,4 @@
-using Cayeshni.API.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Persistence.Options;
 
 namespace Cayeshni.API.Services;
 
@@ -39,3 +39,4 @@ public sealed class CookieService
         });
     }
 }
+

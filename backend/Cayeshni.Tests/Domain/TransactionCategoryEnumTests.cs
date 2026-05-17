@@ -1,4 +1,4 @@
-﻿using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
 namespace Cayeshni.Tests.Domain.Enums;
 
@@ -25,4 +25,5 @@ public class TransactionCategoryEnumTests
         Assert.True(Enum.IsDefined(typeof(TransactionCategory), category));
     }
 }
+
 

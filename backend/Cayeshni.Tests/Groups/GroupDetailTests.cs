@@ -1,7 +1,7 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -100,3 +100,4 @@ public class GroupDetailTests
         Assert.Equal(created.DefaultCurrency, joined.DefaultCurrency);
     }
 }
+

@@ -1,6 +1,6 @@
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Application.Common.Interfaces;
+namespace Cayeshni.Application.Common.Interfaces;
 
 public interface IFileStorageService
 {
@@ -9,3 +9,4 @@ public interface IFileStorageService
     string? GetUrl(string? profilePicturePath);
     string GetBaseUrl();
 }
+

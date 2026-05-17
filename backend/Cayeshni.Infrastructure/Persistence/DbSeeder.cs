@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
 
-namespace Cayeshni.API.Infrastructure.Persistence;
+namespace Cayeshni.Infrastructure.Persistence;
 
 public static class DbSeeder
 {
@@ -307,3 +307,4 @@ public static class DbSeeder
         }
     }
 }
+
