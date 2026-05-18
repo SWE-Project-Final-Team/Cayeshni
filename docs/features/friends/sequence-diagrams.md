@@ -186,7 +186,7 @@ sequenceDiagram
 
 ### Process Steps
 1. User requests friends list
-2. Controller extracts user ID from JWT
+2. Controller extracts user ID from JWT claims
 3. Service queries database for accepted friendships
 4. Friendship entities store both users (userA, userB)
 5. Service identifies friend IDs (the "other" user in each pair)

@@ -216,4 +216,3 @@ IdentityUser <|-- AppUser : extends
 ### Social Features
 - **Friendship**: User relationships with status
 - **Notification**: Events and alerts for users
-
