@@ -1,5 +1,4 @@
 using Cayeshni.API.Extensions;
-using Cayeshni.Application.Features.Dashboard;
 using Cayeshni.Application.Features.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +10,10 @@ namespace Cayeshni.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserService _userService;
-    private readonly DashboardService _dashboardService;
 
-    public UsersController(UserService userService, DashboardService dashboardService)
+    public UsersController(UserService userService)
     {
         _userService = userService;
-        _dashboardService = dashboardService;
     }
 
     [Authorize]
@@ -73,25 +70,6 @@ public class UsersController : ControllerBase
         var userId = User.GetUserId();
         await _userService.DeletePictureAsync(userId);
         return NoContent();
-    }
-
-    [Authorize]
-    [HttpGet("~/api/dashboard/group-balances")]
-    public async Task<ActionResult<IReadOnlyList<DashboardGroupBalanceDto>>> DashboardGroupBalances()
-    {
-        var userId = User.GetUserId();
-        var result = await _dashboardService.GetGroupBalancesAsync(userId);
-        return Ok(result);
-    }
-
-    [Authorize]
-    [HttpGet("~/api/dashboard/recent-activity")]
-    public async Task<ActionResult<IReadOnlyList<DashboardActivityItemDto>>> DashboardRecentActivity(
-        [FromQuery] int limit = 20)
-    {
-        var userId = User.GetUserId();
-        var result = await _dashboardService.GetRecentActivityAsync(userId, limit);
-        return Ok(result);
     }
 }
 
