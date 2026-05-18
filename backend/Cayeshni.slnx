@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Cayeshni.API/Cayeshni.API.csproj" />
+  <Project Path="Cayeshni.Tests/Cayeshni.Tests.csproj" />
+</Solution>
