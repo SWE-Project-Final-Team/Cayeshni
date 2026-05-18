@@ -109,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -127,6 +127,7 @@ jobs:
 
     needs:
       - validate
+      - changes
       - backend-tests
       - frontend-tests
 
@@ -136,11 +137,17 @@ jobs:
       - name: Validate overall result
         run: |
           echo "validate = ${{ needs.validate.result }}"
+          echo "changes = ${{ needs.changes.result }}"
           echo "backend = ${{ needs.backend-tests.result }}"
           echo "frontend = ${{ needs.frontend-tests.result }}"
 
           if [[ "${{ needs.validate.result }}" != "success" ]]; then
             echo "❌ Validation failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo "❌ Change detection failed"
             exit 1
           fi
 
