@@ -64,3 +64,5 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasIndex(n => n.Type);
     }
 }
+
+

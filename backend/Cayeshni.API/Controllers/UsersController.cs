@@ -9,14 +9,13 @@ namespace Cayeshni.API.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly UserService _userService;
 
-    public UsersController(IUserService userService)
+    public UsersController(UserService userService)
     {
         _userService = userService;
     }
 
-    // Profile
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserProfileDto>> GetMe()
@@ -24,6 +23,16 @@ public class UsersController : ControllerBase
         var userId = User.GetUserId();
         var profile = await _userService.GetProfileAsync(userId);
         return Ok(profile);
+    }
+
+    [Authorize]
+    [HttpGet("search")]
+    public async Task<ActionResult<IReadOnlyList<UserProfileSearchDto>>> SearchProfiles(
+        [FromQuery(Name = "q")] string? q)
+    {
+        var userId = User.GetUserId();
+        var results = await _userService.SearchProfilesByDisplayNameAsync(userId, q ?? "");
+        return Ok(results);
     }
 
     [Authorize]
@@ -63,3 +72,4 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 }
+

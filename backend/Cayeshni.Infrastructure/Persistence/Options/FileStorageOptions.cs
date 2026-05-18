@@ -3,7 +3,13 @@ namespace Cayeshni.Infrastructure.Persistence.Options;
 public class FileStorageOptions
 {
     public const string Section = "FileStorage";
-    public string BaseUrl { get; set; } = "http://localhost:8080";
+
+    // Absolute path on disk where files are saved
+    public string BasePath { get; set; } = "uploads";
     public int MaxUploadSizeMb { get; set; } = 5;
-    public IEnumerable<string> AllowedExtensions { get; set; } = [".jpg", ".jpeg", ".png", ".webp"];
+    public List<string> AllowedExtensions { get; set; } = new() { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+    // Public base URL returned to clients
+    public string BaseUrl  { get; set; } = "http://localhost:8080";
 }
+

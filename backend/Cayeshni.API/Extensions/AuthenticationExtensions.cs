@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Cayeshni.API.Services;
 using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -48,13 +48,12 @@ public static class AuthenticationExtensions
 
         services.AddAuthorization(options =>
         {
-            // Full access - requires valid JWT and email_confirmed == true
+            // Full access - requires valid JWT and email_confirmed == true (matches backend_ref)
             var fullAccess = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .RequireClaim("email_confirmed", "true")
                 .Build();
 
-            // Make FullAccess the default for [Authorize]
             options.AddPolicy("FullAccess", fullAccess);
             options.DefaultPolicy = fullAccess;
         });
@@ -63,3 +62,4 @@ public static class AuthenticationExtensions
         services.AddScoped<CookieService>();
     }
 }
+

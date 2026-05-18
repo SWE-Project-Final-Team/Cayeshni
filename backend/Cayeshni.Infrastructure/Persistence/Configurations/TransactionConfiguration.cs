@@ -59,3 +59,5 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.HasIndex(t => t.Category);
     }
 }
+
+

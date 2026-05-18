@@ -17,6 +17,7 @@ public class Transaction
     public TransactionCategory Category { get; set; } = TransactionCategory.Other;
     [MaxLength(500)]
     public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 
@@ -25,3 +26,4 @@ public class Transaction
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
+

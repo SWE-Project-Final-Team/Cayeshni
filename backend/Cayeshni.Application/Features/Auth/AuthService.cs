@@ -21,13 +21,12 @@ public class AuthService
         {
             throw new ValidationException("Name must be at least 3 characters.");
         }
-        
-        // Validate email format
+
         if (string.IsNullOrWhiteSpace(dto.Email) || !EmailRegex.IsMatch(dto.Email))
         {
             throw new ValidationException("Please enter a valid email address.");
         }
-        
+
         return await _identity.RegisterAsync(dto with { Name = name });
     }
 
@@ -37,7 +36,6 @@ public class AuthService
 
     public Task LogoutAsync() => _identity.LogoutAsync();
 
-    // Account/Identity operations
     public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) =>
         _identity.ChangePasswordAsync(userId, dto);
 
@@ -53,3 +51,4 @@ public class AuthService
     public Task ResendConfirmationAsync(string email) =>
         _identity.ResendConfirmationAsync(email);
 }
+

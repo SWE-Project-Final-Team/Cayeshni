@@ -25,3 +25,5 @@ public class TransactionCategoryEnumTests
         Assert.True(Enum.IsDefined(typeof(TransactionCategory), category));
     }
 }
+
+

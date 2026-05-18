@@ -7,3 +7,4 @@ public class GroupMember
     public Group Group { get; set; } = null!;
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }
+

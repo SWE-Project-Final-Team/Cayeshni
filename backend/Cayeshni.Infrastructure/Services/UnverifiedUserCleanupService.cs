@@ -5,6 +5,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace Cayeshni.Infrastructure.Services;
 
+/// <summary>
+/// Periodically deletes unconfirmed accounts older than the cutoff (matches backend_ref behavior).
+/// </summary>
 public class UnverifiedUserCleanupService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -19,16 +22,16 @@ public class UnverifiedUserCleanupService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = _serviceProvider.CreateScope();
-
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var cutoff = DateTime.UtcNow.AddDays(-3); // Unverified accounts older than 3 days will be deleted
+            var cutoff = DateTime.UtcNow.AddDays(-3);
 
             await db.Users
                 .Where(u => !u.EmailConfirmed && u.CreatedAt < cutoff)
                 .ExecuteDeleteAsync(stoppingToken);
 
-            await Task.Delay(TimeSpan.FromHours(24), stoppingToken); // Check every 24 hours
+            await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
         }
     }
 }
+

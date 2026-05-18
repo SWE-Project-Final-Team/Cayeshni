@@ -12,6 +12,7 @@ COPY Cayeshni.API/Cayeshni.API.csproj Cayeshni.API/
 COPY Cayeshni.Application/Cayeshni.Application.csproj Cayeshni.Application/
 COPY Cayeshni.Domain/Cayeshni.Domain.csproj Cayeshni.Domain/
 COPY Cayeshni.Infrastructure/Cayeshni.Infrastructure.csproj Cayeshni.Infrastructure/
+COPY Cayeshni.Tests/Cayeshni.Tests.csproj Cayeshni.Tests/
 
 # Restore dependencies
 RUN dotnet restore Cayeshni.API/Cayeshni.API.csproj

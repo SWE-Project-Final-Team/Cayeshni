@@ -5,11 +5,19 @@ namespace Cayeshni.Application.Features.Groups;
 public interface IGroupRepository
 {
     Task AddAsync(Group group);
-    Task<Group?> FindByInviteTokenAsync(string inviteToken);
-    Task<Group?> FindByIdIncludeMembersAsync(Guid groupId);
+    Task<Group?> GetByInviteTokenWithMembersAsync(string inviteToken);
+    Task<Group?> GetByIdWithMembersAsync(Guid id);
     Task<List<Group>> GetUserGroupsAsync(Guid userId);
+    Task<List<(Guid Id, string Name, string? ProfilePicturePath)>> GetUsersByIdsAsync(IEnumerable<Guid> ids);
+    void RemoveGroupMember(GroupMember membership);
+    void RemoveGroupMembers(IEnumerable<GroupMember> memberships);
     void RemoveGroup(Group group);
-    void RemoveGroupMember(GroupMember member);
-    void RemoveGroupMembersRange(IEnumerable<GroupMember> members);
+    Task<(Guid Id, string Name, string? ProfilePicturePath)?> GetUserBasicAsync(Guid id);
+    Task<bool> AreFriendsAsync(Guid userA, Guid userB);
+    Task AddNotificationAsync(Notification notification);
+    Task<List<Notification>> GetPendingGroupInvitesAsync(Guid userId);
+    Task<Notification?> GetNotificationForUserAsync(Guid notificationId, Guid userId);
+    Task RemoveNotificationAsync(Notification notification);
     Task SaveChangesAsync();
 }
+

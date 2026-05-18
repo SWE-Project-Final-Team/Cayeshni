@@ -182,3 +182,5 @@ public class AuthControllerTests
         public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
+
+

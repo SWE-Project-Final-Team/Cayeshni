@@ -6,10 +6,12 @@ public sealed class CookieService
 {
     private const string RefreshTokenCookieName = "refreshToken";
     private readonly JwtOptions _jwtOptions;
+    private readonly IWebHostEnvironment _env;
 
-    public CookieService(JwtOptions jwtOptions)
+    public CookieService(JwtOptions jwtOptions, IWebHostEnvironment env)
     {
         _jwtOptions = jwtOptions;
+        _env = env;
     }
 
     public string? GetRefreshToken(HttpRequest request) => request.Cookies[RefreshTokenCookieName];
@@ -19,9 +21,9 @@ public sealed class CookieService
         response.Cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = !_env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Path = "/api/auth", // Make it accessible only to auth endpoints
+            Path = "/api/auth",
             Expires = DateTimeOffset.UtcNow.Add(_jwtOptions.RefreshExpiry)
         });
     }
@@ -31,9 +33,10 @@ public sealed class CookieService
         response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = !_env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
             Path = "/api/auth"
         });
     }
 }
+

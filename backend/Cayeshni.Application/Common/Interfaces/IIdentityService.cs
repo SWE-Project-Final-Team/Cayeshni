@@ -17,3 +17,4 @@ public interface IIdentityService
     Task ConfirmEmailAsync(ConfirmEmailDto dto);
     Task ResendConfirmationAsync(string email);
 }
+

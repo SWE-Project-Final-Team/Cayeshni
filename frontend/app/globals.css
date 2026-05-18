@@ -1,148 +1,302 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: #fbf9fa;
-  --color-on-background: #1b1c1d;
-  --color-surface: #fbf9fa;
-  --color-surface-dim: #dbd9db;
-  --color-surface-bright: #fbf9fa;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f5f3f4;
-  --color-surface-container: #efedef;
-  --color-surface-container-high: #e9e7e9;
-  --color-surface-container-highest: #e4e2e3;
-  --color-on-surface: #1b1c1d;
-  --color-on-surface-variant: #44474c;
-  --color-inverse-surface: #303032;
-  --color-inverse-on-surface: #f2f0f2;
-  --color-outline: #74777d;
-  --color-outline-variant: #c4c6cd;
-  --color-surface-tint: #4f6b62;
-  --color-primary: #041627;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #1a2b3c;
-  --color-on-primary-container: #8192a7;
-  --color-inverse-primary: #b8dfd4;
-  --color-secondary: #047857;
+@theme {
+  --font-sans: var(--font-inter);
+  --font-manrope: var(--font-manrope);
+
+  --color-surface-container: #eaeeeb;
+  --color-inverse-primary: #9dcfb0;
+  --color-outline-variant: #c0c9c3;
+  --color-inverse-surface: #2a2f2c;
+  --color-secondary-fixed: #d9f5e3;
+  --color-background: #f9fbf9;
+  --color-on-primary-fixed-variant: #2d4a3d;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #059669;
-  --color-on-secondary-container: #fefcff;
-  --color-tertiary: #211200;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #38260b;
-  --color-on-tertiary-container: #a88c69;
+  --color-on-primary-container: #5c7a6a;
+  --color-primary: #051a10;
   --color-error: #ba1a1a;
+  /** Positive balance (you are owed / settled toward you) — use `text-balance-owed`. */
+  --color-balance-owed: #166534;
+  /** Amount you owe or outstanding obligation — use `text-balance-owe`. */
+  --color-balance-owe: #ba1a1a;
+  --color-on-tertiary-fixed: #281802;
+  --color-tertiary-fixed: #feddb5;
+  --color-tertiary-container: #38260b;
+  --color-secondary-container: #1d8a54;
+  --color-inverse-on-surface: #f0f4f1;
+  --color-outline: #6f7970;
+  --color-surface-container-low: #f2f5f2;
+  --color-tertiary: #211200;
+  --color-on-secondary-container: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-tint: #3d5247;
+  --color-on-primary: #ffffff;
+  --color-on-surface-variant: #3f4a43;
+  --color-surface-container-highest: #dde3de;
+  --color-surface-bright: #f9fbf9;
+  --color-surface-variant: #dde3de;
+  --color-surface-dim: #d5dad6;
+  --color-on-tertiary-container: #a88c69;
+  --color-secondary-fixed-dim: #a8d4bc;
+  --color-primary-fixed-dim: #a8c9b8;
+  --color-on-tertiary-fixed-variant: #584326;
+  --color-on-error-container: #93000a;
+  --color-on-background: #171d19;
+  --color-on-tertiary: #ffffff;
+  --color-on-secondary-fixed-variant: #0a4d32;
+  --color-tertiary-fixed-dim: #e1c29b;
+  --color-surface: #f9fbf9;
+  --color-primary-fixed: #c8ead6;
+  --color-on-secondary-fixed: #001f12;
+  --color-secondary: #147a4a;
+  --color-surface-container-high: #e4eae5;
+  --color-on-primary-fixed: #0a1f14;
+  --color-on-surface: #171d19;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
-  --color-surface-variant: #e4e2e3;
+  --color-primary-container: #0c3020;
 
+  --spacing-container-margin: 24px;
+  --spacing-gutter: 16px;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
 
-  --radius-sm: 0.25rem;
-  --radius-DEFAULT: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --shadow-level-1: 0 2px 8px rgba(8, 61, 36, 0.06);
+  --shadow-level-2: 0 8px 24px rgba(8, 61, 36, 0.1);
+  --shadow-halo: 0 0 0 2px rgba(20, 122, 74, 0.22);
 
-  --shadow-level-1: 0 2px 8px rgba(15, 77, 62, 0.06);
-  --shadow-level-2: 0 8px 24px rgba(15, 77, 62, 0.09);
-  --shadow-halo: 0 0 0 2px rgba(4, 120, 87, 0.22);
+  --text-label-sm: 0.75rem;
+  --text-label-sm--line-height: 1rem;
+  --text-label-sm--letter-spacing: 0.04em;
+  --text-label-sm--font-weight: 600;
+
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5rem;
+  --text-body-md--font-weight: 400;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-body-lg--font-weight: 400;
+
+  --text-headline-md: 1.5rem;
+  --text-headline-md--line-height: 2rem;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-display-lg: 2.25rem;
+  --text-display-lg--line-height: 2.75rem;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+
+  --text-financial-xl: 2rem;
+  --text-financial-xl--line-height: 2.5rem;
+  --text-financial-xl--letter-spacing: -0.02em;
+  --text-financial-xl--font-weight: 700;
 }
 
 @layer base {
-  body {
-    background: var(--color-background);
-    color: var(--color-on-background);
-    font-family: var(--font-inter);
+  :root.theme-dark {
+    color-scheme: dark;
+
+    --color-surface-container: #1a211e;
+    --color-inverse-primary: #1f5a3d;
+    --color-outline-variant: #3b4541;
+    --color-inverse-surface: #e6ebe7;
+    --color-secondary-fixed: #d9f5e3;
+    --color-background: #0f1412;
+    --color-on-primary-fixed-variant: #2d4a3d;
+    --color-on-secondary: #0a1f14;
+    --color-on-primary-container: #d6efe1;
+    --color-primary: #b7dbc7;
+    --color-error: #ffb4ab;
+    --color-balance-owed: #5fd48c;
+    --color-balance-owe: #ff8f8a;
+    --color-on-tertiary-fixed: #281802;
+    --color-tertiary-fixed: #feddb5;
+    --color-tertiary-container: #3f2c12;
+    --color-secondary-container: #1a3a2b;
+    --color-inverse-on-surface: #121816;
+    --color-outline: #8b9690;
+    --color-surface-container-low: #121816;
+    --color-tertiary: #f0c796;
+    --color-on-secondary-container: #cfe9dc;
+    --color-surface-container-lowest: #0a0f0d;
+    --color-surface-tint: #b7dbc7;
+    --color-on-primary: #0b1a12;
+    --color-on-surface-variant: #b8c2bd;
+    --color-surface-container-highest: #2b3330;
+    --color-surface-bright: #1a211e;
+    --color-surface-variant: #3b4541;
+    --color-surface-dim: #0d1210;
+    --color-on-tertiary-container: #f0d9b9;
+    --color-secondary-fixed-dim: #a8d4bc;
+    --color-primary-fixed-dim: #a8c9b8;
+    --color-on-tertiary-fixed-variant: #584326;
+    --color-on-error-container: #ffdad6;
+    --color-on-background: #e6ebe7;
+    --color-on-tertiary: #2b1c06;
+    --color-on-secondary-fixed-variant: #0a4d32;
+    --color-tertiary-fixed-dim: #e1c29b;
+    --color-surface: #121816;
+    --color-primary-fixed: #c8ead6;
+    --color-on-secondary-fixed: #001f12;
+    --color-secondary: #79c89e;
+    --color-surface-container-high: #232b27;
+    --color-on-primary-fixed: #0a1f14;
+    --color-on-surface: #e6ebe7;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-primary-container: #2a3c33;
   }
 }
 
-@layer components {
-  .text-display-lg {
-    font-family: var(--font-manrope);
-    font-size: 36px;
-    line-height: 44px;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-  }
+@utility font-label-sm {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-label-sm);
+  line-height: var(--text-label-sm--line-height);
+  letter-spacing: var(--text-label-sm--letter-spacing);
+  font-weight: var(--text-label-sm--font-weight);
+}
 
-  .text-headline-md {
-    font-family: var(--font-manrope);
-    font-size: 24px;
-    line-height: 32px;
-    letter-spacing: -0.01em;
-    font-weight: 600;
-  }
+@utility font-body-md {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  font-weight: var(--text-body-md--font-weight);
+}
 
-  .text-body-lg {
-    font-family: var(--font-inter);
-    font-size: 18px;
-    line-height: 28px;
-    font-weight: 400;
-  }
+@utility font-body-lg {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+  font-weight: var(--text-body-lg--font-weight);
+}
 
-  .text-body-md {
-    font-family: var(--font-inter);
-    font-size: 16px;
-    line-height: 24px;
-    font-weight: 400;
-  }
+@utility font-headline-md {
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md--line-height);
+  letter-spacing: var(--text-headline-md--letter-spacing);
+  font-weight: var(--text-headline-md--font-weight);
+}
 
-  .text-label-sm {
-    font-family: var(--font-inter);
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 0.04em;
-    font-weight: 600;
-  }
+@utility font-display-lg {
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-display-lg);
+  line-height: var(--text-display-lg--line-height);
+  letter-spacing: var(--text-display-lg--letter-spacing);
+  font-weight: var(--text-display-lg--font-weight);
+}
 
-  .material-symbols-outlined {
-    font-family: "Material Symbols Outlined";
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-  }
+@utility font-financial-xl {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-financial-xl);
+  line-height: var(--text-financial-xl--line-height);
+  letter-spacing: var(--text-financial-xl--letter-spacing);
+  font-weight: var(--text-financial-xl--font-weight);
+}
 
-  .material-symbols-outlined.fill {
-    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
-  }
+body {
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
 
-  .input-field {
-    @apply w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-md py-sm text-base text-on-surface transition-all outline-none;
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-    line-height: 24px;
-  }
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
 
-  .input-field:focus {
-    border-color: var(--color-secondary);
-    box-shadow: var(--shadow-halo);
+.material-symbols-outlined.fill {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.chip-owed {
+  background-color: color-mix(
+    in srgb,
+    var(--color-balance-owed) 14%,
+    transparent
+  );
+  color: var(--color-balance-owed);
+}
+
+.chip-owe {
+  background-color: color-mix(
+    in srgb,
+    var(--color-balance-owe) 14%,
+    transparent
+  );
+  color: var(--color-balance-owe);
+}
+
+.chip-paid {
+  background-color: rgba(20, 122, 74, 0.12);
+  color: var(--color-secondary);
+}
+
+.chip-pending {
+  background-color: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+}
+
+@keyframes money-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  40% {
+    transform: translate(6px, -10px) scale(1.03);
+  }
+  70% {
+    transform: translate(-4px, 6px) scale(0.98);
   }
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+@keyframes money-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
   }
-  to {
+  50% {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1.06);
   }
 }
 
-.animate-fade-in {
-  animation: fade-in-up 0.4s ease-out forwards;
+.money-loading-pulse {
+  animation: money-loading-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes money-loading-stagger {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(2px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+.money-loading-stagger {
+  animation: money-loading-stagger 1.25s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .money-loading-pulse,
+  .money-loading-stagger {
+    animation: none;
+  }
 }

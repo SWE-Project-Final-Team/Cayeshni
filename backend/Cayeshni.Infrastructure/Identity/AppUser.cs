@@ -10,3 +10,4 @@ public class AppUser : IdentityUser<Guid>
     public Currency PreferredCurrency { get; set; } = Currency.EGP; // Default to EGP
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+

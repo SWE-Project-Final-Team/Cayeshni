@@ -198,6 +198,12 @@ public class UserServiceTests
 
             return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyList<User>> SearchByDisplayNameAsync(string query, Guid excludeUserId, int take)
+        {
+            // For testing purposes, return empty list
+            return Task.FromResult<IReadOnlyList<User>>(new List<User>());
+        }
     }
 
     private sealed class FakeFileStorageService : IFileStorageService
@@ -235,8 +241,10 @@ public class UserServiceTests
 
         public string GetBaseUrl() => _baseUrl;
 
-        public string GetUrl(string profilePicturePath)
+        public string GetUrl(string? profilePicturePath, string? defaultName = "avatar")
         {
+            if (string.IsNullOrWhiteSpace(profilePicturePath))
+                return $"{_baseUrl}/defaults/{defaultName}.webp";
             profilePicturePath = string.IsNullOrWhiteSpace(profilePicturePath)
                 ? Path.Combine("profiles", "avatar.png")
                 : profilePicturePath;
@@ -259,3 +267,5 @@ public class UserServiceTests
         }
     }
 }
+
+

@@ -6,3 +6,4 @@ public interface IJwtService
     string GenerateRefreshToken(Guid userId);
     Guid? ValidateRefreshToken(string refreshToken);
 }
+

@@ -54,6 +54,19 @@ public class AuthServiceTests
 
     [Theory]
     [InlineData("")]
+    [InlineData("not-an-email")]
+    [InlineData("a@b")]
+    public async Task Register_InvalidEmail_Throws(string email)
+    {
+        var fake = new FakeIdentity();
+        var svc = new AuthService(fake);
+
+        var dto = new RegisterDto(email, "Valid Name", "secret", Currency.USD);
+        await Assert.ThrowsAsync<ValidationException>(() => svc.RegisterAsync(dto));
+    }
+
+    [Theory]
+    [InlineData("")]
     [InlineData("  ")]
     [InlineData("ab")]
     public async Task Register_InvalidName_Throws(string name)
@@ -155,3 +168,5 @@ public class AuthServiceTests
         public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
+
+

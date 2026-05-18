@@ -56,10 +56,15 @@ public class LocalFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
-    public string GetUrl(string relativePath)
+    public string GetUrl(string? relativePath, string? defaultName = "avatar")
     {
-        return $"{_options.BaseUrl.TrimEnd('/')}/uploads/{relativePath.Replace("\\", "/").TrimStart('/')}";
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return $"{_options.BaseUrl.TrimEnd('/')}/defaults/{defaultName}.webp";
+
+        var normalized = relativePath.Replace("\\", "/").TrimStart('/');
+        return $"{_options.BaseUrl.TrimEnd('/')}/uploads/{normalized}";
     }
 
     public string GetBaseUrl() => _options.BaseUrl.TrimEnd('/');
 }
+

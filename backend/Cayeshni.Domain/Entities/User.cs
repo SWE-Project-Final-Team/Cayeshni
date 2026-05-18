@@ -11,3 +11,4 @@ public class User
     public Currency PreferredCurrency { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+

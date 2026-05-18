@@ -2,18 +2,18 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Infrastructure.Options;
+using Cayeshni.Infrastructure.Persistence.Options;
 
 namespace Cayeshni.Infrastructure.Services;
 
 public class BrevoEmailService : IEmailService
 {
-    private readonly HttpClient   _http;
+    private readonly HttpClient _http;
     private readonly BrevoOptions _options;
 
     public BrevoEmailService(HttpClient http, BrevoOptions options)
     {
-        _http    = http;
+        _http = http;
         _options = options;
     }
 
@@ -21,19 +21,15 @@ public class BrevoEmailService : IEmailService
     {
         var payload = new
         {
-            sender  = new { name = _options.FromName, email = _options.FromEmail },
-            to      = new[] { new { email = to } },
-            subject = subject,
+            sender = new { name = _options.FromName, email = _options.FromEmail },
+            to = new[] { new { email = to } },
+            subject,
             htmlContent = htmlBody
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email")
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                "application/json"
-            )
+            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
         };
 
         request.Headers.Add("api-key", _options.ApiKey);
@@ -48,3 +44,4 @@ public class BrevoEmailService : IEmailService
         }
     }
 }
+

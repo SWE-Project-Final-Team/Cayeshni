@@ -50,3 +50,5 @@ public class SettlementConfiguration : IEntityTypeConfiguration<Settlement>
         builder.HasIndex(s => new { s.PayerUserId, s.PayeeUserId });
     }
 }
+
+

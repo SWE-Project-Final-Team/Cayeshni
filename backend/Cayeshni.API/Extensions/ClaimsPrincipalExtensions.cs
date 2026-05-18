@@ -19,3 +19,4 @@ public static class ClaimsPrincipalExtensions
         return Guid.Parse(sub);
     }
 }
+

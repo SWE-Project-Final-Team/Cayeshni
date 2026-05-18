@@ -38,3 +38,5 @@ public class SettlementAllocationConfiguration : IEntityTypeConfiguration<Settle
         builder.HasIndex(sa => sa.DebtorUserId);
     }
 }
+
+

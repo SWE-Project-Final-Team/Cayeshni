@@ -14,3 +14,4 @@ public class SettlementAllocation
     public Transaction Transaction { get; set; } = null!;
     public TransactionMember TransactionMember { get; set; } = null!;
 }
+

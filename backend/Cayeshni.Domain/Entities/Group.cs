@@ -25,3 +25,4 @@ public class Group
     public ICollection<Settlement> Settlements { get; set; } = new List<Settlement>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
+

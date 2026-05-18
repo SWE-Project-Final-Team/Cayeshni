@@ -30,7 +30,7 @@ public class AuthController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("login")] 
+    [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
     {
         return Ok(CreateAuthResponse(await _authService.LoginAsync(loginDto)));
@@ -54,7 +54,6 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
-    // Password & Email operations
     [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
@@ -107,7 +106,6 @@ public class AuthController : ControllerBase
         );
     }
 
-    // Helper method to parse email_confirmed from access token
     private static bool ParseEmailConfirmed(string accessToken)
     {
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -115,3 +113,4 @@ public class AuthController : ControllerBase
         return claim?.Value == "true";
     }
 }
+

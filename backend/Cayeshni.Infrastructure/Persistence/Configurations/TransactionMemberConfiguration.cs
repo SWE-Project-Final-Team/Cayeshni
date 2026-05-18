@@ -29,3 +29,5 @@ public class TransactionMemberConfiguration : IEntityTypeConfiguration<Transacti
         builder.HasIndex(tm => tm.UserId);
     }
 }
+
+

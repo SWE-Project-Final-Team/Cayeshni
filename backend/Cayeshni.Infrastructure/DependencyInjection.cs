@@ -1,17 +1,21 @@
 using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Infrastructure.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Cayeshni.Infrastructure.Services;
 using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Application.Features.Transactions;
+using Cayeshni.Application.Features.Settlements;
 using Cayeshni.Application.Features.Groups;
+using Cayeshni.Application.Features.Friends;
+using Cayeshni.Application.Features.Users;
 using Cayeshni.Infrastructure.Persistence.Options;
 using Cayeshni.Infrastructure.Persistence.Repositories;
-using Cayeshni.Infrastructure.Options;
-using Cayeshni.Application.Features.Users;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace Cayeshni.Infrastructure;
 
@@ -28,7 +32,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString, x => 
             {
-                x.MigrationsAssembly("Cayeshni.Infrastructure");
+                x.MigrationsAssembly("Cayeshni.API");
                 x.EnableRetryOnFailure(5);
             }));
     
@@ -73,21 +77,41 @@ public static class DependencyInjection
         services.AddHttpClient<BrevoEmailService>();
         services.AddScoped<IEmailService, BrevoEmailService>();
 
-        // File storage service
-        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.Section));
+        // File storage service — BasePath must be absolute for Docker/Linux (PhysicalFileProvider, file IO)
+        services.AddOptions<FileStorageOptions>()
+            .Bind(configuration.GetSection(FileStorageOptions.Section))
+            .PostConfigure<IHostEnvironment>((opts, env) =>
+            {
+                if (string.IsNullOrWhiteSpace(opts.BasePath))
+                    opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, "uploads"));
+                else if (!Path.IsPathRooted(opts.BasePath))
+                    opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.BasePath));
+            });
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        
+        // Profile image processor
         services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
+        
+        // Email normalizer delegate for FriendService
+        services.AddScoped<Func<string?, string?>>(sp => email =>
+        {
+            if (string.IsNullOrEmpty(email))
+                return null;
+            return email.ToUpperInvariant();
+        });
 
 
         // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IFriendRepository, FriendRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ISettlementRepository, SettlementRepository>();
 
-        // Register unverified user cleanup hosted service (every 24 hours)
         services.AddHostedService<UnverifiedUserCleanupService>();
-
-        // Add other services like repositories, external API clients, etc.
 
         return services;
     }
 }
+

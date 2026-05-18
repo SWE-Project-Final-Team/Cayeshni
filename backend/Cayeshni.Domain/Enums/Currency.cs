@@ -14,3 +14,4 @@ public enum Currency
     CHF = 9,
     CNY = 10
 }
+

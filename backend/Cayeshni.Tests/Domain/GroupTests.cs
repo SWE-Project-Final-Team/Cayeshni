@@ -55,3 +55,5 @@ public class GroupTests
         Assert.True(group.InviteToken.Length > 0);
     }
 }
+
+

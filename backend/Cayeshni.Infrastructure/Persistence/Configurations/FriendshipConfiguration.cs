@@ -25,3 +25,5 @@ public class FriendshipConfiguration : IEntityTypeConfiguration<Friendship>
         builder.HasIndex(f => f.Status);
     }
 }
+
+

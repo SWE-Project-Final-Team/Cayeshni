@@ -2,7 +2,6 @@ using SixLabors.ImageSharp.Formats.Webp;
 using Cayeshni.Application.Common.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System.ComponentModel.DataAnnotations;
 
 namespace Cayeshni.Infrastructure.Services;
 
@@ -31,3 +30,4 @@ public class ProfileImageProcessor : IProfileImageProcessor
         return output;
     }
 }
+

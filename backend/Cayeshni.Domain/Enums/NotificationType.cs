@@ -18,3 +18,4 @@ public enum NotificationType
     // Settlement events
     PaymentReceived       = 7,
 }
+

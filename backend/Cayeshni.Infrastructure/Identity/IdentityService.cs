@@ -65,7 +65,6 @@ public class IdentityService : IIdentityService
             }
         }
 
-        // Return tokens (limited token will reflect user's EmailConfirmed state)
         return await IssueTokensAsync(appUser);
     }
 
@@ -81,13 +80,12 @@ public class IdentityService : IIdentityService
         if (_requireEmailConfirmation && !appUser.EmailConfirmed)
             throw new UnauthorizedException("Please confirm your email first.");
 
-        // Always issue token; token contains email_confirmed claim reflecting current state
         return await IssueTokensAsync(appUser);
     }
 
     public async Task<TokenPairDto> RefreshTokenAsync(string refreshToken)
     {
-        var userId = _jwtService.ValidateRefreshToken(refreshToken) 
+        var userId = _jwtService.ValidateRefreshToken(refreshToken)
             ?? throw new UnauthorizedException("Invalid refresh token.");
 
         var appUser = await _userManager.FindByIdAsync(userId.ToString())
@@ -166,8 +164,12 @@ public class IdentityService : IIdentityService
         if (!_requireEmailConfirmation)
             throw new ValidationException("Not enabled.");
 
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null) return; // Don't reveal if email exists
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        var user = await _userManager.FindByEmailAsync(email.Trim());
+        if (user is null)
+            return;
 
         if (await _userManager.IsEmailConfirmedAsync(user))
             throw new ValidationException("Email is already confirmed.");
@@ -175,18 +177,15 @@ public class IdentityService : IIdentityService
         await SendConfirmationEmailAsync(user);
     }
 
-    // Heper functions
-    private async Task<TokenPairDto> IssueTokensAsync(AppUser user)
-    {   
+    private Task<TokenPairDto> IssueTokensAsync(AppUser user)
+    {
         var accessToken = _jwtService.GenerateAccessToken(user.Id, user.EmailConfirmed);
         var refreshToken = _jwtService.GenerateRefreshToken(user.Id);
 
-        // FOR DEBUGGING REMOVE LATER
-        Console.WriteLine($"Access Token for user {user.Id} (email confirmed: {user.EmailConfirmed}): {accessToken}");
-        return new TokenPairDto(
+        return Task.FromResult(new TokenPairDto(
             AccessToken: accessToken,
             RefreshToken: refreshToken
-        );
+        ));
     }
 
     private async Task SendConfirmationEmailAsync(AppUser user)
@@ -251,3 +250,4 @@ public class IdentityService : IIdentityService
         );
     }
 }
+

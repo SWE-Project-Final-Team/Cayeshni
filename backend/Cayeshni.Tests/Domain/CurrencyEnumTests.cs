@@ -25,3 +25,5 @@ public class CurrencyEnumTests
         Assert.True(Enum.IsDefined(typeof(Currency), currency));
     }
 }
+
+

@@ -24,3 +24,5 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
         builder.HasIndex(gm => gm.JoinedAt);
     }
 }
+
+

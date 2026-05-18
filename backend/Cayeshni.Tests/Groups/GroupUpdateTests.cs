@@ -1,7 +1,7 @@
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Persistence.Repositories;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -22,8 +22,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Original Name"));
         var updatedGroupDto = new GroupResponseDto(groupResult.Id, "Updated Name", groupResult.InviteToken, userId, groupResult.DefaultCurrency);
@@ -42,8 +41,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var nonCreatorId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Original Name"));
@@ -61,8 +59,7 @@ public class GroupUpdateTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupDto = new GroupResponseDto(Guid.NewGuid(), "Fake", "fake-token", userId, Cayeshni.Domain.Enums.Currency.USD);
 
@@ -72,3 +69,5 @@ public class GroupUpdateTests
         );
     }
 }
+
+

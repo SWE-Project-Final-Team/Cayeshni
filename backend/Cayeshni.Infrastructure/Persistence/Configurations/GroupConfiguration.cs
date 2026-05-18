@@ -56,3 +56,5 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.HasIndex(g => g.CreatedById);
     }
 }
+
+

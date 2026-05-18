@@ -1,6 +1,6 @@
 using Cayeshni.Application.Features.Groups;
 using Cayeshni.Infrastructure.Persistence;
-using Cayeshni.Infrastructure.Persistence.Repositories;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Groups;
@@ -21,8 +21,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var createGroupDto = new CreateGroupDto("Test Group");
 
@@ -48,8 +47,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
 
         // Act
@@ -65,8 +63,7 @@ public class GroupCreationTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var repo = new GroupRepository(context);
-        var service = new GroupService(repo);
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
 
         // Act
@@ -78,3 +75,5 @@ public class GroupCreationTests
         Assert.NotEqual(group1.InviteToken, group2.InviteToken);
     }
 }
+
+

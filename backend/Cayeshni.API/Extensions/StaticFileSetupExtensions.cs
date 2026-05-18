@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileProviders;
 
+namespace Cayeshni.API.Extensions;
 public static class StaticFilesSetupExtensions
 {
     public static void UseUploads(this WebApplication app)

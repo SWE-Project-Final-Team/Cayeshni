@@ -6,3 +6,4 @@ public enum FileFolder
     Groups = 1,
     Receipts = 2,
 }
+

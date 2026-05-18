@@ -1,10 +1,11 @@
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Users;
 using Cayeshni.Domain.Enums;
 
 namespace Cayeshni.Application.Features.Users;
 
-public class UserService : IUserService
+public class UserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IFileStorageService _fileStorageService;
@@ -24,7 +25,7 @@ public class UserService : IUserService
 
         var pictureUrl = string.IsNullOrEmpty(user.ProfilePicturePath)
             ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
-            : _fileStorageService.GetUrl(user.ProfilePicturePath);
+            : _fileStorageService.GetUrl(user.ProfilePicturePath, "avatar");
 
         return new UserProfileDto(
             Id: user.Id,
@@ -34,6 +35,34 @@ public class UserService : IUserService
             PreferredCurrency: user.PreferredCurrency,
             CreatedAt: user.CreatedAt
         );
+    }
+
+    public async Task<IReadOnlyList<UserProfileSearchDto>> SearchProfilesByDisplayNameAsync(
+        Guid currentUserId,
+        string query)
+    {
+        var q = query.Trim();
+        if (q.Length < 2)
+            return Array.Empty<UserProfileSearchDto>();
+
+        if (q.Length > 80)
+            q = q[..80];
+
+        var users = await _userRepository.SearchByDisplayNameAsync(q, currentUserId, 20);
+        var list = new List<UserProfileSearchDto>(users.Count);
+        foreach (var u in users)
+        {
+            var pictureUrl = string.IsNullOrEmpty(u.ProfilePicturePath)
+            ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
+            : _fileStorageService.GetUrl(u.ProfilePicturePath, "avatar");
+            list.Add(new UserProfileSearchDto(
+                u.Id,
+                u.Name,
+                u.Email,
+                pictureUrl));
+        }
+
+        return list;
     }
 
     public async Task UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
@@ -61,8 +90,8 @@ public class UserService : IUserService
 
         await _userRepository.UpdatePictureAsync(userId, newPath);
 
-        var pictureUrl = _fileStorageService.GetUrl(newPath);
-        return new UploadPictureResponseDto ( PictureUrl: pictureUrl );
+        var pictureUrl = _fileStorageService.GetUrl(newPath, "avatar");
+        return new UploadPictureResponseDto(PictureUrl: pictureUrl);
     }
 
     public async Task DeletePictureAsync(Guid userId)

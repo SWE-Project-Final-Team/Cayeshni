@@ -24,3 +24,4 @@ public class Settlement
     public Group Group { get; set; } = null!;
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
 }
+

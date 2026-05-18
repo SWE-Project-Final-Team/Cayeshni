@@ -11,3 +11,4 @@ public class TransactionMember
     public Transaction Transaction { get; set; } = null!;
     public ICollection<SettlementAllocation> Allocations { get; set; } = new List<SettlementAllocation>();
 }
+
