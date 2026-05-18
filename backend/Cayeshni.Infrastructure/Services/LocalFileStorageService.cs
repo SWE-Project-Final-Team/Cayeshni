@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Domain.Enums;
 using Cayeshni.Infrastructure.Persistence.Options;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Hosting;
-
-namespace Cayeshni.Infrastructure.Services;
+using Microsoft.Extensions.Options;
 
 public class LocalFileStorageService : IFileStorageService
 {

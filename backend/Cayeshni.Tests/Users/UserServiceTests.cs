@@ -243,13 +243,12 @@ public class UserServiceTests
 
         public string? GetUrl(string? profilePicturePath)
         {
-            if (string.IsNullOrWhiteSpace(profilePicturePath))
-            {
-                return null;
-            }
+            profilePicturePath = string.IsNullOrWhiteSpace(profilePicturePath)
+                ? Path.Combine("profiles", "avatar.png")
+                : profilePicturePath;
 
             var normalized = Normalize(profilePicturePath);
-            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null;
+            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null!;
         }
 
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');

@@ -1,7 +1,6 @@
 using Cayeshni.Application.Features.Users;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
-using Cayeshni.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 

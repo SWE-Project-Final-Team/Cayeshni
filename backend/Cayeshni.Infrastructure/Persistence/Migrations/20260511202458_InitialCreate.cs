@@ -383,6 +383,11 @@ namespace Cayeshni.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_EmailConfirmed_CreatedAt",
+                table: "AspNetUsers",
+                columns: new[] { "EmailConfirmed", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",

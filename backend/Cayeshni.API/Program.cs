@@ -17,10 +17,24 @@ builder.Services.AddAuthenticationServices(builder.Configuration);
 // Register API surface services (JSON, CORS, rate limiting, OpenAPI)
 builder.Services.AddApiServices(builder.Configuration); //(after auth to ensure policies are registered)
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Initialize database with migrations and seeding (seeding only in development if db is empty)
 await app.InitializeDatabaseAsync();
+
+app.UseUploads(); // Serve static files from uploads directory
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -46,6 +60,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapControllers();
+
 app.MapGet("/", () => "Cayeshni API");
 
 app.Run();

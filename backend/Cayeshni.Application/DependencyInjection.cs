@@ -1,7 +1,6 @@
-using Cayeshni.Application.Common.Interfaces;
 using Cayeshni.Application.Features.Auth;
-using Cayeshni.Application.Features.Users;
 using Cayeshni.Application.Features.Groups;
+using Cayeshni.Application.Features.Users;
 using Cayeshni.Application.Features.Friends;
 using Cayeshni.Application.Features.Settlements;
 using Cayeshni.Application.Features.Transactions;

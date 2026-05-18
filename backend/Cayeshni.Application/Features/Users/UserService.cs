@@ -90,8 +90,8 @@ public class UserService
 
         await _userRepository.UpdatePictureAsync(userId, newPath);
 
-        var pictureUrl = _fileStorageService.GetUrl(newPath) ?? throw new InvalidOperationException("Failed to generate picture URL");
-        return new UploadPictureResponseDto ( PictureUrl: pictureUrl );
+        var pictureUrl = _fileStorageService.GetUrl(newPath);
+        return new UploadPictureResponseDto ( PictureUrl: pictureUrl! );
     }
 
     public async Task DeletePictureAsync(Guid userId)

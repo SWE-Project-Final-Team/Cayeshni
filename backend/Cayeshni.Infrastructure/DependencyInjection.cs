@@ -29,7 +29,6 @@ public static class DependencyInjection
 
         // Register AppDbContext with Npgsql provider
         var connectionString = dbOptions.ToConnectionString();
-        Console.WriteLine($"Using connection string: {connectionString}"); // for debugging REMOVE
         services.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString, x => 
             {
@@ -101,7 +100,8 @@ public static class DependencyInjection
             return email.ToUpperInvariant();
         });
 
-        // Regiser Repositories
+
+        // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFriendRepository, FriendRepository>();
         services.AddScoped<IGroupRepository, GroupRepository>();
