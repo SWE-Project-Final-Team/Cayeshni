@@ -399,17 +399,3 @@ sequenceDiagram
     
     Frontend-->>User: ✓ Password changed!<br/>May need to login again
 ```
-
-### Process Steps
-1. User navigates to password change form
-2. User enters current and new password
-3. Frontend sends request with Authorization header
-4. Controller validates JWT and extracts userId
-5. Service validates user exists
-6. Current password verified via hash comparison
-7. New password validated against strength requirements
-8. New password hashed using secure algorithm
-9. User record updated with new password
-10. All existing refresh tokens invalidated (force logout everywhere)
-11. Success response sent
-12. User may need to re-authenticate to continue
