@@ -74,8 +74,8 @@ public class GroupDetailTests
         var joinerRow = detail.Members.Single(m => m.UserId == joinerId);
         Assert.Equal("Joiner Name", joinerRow.DisplayName);
         Assert.False(joinerRow.IsCreator);
-        Assert.Null(creatorRow.ProfilePictureUrl);
-        Assert.Null(joinerRow.ProfilePictureUrl);
+        Assert.Equal("https://files.test/defaults/avatar.webp", creatorRow.ProfilePictureUrl);
+        Assert.Equal("https://files.test/defaults/avatar.webp", joinerRow.ProfilePictureUrl);
     }
 
     [Fact]

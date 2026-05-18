@@ -134,7 +134,7 @@ public class FriendService
                     u.Name,
                     u.Email,
                     f.CreatedAt,
-                    _fileStorage.GetUrl(u.ProfilePicturePath));
+                    _fileStorage.GetUrl(u.ProfilePicturePath, "avatar"));
             })
             .ToList();
     }
@@ -152,7 +152,7 @@ public class FriendService
                 id,
                 u.Name,
                 u.Email,
-                _fileStorage.GetUrl(u.ProfilePicturePath));
+                _fileStorage.GetUrl(u.ProfilePicturePath, "avatar"));
         }).ToList();
     }
 }

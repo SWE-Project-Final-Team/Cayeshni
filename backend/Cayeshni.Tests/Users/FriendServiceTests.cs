@@ -627,7 +627,7 @@ public class FriendServiceTests
 
         // Assert
         Assert.Single(pending);
-        Assert.Null(pending[0].ProfilePictureUrl);
+        Assert.Equal("https://cdn.example.com/defaults/avatar.webp", pending[0].ProfilePictureUrl);
     }
 
     #endregion
@@ -822,7 +822,7 @@ public class FriendServiceTests
 
         // Assert
         Assert.Single(friends);
-        Assert.Null(friends[0].ProfilePictureUrl);
+        Assert.Equal("https://cdn.example.com/defaults/avatar.webp", friends[0].ProfilePictureUrl);
     }
 
     #endregion
@@ -911,15 +911,17 @@ public class FriendServiceTests
 
         public string GetBaseUrl() => _baseUrl;
 
-        public string? GetUrl(string? profilePicturePath)
+        public string GetUrl(string? profilePicturePath, string? defaultName = "avatar")
         {
             if (string.IsNullOrWhiteSpace(profilePicturePath))
             {
-                return null;
+                // Remove "/uploads" suffix if present for default URLs
+                var baseUrl = _baseUrl.EndsWith("/uploads") ? _baseUrl[..^8] : _baseUrl;
+                return $"{baseUrl}/defaults/{defaultName}.webp";
             }
 
             var normalized = Normalize(profilePicturePath);
-            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null;
+            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : $"{_baseUrl}/defaults/{defaultName}.webp";
         }
 
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');

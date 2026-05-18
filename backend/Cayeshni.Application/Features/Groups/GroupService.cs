@@ -1,6 +1,5 @@
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
-using Cayeshni.Application.Features.Groups;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
 
@@ -89,7 +88,7 @@ public class GroupService
         var nameByUserId = userRows.ToDictionary(x => x.Id, x => x.Name);
         var pictureUrlByUserId = userRows.ToDictionary(
             x => x.Id,
-            x => _fileStorage.GetUrl(x.ProfilePicturePath));
+            x => _fileStorage.GetUrl(x.ProfilePicturePath, "avatar"));
 
         var members = group.Members
             .OrderBy(m => m.JoinedAt)

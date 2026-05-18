@@ -25,7 +25,7 @@ public class UserService
 
         var pictureUrl = string.IsNullOrEmpty(user.ProfilePicturePath)
             ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
-            : _fileStorageService.GetUrl(user.ProfilePicturePath);
+            : _fileStorageService.GetUrl(user.ProfilePicturePath, "avatar");
 
         return new UserProfileDto(
             Id: user.Id,
@@ -54,7 +54,7 @@ public class UserService
         {
             var pictureUrl = string.IsNullOrEmpty(u.ProfilePicturePath)
             ? $"{_fileStorageService.GetBaseUrl()}/defaults/avatar.webp" // default picture
-            : _fileStorageService.GetUrl(u.ProfilePicturePath);
+            : _fileStorageService.GetUrl(u.ProfilePicturePath, "avatar");
             list.Add(new UserProfileSearchDto(
                 u.Id,
                 u.Name,
@@ -90,8 +90,8 @@ public class UserService
 
         await _userRepository.UpdatePictureAsync(userId, newPath);
 
-        var pictureUrl = _fileStorageService.GetUrl(newPath);
-        return new UploadPictureResponseDto ( PictureUrl: pictureUrl! );
+        var pictureUrl = _fileStorageService.GetUrl(newPath, "avatar");
+        return new UploadPictureResponseDto(PictureUrl: pictureUrl);
     }
 
     public async Task DeletePictureAsync(Guid userId)

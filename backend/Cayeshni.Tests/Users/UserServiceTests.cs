@@ -241,8 +241,10 @@ public class UserServiceTests
 
         public string GetBaseUrl() => _baseUrl;
 
-        public string? GetUrl(string? profilePicturePath)
+        public string GetUrl(string? profilePicturePath, string? defaultName = "avatar")
         {
+            if (string.IsNullOrWhiteSpace(profilePicturePath))
+                return $"{_baseUrl}/defaults/{defaultName}.webp";
             profilePicturePath = string.IsNullOrWhiteSpace(profilePicturePath)
                 ? Path.Combine("profiles", "avatar.png")
                 : profilePicturePath;

@@ -10,10 +10,10 @@ public sealed class FakeFileStorageService : IFileStorageService
 
     public string GetBaseUrl() => "https://files.test";
 
-    public string? GetUrl(string? profilePicturePath) =>
-        string.IsNullOrWhiteSpace(profilePicturePath)
-            ? null
-            : $"https://files.test/{profilePicturePath.Replace("\\", "/")}";
+    public string GetUrl(string? relativePath, string? defaultName = "avatar") =>
+        string.IsNullOrWhiteSpace(relativePath)
+            ? $"https://files.test/defaults/{defaultName}.webp"
+            : $"https://files.test/{relativePath.Replace("\\", "/")}";
 
     public Task<string> SaveAsync(
         Stream fileStream,

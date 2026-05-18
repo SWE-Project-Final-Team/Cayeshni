@@ -1,11 +1,6 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Cayeshni.Domain.Enums;
 using Cayeshni.Infrastructure.Persistence.Options;
-using Cayeshni.Infrastructure.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
@@ -31,6 +26,26 @@ public class LocalFileStorageServiceTests : IDisposable
         }));
     }
 
+    private sealed class FakeWebHostEnvironment : IWebHostEnvironment
+    {
+        public FakeWebHostEnvironment(string contentRootPath)
+        {
+            ContentRootPath = contentRootPath;
+            ContentRootFileProvider = new NullFileProvider();
+            EnvironmentName = "Development";
+            ApplicationName = "Cayeshni.Tests";
+            WebRootPath = Path.Combine(contentRootPath, "wwwroot");
+            WebRootFileProvider = new NullFileProvider();
+        }
+
+        public string EnvironmentName { get; set; }
+        public string ApplicationName { get; set; }
+        public string WebRootPath { get; set; }
+        public IFileProvider WebRootFileProvider { get; set; }
+        public string ContentRootPath { get; set; }
+        public IFileProvider ContentRootFileProvider { get; set; }
+    }
+
     [Fact]
     public async Task SaveAsync_WritesFile_AndReturnsRelativeFolderPath()
     {
@@ -49,10 +64,10 @@ public class LocalFileStorageServiceTests : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         File.WriteAllText(fullPath, "test");
 
-        var url = _service.GetUrl(relativePath);
+        var url = _service.GetUrl(relativePath, "avatar");
 
         Assert.Equal("https://cdn.example.com/uploads/profiles/test-avatar.png", url);
-        Assert.Equal("https://cdn.example.com/uploads/profiles/missing.png", _service.GetUrl("profiles/missing.png"));
+        Assert.Equal("https://cdn.example.com/uploads/profiles/missing.png", _service.GetUrl("profiles/missing.png", "avatar"));
     }
 
     [Fact]
@@ -87,26 +102,6 @@ public class LocalFileStorageServiceTests : IDisposable
         {
             // best effort cleanup for temp test files
         }
-    }
-
-    private sealed class FakeWebHostEnvironment : IWebHostEnvironment
-    {
-        public FakeWebHostEnvironment(string contentRootPath)
-        {
-            ContentRootPath = contentRootPath;
-            ContentRootFileProvider = new Microsoft.Extensions.FileProviders.NullFileProvider();
-            EnvironmentName = "Development";
-            ApplicationName = "Cayeshni.Tests";
-            WebRootPath = Path.Combine(contentRootPath, "wwwroot");
-            WebRootFileProvider = new Microsoft.Extensions.FileProviders.NullFileProvider();
-        }
-
-        public string EnvironmentName { get; set; }
-        public string ApplicationName { get; set; }
-        public string WebRootPath { get; set; }
-        public IFileProvider WebRootFileProvider { get; set; }
-        public string ContentRootPath { get; set; }
-        public IFileProvider ContentRootFileProvider { get; set; }
     }
 }
 
