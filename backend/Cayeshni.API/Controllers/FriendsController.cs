@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Cayeshni.API.Extensions;
 using Cayeshni.Application.Features.Friends;
 
 namespace Cayeshni.API.Controllers;
@@ -17,47 +17,38 @@ public class FriendsController : ControllerBase
         _friendService = friendService;
     }
 
-    private Guid GetUserId()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub")
-                     ?? throw new UnauthorizedAccessException();
-
-        return Guid.Parse(userId);
-    }
-
     [HttpPost("request")]
     public async Task<IActionResult> SendRequest(SendFriendRequestDto dto)
     {
-        await _friendService.SendRequestAsync(GetUserId(), dto);
+        await _friendService.SendRequestAsync(User.GetUserId(), dto);
         return Ok();
     }
 
     [HttpPost("accept/{requesterId:guid}")]
     public async Task<IActionResult> Accept(Guid requesterId)
     {
-        await _friendService.AcceptRequestAsync(GetUserId(), requesterId);
+        await _friendService.AcceptRequestAsync(User.GetUserId(), requesterId);
         return Ok();
     }
 
     [HttpDelete("{friendId:guid}")]
     public async Task<IActionResult> Remove(Guid friendId)
     {
-        await _friendService.RemoveFriendAsync(GetUserId(), friendId);
+        await _friendService.RemoveFriendAsync(User.GetUserId(), friendId);
         return NoContent();
     }
 
     [HttpGet]
     public async Task<IActionResult> GetFriends()
     {
-        var result = await _friendService.GetFriendsAsync(GetUserId());
+        var result = await _friendService.GetFriendsAsync(User.GetUserId());
         return Ok(result);
     }
 
     [HttpGet("pending")]
     public async Task<IActionResult> Pending()
     {
-        var result = await _friendService.GetPendingRequestsAsync(GetUserId());
+        var result = await _friendService.GetPendingRequestsAsync(User.GetUserId());
         return Ok(result);
     }
 }

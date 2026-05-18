@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Cayeshni.API.Extensions;
 using Cayeshni.Application.Features.Settlements;
 
 namespace Cayeshni.API.Controllers;
@@ -20,52 +20,28 @@ public class SettlementController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<SettlementResponseDto>> CreateSettlement(CreateSettlementDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        var result = await _settlementService.CreateSettlementAsync(Guid.Parse(userId), dto);
+        var result = await _settlementService.CreateSettlementAsync(User.GetUserId(), dto);
         return Ok(result);
     }
 
     [HttpGet("{groupId}")]
     public async Task<ActionResult<List<SettlementResponseDto>>> GetGroupSettlements(Guid groupId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        var result = await _settlementService.GetGroupSettlementsAsync(Guid.Parse(userId), groupId);
+        var result = await _settlementService.GetGroupSettlementsAsync(User.GetUserId(), groupId);
         return Ok(result);
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteSettlement(SettlementResponseDto settlement)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        await _settlementService.DeleteSettlementAsync(Guid.Parse(userId), settlement);
+        await _settlementService.DeleteSettlementAsync(User.GetUserId(), settlement);
         return Ok();
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateSettlement(SettlementResponseDto settlement)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        await _settlementService.UpdateSettlementAsync(Guid.Parse(userId), settlement);
+        await _settlementService.UpdateSettlementAsync(User.GetUserId(), settlement);
         return Ok();
     }
 }

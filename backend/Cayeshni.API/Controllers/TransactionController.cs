@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Cayeshni.API.Extensions;
 using Cayeshni.Application.Features.Transactions;
 
 namespace Cayeshni.API.Controllers;
@@ -20,25 +20,13 @@ public class TransactionController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TransactionResponseDto>> CreateTransaction(CreateTransactionDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        var result = await _transactionService.CreateTransactionAsync(Guid.Parse(userId), dto);
+        var result = await _transactionService.CreateTransactionAsync(User.GetUserId(), dto);
         return Ok(result);
     }
 
     [HttpGet("group/{groupId}")]
     public async Task<ActionResult<List<TransactionResponseDto>>> GetGroupTransactions(Guid groupId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
         var result = await _transactionService.GetGroupTransactionsAsync(groupId);
         return Ok(result);
     }
@@ -46,12 +34,6 @@ public class TransactionController : ControllerBase
     [HttpGet("{transactionId}")]
     public async Task<ActionResult<TransactionDetailDto>> GetTransactionDetail(Guid transactionId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
         var result = await _transactionService.GetTransactionWithBalancesAsync(transactionId);
         return Ok(result);
     }
@@ -59,38 +41,20 @@ public class TransactionController : ControllerBase
     [HttpDelete("{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid transactionId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        await _transactionService.DeleteTransactionAsync(Guid.Parse(userId), transactionId);
+        await _transactionService.DeleteTransactionAsync(User.GetUserId(), transactionId);
         return Ok();
     }
 
     [HttpPut]
     public async Task<ActionResult<TransactionResponseDto>> UpdateTransaction(UpdateTransactionDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
-        var result = await _transactionService.UpdateTransactionAsync(Guid.Parse(userId), dto);
+        var result = await _transactionService.UpdateTransactionAsync(User.GetUserId(), dto);
         return Ok(result);
     }
 
     [HttpGet("group/{groupId}/debts")]
     public async Task<ActionResult<List<TransactionMemberBalanceDto>>> GetGroupDebts(Guid groupId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (userId is null)
-            return Unauthorized();
-
         var result = await _transactionService.GetGroupDebtsAsync(groupId);
         return Ok(result);
     }
