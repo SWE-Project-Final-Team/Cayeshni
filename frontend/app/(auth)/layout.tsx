@@ -8,8 +8,8 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-  const { t, dir } = useI18n();
-  const layoutPad = dir === "rtl" ? "" : "pt-16 md:pt-20";
+  const { t } = useI18n();
+  const layoutPad = "pt-16 pb-16 md:pt-20 md:pb-20";
   return (
     <div
       className={`min-h-screen bg-background text-on-background flex items-center justify-center p-md md:p-xl relative ${layoutPad}`}

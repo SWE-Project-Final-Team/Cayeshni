@@ -543,7 +543,7 @@ export default function SettlementsPage() {
                         inputMode="decimal"
                         value={amountStr}
                         onChange={(e) => setAmountStr(e.target.value)}
-                        placeholder="0.00"
+                        placeholder={t("0.00")}
                         className="flex-1 min-w-[8rem] bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface tabular-nums"
                       />
                       <button

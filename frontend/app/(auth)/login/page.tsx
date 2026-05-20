@@ -117,7 +117,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="w-full max-w-[1000px] bg-surface-container-lowest rounded-[24px] shadow-level-2 border border-outline-variant/40 flex flex-col md:flex-row overflow-hidden relative">
+    <main className="w-full max-w-[1000px] mx-auto bg-surface-container-lowest rounded-[24px] shadow-level-2 border border-outline-variant/40 flex flex-col md:flex-row overflow-hidden relative">
       <div className="hidden md:flex flex-col justify-start w-5/12 p-xl relative overflow-hidden bg-gradient-to-br from-primary-container/70 via-surface-container-low to-secondary-container/55">
         <div className="absolute inset-0 bg-gradient-to-br from-surface/20 via-transparent to-surface/10" />
         <div className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-secondary-fixed/20 blur-3xl" />
