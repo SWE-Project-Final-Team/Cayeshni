@@ -359,7 +359,7 @@ export default function LoginPage() {
                   value={String(regCurrency)}
                   onChange={(v) => setRegCurrency(Number(v))}
                   options={currencyOptions}
-                  placeholder={t("Select currency")}
+                  placeholder="Select currency"
                   leadingIcon="payments"
                   className="w-full"
                 />
@@ -371,7 +371,7 @@ export default function LoginPage() {
               disabled={pending}
               className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-md rounded-lg shadow-sm hover:shadow-md hover:bg-secondary/90 transition-all flex justify-center items-center gap-sm disabled:opacity-60"
             >
-              {t("Create account")}
+              {t("Create Account")}
               <span className="material-symbols-outlined text-[18px]">
                 group_add
               </span>

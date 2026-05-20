@@ -311,8 +311,8 @@ function ExpensesPageInner() {
             value={groupId}
             onChange={setGroupId}
             options={groupOptions}
-            placeholder={t("Choose a group")}
-            emptyMessage={t("No groups yet — create one under Groups")}
+            placeholder="Choose a group"
+            emptyMessage="No groups yet — create one under Groups"
             leadingIcon="groups"
             className="w-full min-w-0 sm:min-w-[240px]"
             align="end"
@@ -448,7 +448,7 @@ function ExpensesPageInner() {
                     value={String(category)}
                     onChange={(v) => setCategory(Number(v))}
                     options={categoryOptions}
-                    placeholder={t("Pick a category")}
+                    placeholder="Pick a category"
                     leadingIcon="category"
                     className="w-full"
                   />

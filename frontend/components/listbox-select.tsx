@@ -79,11 +79,13 @@ export function ListboxSelect({
         aria-controls={listId}
         onClick={() => !disabled && options.length > 0 && setOpen((o) => !o)}
         className={[
-          "w-full flex items-center gap-sm rounded-lg border px-md py-sm text-left transition-colors",
+          "w-full flex items-center gap-sm rounded-lg border px-md py-sm text-start transition-colors",
           "bg-surface border-outline-variant font-body-md text-body-md text-on-surface",
           "focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20",
           "disabled:opacity-50 disabled:cursor-not-allowed",
-          open ? "border-secondary ring-2 ring-secondary/20" : "hover:border-outline",
+          open
+            ? "border-secondary ring-2 ring-secondary/20"
+            : "hover:border-outline",
         ].join(" ")}
       >
         {leadingIcon ? (
@@ -93,7 +95,10 @@ export function ListboxSelect({
         ) : null}
         <span className="min-w-0 flex-1 flex flex-col gap-0">
           <span className="truncate font-body-md text-on-surface">
-            {selected?.label ?? (options.length === 0 ? resolvedEmptyMessage : resolvedPlaceholder)}
+            {selected?.label ??
+              (options.length === 0
+                ? resolvedEmptyMessage
+                : resolvedPlaceholder)}
           </span>
           {selected?.description ? (
             <span className="truncate text-xs text-on-surface-variant font-normal leading-tight">
@@ -134,7 +139,9 @@ export function ListboxSelect({
                   className={[
                     "w-full text-left px-md py-sm flex flex-col gap-0 transition-colors",
                     "font-body-md text-on-surface hover:bg-secondary-fixed/40",
-                    isSelected ? "bg-secondary-fixed text-on-secondary-fixed font-semibold" : "",
+                    isSelected
+                      ? "bg-secondary-fixed text-on-secondary-fixed font-semibold"
+                      : "",
                   ].join(" ")}
                   onClick={() => {
                     onChange(opt.value);
@@ -145,7 +152,9 @@ export function ListboxSelect({
                   {opt.description ? (
                     <span
                       className={`truncate text-xs leading-tight ${
-                        isSelected ? "text-on-secondary-fixed/80" : "text-on-surface-variant"
+                        isSelected
+                          ? "text-on-secondary-fixed/80"
+                          : "text-on-surface-variant"
                       }`}
                     >
                       {opt.description}

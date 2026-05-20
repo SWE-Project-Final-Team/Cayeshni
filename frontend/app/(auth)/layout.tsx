@@ -8,9 +8,12 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const layoutPad = dir === "rtl" ? "" : "pt-16 md:pt-20";
   return (
-    <div className="min-h-screen bg-background text-on-background flex items-center justify-center p-md md:p-xl relative">
+    <div
+      className={`min-h-screen bg-background text-on-background flex items-center justify-center p-md md:p-xl relative ${layoutPad}`}
+    >
       <div className="absolute top-md right-md md:top-xl md:right-xl z-20">
         <ThemeToggle compact />
       </div>

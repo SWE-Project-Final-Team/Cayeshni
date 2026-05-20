@@ -433,8 +433,8 @@ export default function SettlementsPage() {
               value={groupId}
               onChange={setGroupId}
               options={groupListboxOptions}
-              placeholder={t("Choose a group")}
-              emptyMessage={t("No groups yet — create one under Groups")}
+              placeholder="Choose a group"
+              emptyMessage="No groups yet — create one under Groups"
               leadingIcon="groups"
               className="w-full"
               align="end"
@@ -521,14 +521,12 @@ export default function SettlementsPage() {
                       options={payeeListboxOptions}
                       placeholder={
                         payeeMaxByUserId === null
-                          ? t("Loading payees…")
+                          ? "Loading payees…"
                           : payeeListboxOptions.length === 0
-                            ? t("No one you owe in this group")
-                            : t("Select member…")
+                            ? "No one you owe in this group"
+                            : "Select member…"
                       }
-                      emptyMessage={t(
-                        "No one you currently owe through shared expenses",
-                      )}
+                      emptyMessage="No one you currently owe through shared expenses"
                       leadingIcon="person"
                       className="w-full"
                     />

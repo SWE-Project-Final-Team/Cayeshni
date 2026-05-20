@@ -79,7 +79,7 @@ export default function NotFound() {
             href="/login"
             className="inline-flex justify-center items-center gap-xs rounded-lg border border-transparent text-secondary font-label-sm py-sm px-lg hover:underline"
           >
-            {t("Sign in")}
+            {t("Sign In")}
           </Link>
         </div>
       </div>

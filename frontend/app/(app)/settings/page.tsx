@@ -129,7 +129,7 @@ export default function SettingsPage() {
             value={String(currency)}
             onChange={(v) => setCurrency(Number(v))}
             options={currencyOptions}
-            placeholder={t("Select currency")}
+            placeholder="Select currency"
             leadingIcon="payments"
             className="w-full"
           />

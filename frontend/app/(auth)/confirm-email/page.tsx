@@ -99,7 +99,7 @@ export default function ConfirmEmailPage() {
       )}
       <p className="mt-lg text-center font-label-sm text-on-surface-variant">
         <Link href="/login" className="text-secondary hover:underline">
-          {t("Sign in")}
+          {t("Sign In")}
         </Link>
       </p>
     </div>

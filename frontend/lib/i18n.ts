@@ -47,8 +47,6 @@ const MESSAGES: Record<Locale, Messages> = {
     "Dismiss menu": "Dismiss menu",
     "Add expense": "Add expense",
     "Sign out": "Sign out",
-    "Sign in": "Sign in",
-    "Create account": "Create account",
     "Counting the coins…": "Counting the coins…",
     "Loading…": "Loading…",
     "Saving…": "Saving…",
@@ -157,6 +155,9 @@ const MESSAGES: Record<Locale, Messages> = {
     "Split flow": "Split flow",
     "Expense split from payer to members":
       "Expense split from payer to members",
+    Paid: "Paid",
+    "Own share {amount} {currency}": "Own share {amount} {currency}",
+    "Owed {amount} from {from} to {to}": "Owed {amount} from {from} to {to}",
     "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.":
       "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.",
     "Everyone settled up": "Everyone settled up",
@@ -452,8 +453,6 @@ const MESSAGES: Record<Locale, Messages> = {
     "Dismiss menu": "إغلاق القائمة",
     "Add expense": "إضافة مصروف",
     "Sign out": "تسجيل الخروج",
-    "Sign in": "تسجيل الدخول",
-    "Create account": "إنشاء حساب",
     "Counting the coins…": "جارٍ عدّ العملات…",
     "Loading…": "جارٍ التحميل…",
     "Saving…": "جارٍ الحفظ…",
@@ -739,6 +738,12 @@ const MESSAGES: Record<Locale, Messages> = {
       "لا توجد مصروفات تتضمن هذا الشخص كدافع أو مشارك.",
     "Clear filter": "مسح التصفية",
     "Transaction list": "قائمة المعاملات",
+    "Split flow": "تدفق التقسيم",
+    "Expense split from payer to members":
+      "تقسيم المصروف من الدافع إلى الأعضاء",
+    Paid: "مدفوع",
+    "Own share {amount} {currency}": "حصتك الخاصة {amount} {currency}",
+    "Owed {amount} from {from} to {to}": "مستحق {amount} من {from} إلى {to}",
     "Center view": "عرض الوسط",
     "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.":
       "الأرصدة الصافية من كل مصروف وتسوية. تشير الأسهم إلى من له مستحقات. اضغط Esc لمسح التركيز.",
@@ -861,6 +866,12 @@ const MESSAGES: Record<Locale, Messages> = {
       "Aucune dépense n’inclut cette personne comme payeur ou participant.",
     "Clear filter": "Effacer le filtre",
     "Transaction list": "Liste des transactions",
+    "Split flow": "Flux de répartition",
+    "Expense split from payer to members":
+      "Répartition de la dépense du payeur aux membres",
+    Paid: "Payé",
+    "Own share {amount} {currency}": "Part personnelle {amount} {currency}",
+    "Owed {amount} from {from} to {to}": "Dû {amount} de {from} à {to}",
     "Center view": "Vue centrale",
     "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.":
       "Soldes nets de chaque dépense et règlement. Les flèches indiquent à qui l’on doit. Appuyez sur Échap pour effacer le focus.",
@@ -1206,6 +1217,13 @@ const MESSAGES: Record<Locale, Messages> = {
       "Keine Ausgaben enthalten diese Person als Zahler oder Teilnehmer.",
     "Clear filter": "Filter löschen",
     "Transaction list": "Transaktionsliste",
+    "Split flow": "Aufteilungsfluss",
+    "Expense split from payer to members":
+      "Aufteilung der Ausgabe vom Zahler zu den Mitgliedern",
+    Paid: "Bezahlt",
+    "Own share {amount} {currency}": "Eigener Anteil {amount} {currency}",
+    "Owed {amount} from {from} to {to}":
+      "Geschuldet {amount} von {from} an {to}",
     "Center view": "Zentransicht",
     "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.":
       "Netto-Salden aus jeder Ausgabe und Abrechnung. Pfeile zeigen, wem etwas geschuldet wird. Drücke Esc, um den Fokus zu löschen.",
@@ -1552,6 +1570,12 @@ const MESSAGES: Record<Locale, Messages> = {
       "Ningún gasto incluye a esta persona como pagador o participante.",
     "Clear filter": "Borrar filtro",
     "Transaction list": "Lista de transacciones",
+    "Split flow": "Flujo de reparto",
+    "Expense split from payer to members":
+      "Reparto del gasto del pagador a los miembros",
+    Paid: "Pagado",
+    "Own share {amount} {currency}": "Parte propia {amount} {currency}",
+    "Owed {amount} from {from} to {to}": "Adeudado {amount} de {from} a {to}",
     "Center view": "Vista central",
     "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus.":
       "Saldos netos de cada gasto y liquidación. Las flechas indican a quién se le debe. Presiona Esc para limpiar el foco.",

@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
               href="/login"
               className="text-secondary font-semibold hover:underline"
             >
-              {t("Sign in")}
+              {t("Sign In")}
             </Link>
           </p>
         ) : (
