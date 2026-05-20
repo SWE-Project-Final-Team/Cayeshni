@@ -1,5 +1,5 @@
-﻿using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
 
 namespace Cayeshni.Tests.Domain.Entities;
 
@@ -68,4 +68,5 @@ public class TransactionTests
         Assert.Contains(member, transaction.TransactionMembers);
     }
 }
+
 

@@ -1,5 +1,5 @@
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +21,7 @@ public class GroupRetrievalTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var group1 = await service.CreateGroupAsync(userId, new CreateGroupDto("Group 1"));
         var group2 = await service.CreateGroupAsync(userId, new CreateGroupDto("Group 2"));
@@ -40,7 +40,7 @@ public class GroupRetrievalTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var creatorId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Joined Group"));
@@ -59,7 +59,7 @@ public class GroupRetrievalTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
 
         // Act
@@ -74,7 +74,7 @@ public class GroupRetrievalTests
     {
         // Arrange
         var context = GetTestDbContext();
-        var service = new GroupService(context, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(context), new FakeFileStorageService());
         var userId = Guid.NewGuid();
         var groupResult = await service.CreateGroupAsync(userId, new CreateGroupDto("Test Group"));
         var initialGroups = await service.GetUserGroupsAsync(userId);
@@ -88,4 +88,5 @@ public class GroupRetrievalTests
         Assert.Empty(groupsAfterExit);
     }
 }
+
 

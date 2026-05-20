@@ -28,3 +28,6 @@ frontend/cayeshni/out/
 frontend/cayeshni/coverage/
 frontend/cayeshni/.turbo/
 frontend/cayeshni/.vercel/
+
+# Backend file uploads (if using local storage)
+backend/uploads/

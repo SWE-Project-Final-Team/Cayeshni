@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Auth;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Auth;
+using Cayeshni.Domain.Enums;
 using Xunit;
 
 namespace Cayeshni.Tests.Auth;
@@ -133,7 +133,7 @@ public class AuthServiceTests
     {
         public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.API.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task LogoutAsync() => Task.CompletedTask;
         public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
@@ -168,4 +168,5 @@ public class AuthServiceTests
         public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
+
 

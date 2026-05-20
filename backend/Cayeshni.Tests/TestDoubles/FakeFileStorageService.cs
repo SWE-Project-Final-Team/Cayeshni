@@ -1,5 +1,5 @@
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Domain.Enums;
 
 namespace Cayeshni.Tests.TestDoubles;
 
@@ -10,10 +10,10 @@ public sealed class FakeFileStorageService : IFileStorageService
 
     public string GetBaseUrl() => "https://files.test";
 
-    public string? GetUrl(string? profilePicturePath) =>
-        string.IsNullOrWhiteSpace(profilePicturePath)
-            ? null
-            : $"https://files.test/{profilePicturePath.Replace("\\", "/")}";
+    public string GetUrl(string? relativePath, string? defaultName = "avatar") =>
+        string.IsNullOrWhiteSpace(relativePath)
+            ? $"https://files.test/defaults/{defaultName}.webp"
+            : $"https://files.test/{relativePath.Replace("\\", "/")}";
 
     public Task<string> SaveAsync(
         Stream fileStream,
@@ -22,3 +22,4 @@ public sealed class FakeFileStorageService : IFileStorageService
         FileFolder folder) =>
         Task.FromResult($"{folder.ToString().ToLowerInvariant()}/fake-{Guid.NewGuid():N}");
 }
+

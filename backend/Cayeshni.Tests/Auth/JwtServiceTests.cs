@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using Cayeshni.API.Infrastructure.Persistence.Options;
-using Cayeshni.API.Infrastructure.Services;
+using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Services;
 using Xunit;
 
 namespace Cayeshni.Tests.Auth;
@@ -81,4 +81,5 @@ public class JwtServiceTests
         Assert.True(token.ValidTo <= before.AddDays(7).AddHours(1));
     }
 }
+
 

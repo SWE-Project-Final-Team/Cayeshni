@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Auth;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Persistence.Options;
-using Cayeshni.API.Infrastructure.Services;
+using System.Security.Claims;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Auth;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Persistence.Options;
+using Cayeshni.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cayeshni.Tests.Auth;
@@ -94,7 +94,7 @@ public class AuthControllerTests
         var controller = AuthTestHelpers.CreateController(throwing);
 
         controller.Request.Headers["Cookie"] = "refreshToken=bad";
-        await Assert.ThrowsAsync<Cayeshni.API.Application.Common.Exceptions.UnauthorizedException>(() => controller.Refresh());
+        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Refresh());
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class AuthControllerTests
     {
         var controller = AuthTestHelpers.CreateController(new ThrowingRegisterIdentity());
 
-        await Assert.ThrowsAsync<Cayeshni.API.Application.Common.Exceptions.UnauthorizedException>(() => controller.Register(new RegisterDto("u@test.com", "Bob", "bad", Currency.USD)));
+        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Register(new RegisterDto("u@test.com", "Bob", "bad", Currency.USD)));
     }
 
     [Fact]
@@ -140,14 +140,14 @@ public class AuthControllerTests
     {
         var controller = AuthTestHelpers.CreateController(new ThrowingLoginIdentity());
 
-        await Assert.ThrowsAsync<Cayeshni.API.Application.Common.Exceptions.UnauthorizedException>(() => controller.Login(new LoginDto("u@test.com", "bad")));
+        await Assert.ThrowsAsync<Cayeshni.Application.Common.Exceptions.UnauthorizedException>(() => controller.Login(new LoginDto("u@test.com", "bad")));
     }
 
     private class ThrowingIdentity : IIdentityService
     {
         public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
-        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.API.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task LogoutAsync() => Task.CompletedTask;
         public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
         public Task ForgotPasswordAsync(string email) => Task.CompletedTask;
@@ -158,7 +158,7 @@ public class AuthControllerTests
 
     private class ThrowingRegisterIdentity : IIdentityService
     {
-        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new Cayeshni.API.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new NotImplementedException();
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
         public Task LogoutAsync() => Task.CompletedTask;
@@ -169,10 +169,10 @@ public class AuthControllerTests
         public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 
-    private class ThrowingLoginIdentity : Cayeshni.API.Application.Common.Interfaces.IIdentityService
+    private class ThrowingLoginIdentity : Cayeshni.Application.Common.Interfaces.IIdentityService
     {
         public Task<TokenPairDto> RegisterAsync(RegisterDto dto) => throw new NotImplementedException();
-        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new Cayeshni.API.Application.Common.Exceptions.UnauthorizedException();
+        public Task<TokenPairDto> LoginAsync(LoginDto dto) => throw new Cayeshni.Application.Common.Exceptions.UnauthorizedException();
         public Task<TokenPairDto> RefreshTokenAsync(string refreshToken) => throw new NotImplementedException();
         public Task LogoutAsync() => Task.CompletedTask;
         public Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto) => Task.CompletedTask;
@@ -182,4 +182,5 @@ public class AuthControllerTests
         public Task ResendConfirmationAsync(string email) => Task.CompletedTask;
     }
 }
+
 
