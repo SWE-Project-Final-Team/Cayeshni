@@ -16,6 +16,7 @@ import type {
 } from "@/lib/api/types";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useI18n } from "@/lib/i18n";
 
 function isValidEmail(s: string): boolean {
   const t = s.trim();
@@ -27,11 +28,12 @@ function normalizeEmail(s: string): string {
 }
 
 export default function FriendsPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-          Loading friends…
+          {t("Loading friends…")}
         </div>
       }
     >
@@ -50,6 +52,7 @@ function FriendsPageContent() {
     loadProfile,
     apiErrorMessage,
   } = useAuth();
+  const { t, locale } = useI18n();
 
   const [friends, setFriends] = useState<FriendDto[]>([]);
   const [pending, setPending] = useState<PendingFriendRequestDto[]>([]);
@@ -168,7 +171,7 @@ function FriendsPageContent() {
       setEmailCopied(true);
       window.setTimeout(() => setEmailCopied(false), 2000);
     } catch {
-      setErr("Could not copy to clipboard.");
+      setErr(t("Could not copy to clipboard."));
     }
   }
 
@@ -196,7 +199,7 @@ function FriendsPageContent() {
 
     if (selectedUser) {
       if (selectedUser.id === profile?.id) {
-        setErr("You cannot send a friend request to yourself.");
+        setErr(t("You cannot send a friend request to yourself."));
         return;
       }
       setBusy(true);
@@ -209,7 +212,7 @@ function FriendsPageContent() {
             targetEmail: null,
           },
         });
-        setMsg("Friend request sent.");
+        setMsg(t("Friend request sent."));
         clearSelection();
         await loadAll();
       } catch (e) {
@@ -223,11 +226,11 @@ function FriendsPageContent() {
     if (useEmailInstead) {
       const email = targetEmail.trim();
       if (!isValidEmail(email)) {
-        setErr("Enter a valid email address for your friend’s Cayeshni account.");
+        setErr(t("Enter a valid email address for your friend’s Cayeshni account."));
         return;
       }
       if (profile?.email && normalizeEmail(email) === normalizeEmail(profile.email)) {
-        setErr("You cannot send a friend request to yourself.");
+        setErr(t("You cannot send a friend request to yourself."));
         return;
       }
       setBusy(true);
@@ -237,7 +240,7 @@ function FriendsPageContent() {
           accessToken,
           json: { targetEmail: email, targetUserId: null },
         });
-        setMsg("Friend request sent.");
+        setMsg(t("Friend request sent."));
         setTargetEmail("");
         await loadAll();
       } catch (e) {
@@ -248,7 +251,7 @@ function FriendsPageContent() {
       return;
     }
 
-    setErr("Search for someone by name and pick their profile, or use email.");
+    setErr(t("Search for someone by name and pick their profile, or use email."));
   }
 
   async function acceptRequest(requesterId: string) {
@@ -261,7 +264,7 @@ function FriendsPageContent() {
         method: "POST",
         accessToken,
       });
-      setMsg("You are now friends.");
+      setMsg(t("You are now friends."));
       await loadAll();
     } catch (e) {
       setErr(apiErrorMessage(e));
@@ -272,7 +275,9 @@ function FriendsPageContent() {
 
   async function removeFriend(friendId: string, name: string) {
     if (!accessToken) return;
-    if (!window.confirm(`Remove ${name} from your friends list?`)) return;
+    if (!window.confirm(t("Remove {name} from your friends list?", { name }))) {
+      return;
+    }
     setErr(null);
     setMsg(null);
     setBusy(true);
@@ -281,7 +286,7 @@ function FriendsPageContent() {
         method: "DELETE",
         accessToken,
       });
-      setMsg("Friend removed.");
+      setMsg(t("Friend removed."));
       await loadAll();
     } catch (e) {
       setErr(apiErrorMessage(e));
@@ -297,7 +302,7 @@ function FriendsPageContent() {
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Confirm your email to use friends.
+        {t("Confirm your email to use friends.")}
       </div>
     );
   }
@@ -305,10 +310,11 @@ function FriendsPageContent() {
   return (
     <div className="space-y-xl max-w-5xl">
       <header className="border-b border-outline-variant pb-lg">
-        <h1 className="font-display-lg text-display-lg text-primary">Friends</h1>
+        <h1 className="font-display-lg text-display-lg text-primary">{t("Friends")}</h1>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-          Search by display name, pick the right person from the list, or send
-          by email. Accept incoming requests below.
+          {t(
+            "Search by display name, pick the right person from the list, or send by email. Accept incoming requests below."
+          )}
         </p>
       </header>
 
@@ -325,10 +331,10 @@ function FriendsPageContent() {
 
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-level-1">
         <h2 className="font-headline-md text-headline-md text-on-surface mb-sm">
-          Your email
+          {t("Your email")}
         </h2>
         <p className="font-body-md text-on-surface-variant text-sm mb-md">
-          Others can send you a request with this address.
+          {t("Others can send you a request with this address.")}
         </p>
         <div className="flex flex-col sm:flex-row gap-sm sm:items-stretch">
           <code className="font-mono text-xs leading-5 tracking-normal bg-surface-container-high px-2 py-1 rounded break-all min-w-0 flex-1 text-on-surface">
@@ -345,14 +351,14 @@ function FriendsPageContent() {
                 <span className="material-symbols-outlined text-[14px] leading-none">
                   check
                 </span>
-                Copied
+                {t("Copied")}
               </>
             ) : (
               <>
                 <span className="material-symbols-outlined text-[14px] leading-none">
                   content_copy
                 </span>
-                Copy
+                {t("Copy")}
               </>
             )}
           </button>
@@ -364,14 +370,14 @@ function FriendsPageContent() {
         className="rounded-xl border border-outline-variant bg-surface p-lg shadow-level-1 flex flex-col gap-md"
       >
         <h2 className="font-headline-md text-headline-md text-primary">
-          Send a friend request
+          {t("Send a friend request")}
         </h2>
 
         {!useEmailInstead ? (
           <>
             <div ref={pickerRef} className="relative">
               <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Search by display name
+                {t("Search by display name")}
               </label>
               {selectedUser ? (
                 <div className="flex flex-row gap-md items-center">
@@ -402,7 +408,7 @@ function FriendsPageContent() {
                       onClick={() => clearSelection()}
                       className="shrink-0 text-sm font-label-sm text-secondary hover:underline px-sm"
                     >
-                      Change
+                      {t("Change")}
                     </button>
                   </div>
                   <button
@@ -410,7 +416,7 @@ function FriendsPageContent() {
                     disabled={busy || !canSubmitSearch}
                     className="shrink-0 bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 disabled:opacity-60 whitespace-nowrap"
                   >
-                    {busy ? "Sending…" : "Send request"}
+                    {busy ? t("Sending…") : t("Send request")}
                   </button>
                 </div>
               ) : (
@@ -425,7 +431,7 @@ function FriendsPageContent() {
                         setPickerOpen(true);
                       }}
                       onFocus={() => setPickerOpen(true)}
-                      placeholder="Type at least 2 characters…"
+                      placeholder={t("Type at least 2 characters…")}
                       autoComplete="off"
                       className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     />
@@ -435,11 +441,11 @@ function FriendsPageContent() {
                         <div className="absolute z-40 left-0 right-0 mt-xs rounded-lg border border-outline-variant bg-surface-container-lowest shadow-level-2 max-h-72 overflow-y-auto">
                           {searchLoading ? (
                             <div className="px-md py-sm text-sm text-on-surface-variant">
-                              Searching…
+                              {t("Searching…")}
                             </div>
                           ) : searchResults.length === 0 ? (
                             <div className="px-md py-sm text-sm text-on-surface-variant">
-                              No matching profiles.
+                              {t("No matching profiles.")}
                             </div>
                           ) : (
                             <ul className="py-xs">
@@ -488,7 +494,7 @@ function FriendsPageContent() {
                     disabled={busy || !canSubmitSearch}
                     className="shrink-0 bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 disabled:opacity-60 whitespace-nowrap"
                   >
-                    {busy ? "Sending…" : "Send request"}
+                    {busy ? t("Sending…") : t("Send request")}
                   </button>
                 </div>
               )}
@@ -503,21 +509,21 @@ function FriendsPageContent() {
               }}
               className="block w-full text-left text-sm font-label-sm text-secondary hover:underline"
             >
-              I have their email instead
+              {t("I have their email instead")}
             </button>
           </>
         ) : (
           <>
             <div>
               <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Their email
+                {t("Their email")}
               </label>
               <div className="flex flex-row gap-md items-end">
                 <input
                   type="email"
                   value={targetEmail}
                   onChange={(e) => setTargetEmail(e.target.value)}
-                  placeholder="friend@example.com"
+                  placeholder={t("friend@example.com")}
                   className="min-w-0 flex-1 w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                   autoComplete="email"
                 />
@@ -526,7 +532,7 @@ function FriendsPageContent() {
                   disabled={busy || !canSubmitSearch}
                   className="shrink-0 bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 disabled:opacity-60 whitespace-nowrap"
                 >
-                  {busy ? "Sending…" : "Send request"}
+                  {busy ? t("Sending…") : t("Send request")}
                 </button>
               </div>
             </div>
@@ -538,7 +544,7 @@ function FriendsPageContent() {
               }}
               className="block w-full text-left text-sm font-label-sm text-secondary hover:underline"
             >
-              Search by name instead
+              {t("Search by name instead")}
             </button>
           </>
         )}
@@ -546,10 +552,12 @@ function FriendsPageContent() {
 
       <div className="rounded-xl border border-outline-variant bg-surface p-lg shadow-level-1">
         <h2 className="font-headline-md text-headline-md text-primary mb-md">
-          Incoming requests
+          {t("Incoming requests")}
         </h2>
         {pending.length === 0 ? (
-          <p className="font-body-md text-on-surface-variant">No pending requests.</p>
+          <p className="font-body-md text-on-surface-variant">
+            {t("No pending requests.")}
+          </p>
         ) : (
           <ul className="divide-y divide-outline-variant/40">
             {pending.map((p) => {
@@ -581,7 +589,7 @@ function FriendsPageContent() {
                         {p.email}
                       </p>
                       <p className="text-xs text-on-surface-variant mt-xs">
-                        {new Date(p.createdAt).toLocaleString()}
+                        {new Date(p.createdAt).toLocaleString(locale)}
                       </p>
                     </div>
                   </div>
@@ -591,7 +599,7 @@ function FriendsPageContent() {
                     onClick={() => void acceptRequest(p.userId)}
                     className="shrink-0 bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60 self-start"
                   >
-                    Accept
+                    {t("Accept")}
                   </button>
                 </li>
               );
@@ -602,11 +610,11 @@ function FriendsPageContent() {
 
       <div className="rounded-xl border border-outline-variant bg-surface p-lg shadow-level-1">
         <h2 className="font-headline-md text-headline-md text-primary mb-md">
-          Your friends ({friends.length})
+          {t("Your friends ({count})", { count: friends.length })}
         </h2>
         {friends.length === 0 ? (
           <p className="font-body-md text-on-surface-variant">
-            No friends yet. Send a request or accept one above.
+            {t("No friends yet. Send a request or accept one above.")}
           </p>
         ) : (
           <ul className="divide-y divide-outline-variant/40">
@@ -646,7 +654,7 @@ function FriendsPageContent() {
                     onClick={() => void removeFriend(f.userId, f.name)}
                     className="shrink-0 text-error font-label-sm py-sm px-md rounded-lg border border-outline-variant hover:bg-error-container/20 disabled:opacity-60 self-start"
                   >
-                    Remove
+                    {t("Remove")}
                   </button>
                 </li>
               );

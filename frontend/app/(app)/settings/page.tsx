@@ -5,10 +5,12 @@ import { apiJson } from "@/lib/api/client";
 import { ListboxSelect } from "@/components/listbox-select";
 import { CURRENCY_OPTIONS } from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useI18n } from "@/lib/i18n";
 
 export default function SettingsPage() {
   const { profile, accessToken, loadProfile, apiErrorMessage, logout } =
     useAuth();
+  const { t } = useI18n();
   const [name, setName] = useState(profile?.name ?? "");
   const [currency, setCurrency] = useState(profile?.preferredCurrency ?? 0);
   const [currentPw, setCurrentPw] = useState("");
@@ -48,7 +50,7 @@ export default function SettingsPage() {
         json: { name, preferredCurrency: currency },
       });
       await loadProfile();
-      setMsg("Profile updated.");
+      setMsg(t("Profile updated."));
     } catch (e) {
       setErr(apiErrorMessage(e));
     } finally {
@@ -70,7 +72,7 @@ export default function SettingsPage() {
       });
       setCurrentPw("");
       setNewPw("");
-      setMsg("Password updated.");
+      setMsg(t("Password updated."));
     } catch (e) {
       setErr(apiErrorMessage(e));
     } finally {
@@ -82,10 +84,10 @@ export default function SettingsPage() {
     <div className="w-full space-y-xl">
       <div>
         <h2 className="font-display-lg text-display-lg text-on-surface">
-          Settings
+          {t("Settings")}
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-          Update your display name and currency, and change your password.
+          {t("Update your display name and currency, and change your password.")}
         </p>
       </div>
 
@@ -105,11 +107,11 @@ export default function SettingsPage() {
         className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-level-1 space-y-md"
       >
         <h3 className="font-headline-md text-headline-md text-primary">
-          Profile
+          {t("Profile")}
         </h3>
         <div>
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-            Display name
+            {t("Display name")}
           </label>
           <input
             value={name}
@@ -119,13 +121,13 @@ export default function SettingsPage() {
         </div>
         <div>
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-            Preferred currency
+            {t("Preferred currency")}
           </label>
           <ListboxSelect
             value={String(currency)}
             onChange={(v) => setCurrency(Number(v))}
             options={currencyOptions}
-            placeholder="Select currency"
+            placeholder={t("Select currency")}
             leadingIcon="payments"
             className="w-full"
           />
@@ -135,7 +137,7 @@ export default function SettingsPage() {
           disabled={pending}
           className="bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 disabled:opacity-60"
         >
-          Save profile
+          {t("Save profile")}
         </button>
       </form>
 
@@ -144,11 +146,11 @@ export default function SettingsPage() {
         className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-level-1 space-y-md"
       >
         <h3 className="font-headline-md text-headline-md text-primary">
-          Change password
+          {t("Change password")}
         </h3>
         <div>
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-            Current password
+            {t("Current password")}
           </label>
           <div className="relative">
             <input
@@ -160,7 +162,9 @@ export default function SettingsPage() {
             />
             <button
               type="button"
-              aria-label={showCurrentPw ? "Hide password" : "Show password"}
+              aria-label={
+                showCurrentPw ? t("Hide password") : t("Show password")
+              }
               aria-pressed={showCurrentPw}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
               onClick={() => setShowCurrentPw((prev) => !prev)}
@@ -173,7 +177,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-            New password
+            {t("New password")}
           </label>
           <div className="relative">
             <input
@@ -185,7 +189,7 @@ export default function SettingsPage() {
             />
             <button
               type="button"
-              aria-label={showNewPw ? "Hide password" : "Show password"}
+              aria-label={showNewPw ? t("Hide password") : t("Show password")}
               aria-pressed={showNewPw}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
               onClick={() => setShowNewPw((prev) => !prev)}
@@ -201,7 +205,7 @@ export default function SettingsPage() {
           disabled={pending}
           className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
         >
-          Update password
+          {t("Update password")}
         </button>
       </form>
 
@@ -210,7 +214,7 @@ export default function SettingsPage() {
         onClick={() => void logout()}
         className="text-error font-label-sm hover:underline"
       >
-        Sign out everywhere on this device
+        {t("Sign out everywhere on this device")}
       </button>
     </div>
   );

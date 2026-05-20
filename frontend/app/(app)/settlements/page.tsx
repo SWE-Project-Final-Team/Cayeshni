@@ -20,6 +20,7 @@ import {
   candidateTransactionIds,
   maxSettleableTowardPayee,
 } from "@/lib/settlements/build-allocations";
+import { useI18n } from "@/lib/i18n";
 
 function displayName(
   members: { userId: string; displayName: string }[] | undefined,
@@ -37,6 +38,7 @@ export default function SettlementsPage() {
     loadProfile,
     apiErrorMessage,
   } = useAuth();
+  const { t, locale } = useI18n();
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
   const [detail, setDetail] = useState<GroupDetailDto | null>(null);
@@ -251,24 +253,32 @@ export default function SettlementsPage() {
     setFormErr(null);
     const payee = payeeUserId.trim();
     if (!payee || payee === payerId) {
-      setFormErr("Choose another member as payee.");
+      setFormErr(t("Choose another member as payee."));
       return;
     }
     const amount = Number.parseFloat(amountStr.replace(",", "."));
     if (!Number.isFinite(amount) || amount <= 0) {
-      setFormErr("Enter a positive amount.");
+      setFormErr(t("Enter a positive amount."));
       return;
     }
     if (amount > maxTowardPayee + 0.005) {
       setFormErr(
-        `Amount cannot exceed what you still owe this member on shared expenses (${maxTowardPayee.toFixed(2)} ${currencyCode(detail.defaultCurrency)}).`
+        t(
+          "Amount cannot exceed what you still owe this member on shared expenses ({amount} {currency}).",
+          {
+            amount: maxTowardPayee.toFixed(2),
+            currency: currencyCode(detail.defaultCurrency),
+          }
+        )
       );
       return;
     }
     const allocations = buildAllocationsFifo(payeeDetails, payerId, amount);
     if (allocations.length === 0) {
       setFormErr(
-        "No matching expenses to apply this payment to. Pick a payee you owe through a shared expense they paid for."
+        t(
+          "No matching expenses to apply this payment to. Pick a payee you owe through a shared expense they paid for."
+        )
       );
       return;
     }
@@ -359,7 +369,7 @@ export default function SettlementsPage() {
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Confirm your email to load settlements.
+        {t("Confirm your email to load settlements.")}
       </div>
     );
   }
@@ -367,7 +377,7 @@ export default function SettlementsPage() {
   if (!payerId) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Loading your account…
+        {t("Loading your account…")}
       </div>
     );
   }
@@ -393,21 +403,24 @@ export default function SettlementsPage() {
     <div className="space-y-xl max-w-5xl">
       <header className="border-b border-outline-variant pb-lg">
         <h1 className="font-display-lg text-display-lg text-primary">
-          Settlements
+          {t("Settlements")}
         </h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
-          Record cash or external transfers against shared expenses. Allocations
-          apply to the oldest matching expenses first.
+          {t(
+            "Record cash or external transfers against shared expenses. Allocations apply to the oldest matching expenses first."
+          )}
         </p>
         <div className="mt-md flex flex-wrap gap-sm items-end">
           <div className="flex flex-col gap-xs min-w-[220px] max-w-full flex-1 sm:flex-initial sm:min-w-[260px]">
-            <label className="font-label-sm text-on-surface-variant">Group</label>
+            <label className="font-label-sm text-on-surface-variant">
+              {t("Group")}
+            </label>
             <ListboxSelect
               value={groupId}
               onChange={setGroupId}
               options={groupListboxOptions}
-              placeholder="Choose a group"
-              emptyMessage="No groups yet — create one under Groups"
+              placeholder={t("Choose a group")}
+              emptyMessage={t("No groups yet — create one under Groups")}
               leadingIcon="groups"
               className="w-full"
               align="end"
@@ -424,20 +437,22 @@ export default function SettlementsPage() {
 
       {!groupId ? (
         <p className="font-body-md text-on-surface-variant">
-          Join or create a group to use settlements.
+          {t("Join or create a group to use settlements.")}
         </p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
           <div className="space-y-lg">
             <div className="bg-surface rounded-xl border border-outline-variant shadow-level-1 p-lg">
               <h2 className="font-headline-md text-headline-md text-primary mb-md">
-                Balances
+                {t("Balances")}
               </h2>
               {detail == null ? (
-                <p className="font-body-md text-on-surface-variant">Loading…</p>
+                <p className="font-body-md text-on-surface-variant">
+                  {t("Loading…")}
+                </p>
               ) : debts.length === 0 ? (
                 <p className="font-body-md text-on-surface-variant">
-                  No members or debt data.
+                  {t("No members or debt data.")}
                 </p>
               ) : (
                 <ul className="divide-y divide-outline-variant/40 max-h-80 overflow-y-auto tabular-nums">
@@ -450,7 +465,7 @@ export default function SettlementsPage() {
                         {displayName(detail.members, b.userId)}
                       </span>
                       <span className="text-on-surface-variant">
-                        Remaining owed:{" "}
+                        {t("Remaining owed")}: {" "}
                         <span className={`font-medium tabular-nums ${oweAmountClass(b.remainingOwed)}`}>
                           {b.remainingOwed.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
@@ -467,19 +482,22 @@ export default function SettlementsPage() {
               className="bg-surface rounded-xl border border-outline-variant shadow-level-1 p-lg space-y-md"
             >
               <h2 className="font-headline-md text-headline-md text-primary">
-                Record payment
+                {t("Record payment")}
               </h2>
               <p className="font-body-md text-on-surface-variant text-sm">
-                You record a payment <strong>from you</strong> to someone you owe
-                through expenses <strong>they paid for</strong> in this group.
+                {t(
+                  "You record a payment from you to someone you owe through expenses they paid for in this group."
+                )}
               </p>
               {detail == null ? (
-                <p className="text-sm text-on-surface-variant">Loading group…</p>
+                <p className="text-sm text-on-surface-variant">
+                  {t("Loading group…")}
+                </p>
               ) : (
                 <>
                   <div>
                     <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                      Pay to
+                      {t("Pay to")}
                     </label>
                     <ListboxSelect
                       value={payeeUserId}
@@ -487,19 +505,21 @@ export default function SettlementsPage() {
                       options={payeeListboxOptions}
                       placeholder={
                         payeeMaxByUserId === null
-                          ? "Loading payees…"
+                          ? t("Loading payees…")
                           : payeeListboxOptions.length === 0
-                            ? "No one you owe in this group"
-                            : "Select member…"
+                            ? t("No one you owe in this group")
+                            : t("Select member…")
                       }
-                      emptyMessage="No one you currently owe through shared expenses"
+                      emptyMessage={t("No one you currently owe through shared expenses")}
                       leadingIcon="person"
                       className="w-full"
                     />
                   </div>
                   <div>
                     <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                      Amount ({currencyCode(detail.defaultCurrency)})
+                      {t("Amount ({currency})", {
+                        currency: currencyCode(detail.defaultCurrency),
+                      })}
                     </label>
                     <div className="flex flex-wrap gap-sm items-center">
                       <input
@@ -518,16 +538,20 @@ export default function SettlementsPage() {
                           maxTowardPayee > 0 ? "text-balance-owe" : "text-on-surface-variant"
                         }`}
                       >
-                        Use max ({maxTowardPayee.toFixed(2)})
+                        {t("Use max ({amount})", {
+                          amount: maxTowardPayee.toFixed(2),
+                        })}
                       </button>
                     </div>
                     {previewLoading ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
-                        Loading expense breakdown…
+                        {t("Loading expense breakdown…")}
                       </p>
                     ) : payeeUserId && payeeUserId !== payerId ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
-                        Max toward {displayName(detail.members, payeeUserId)}:{" "}
+                        {t("Max toward {name}", {
+                          name: displayName(detail.members, payeeUserId),
+                        })}:{" "}
                         <span className={`tabular-nums font-medium ${oweAmountClass(maxTowardPayee)}`}>
                           {maxTowardPayee.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
@@ -537,20 +561,22 @@ export default function SettlementsPage() {
                   </div>
                   <div>
                     <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                      Note (optional)
+                      {t("Note (optional)")}
                     </label>
                     <input
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       maxLength={300}
                       className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface"
-                      placeholder="e.g. Venmo, cash"
+                      placeholder={t("e.g. Venmo, cash")}
                     />
                   </div>
                   {previewAllocations.length > 0 && (
                     <div className="rounded-lg border border-outline-variant/60 bg-surface-container-low p-sm">
                       <p className="font-label-sm text-on-surface-variant mb-xs">
-                        Will apply to {previewAllocations.length} expense(s)
+                        {t("Will apply to {count} expense(s)", {
+                          count: previewAllocations.length,
+                        })}
                       </p>
                       <ul className="text-xs text-on-surface-variant space-y-xs max-h-32 overflow-y-auto tabular-nums">
                         {previewAllocations.map((a) => {
@@ -582,7 +608,7 @@ export default function SettlementsPage() {
                     }
                     className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
                   >
-                    {formPending ? "Saving…" : "Record settlement"}
+                    {formPending ? t("Saving…") : t("Record settlement")}
                   </button>
                 </>
               )}
@@ -591,12 +617,12 @@ export default function SettlementsPage() {
 
           <div className="bg-surface rounded-xl border border-outline-variant shadow-level-1 overflow-hidden">
             <div className="px-lg py-sm bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant flex justify-between items-center gap-sm">
-              <span>Settlement history</span>
+              <span>{t("Settlement history")}</span>
               <span className="tabular-nums text-on-surface">{rows.length}</span>
             </div>
             {rows.length === 0 ? (
               <div className="p-lg font-body-md text-on-surface-variant">
-                No settlements recorded for this group.
+                {t("No settlements recorded for this group.")}
               </div>
             ) : (
               <ul className="divide-y divide-outline-variant/40 max-h-[min(70vh,720px)] overflow-y-auto">
@@ -614,13 +640,18 @@ export default function SettlementsPage() {
                             {displayName(detail?.members, s.payeeUserId)}
                           </p>
                           <p className="font-label-sm text-on-surface-variant">
-                            {new Date(s.createdAt).toLocaleString()}
+                            {new Date(s.createdAt).toLocaleString(locale)}
                             {s.note ? ` · ${s.note}` : ""}
                           </p>
                           {s.allocations.length > 0 && (
                             <p className="text-xs text-on-surface-variant mt-xs">
-                              {s.allocations.length} expense allocation
-                              {s.allocations.length === 1 ? "" : "s"}
+                              {s.allocations.length === 1
+                                ? t("{count} expense allocation", {
+                                    count: s.allocations.length,
+                                  })
+                                : t("{count} expense allocations", {
+                                    count: s.allocations.length,
+                                  })}
                             </p>
                           )}
                         </div>
@@ -644,14 +675,14 @@ export default function SettlementsPage() {
                               onClick={() => void saveNote(s)}
                               className="text-sm font-label-sm bg-secondary text-on-secondary px-md py-xs rounded-lg disabled:opacity-60"
                             >
-                              Save note
+                              {t("Save note")}
                             </button>
                             <button
                               type="button"
                               onClick={() => setEditingNoteId(null)}
                               className="text-sm font-label-sm text-primary border border-outline-variant px-md py-xs rounded-lg"
                             >
-                              Cancel
+                              {t("Cancel")}
                             </button>
                           </div>
                         </div>
@@ -666,7 +697,7 @@ export default function SettlementsPage() {
                               }}
                               className="text-xs font-label-sm text-secondary hover:underline"
                             >
-                              Edit note
+                              {t("Edit note")}
                             </button>
                           )}
                           {canDelete && (
@@ -675,7 +706,7 @@ export default function SettlementsPage() {
                               onClick={() => setSettlementToDelete(s)}
                               className="text-xs font-label-sm text-error hover:underline"
                             >
-                              Delete
+                              {t("Delete")}
                             </button>
                           )}
                         </div>
@@ -690,10 +721,12 @@ export default function SettlementsPage() {
       )}
       <ConfirmDialog
         open={settlementToDelete != null}
-        title="Remove this settlement?"
-        description="Balances on the linked expenses will update to reflect that this payment no longer happened."
-        confirmLabel="Remove settlement"
-        cancelLabel="Keep it"
+        title={t("Remove this settlement?")}
+        description={t(
+          "Balances on the linked expenses will update to reflect that this payment no longer happened."
+        )}
+        confirmLabel={t("Remove settlement")}
+        cancelLabel={t("Keep it")}
         danger
         pending={deletePending}
         onClose={() => !deletePending && setSettlementToDelete(null)}

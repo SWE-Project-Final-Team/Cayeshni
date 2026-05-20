@@ -25,19 +25,23 @@ import {
   simplifyToTransferEdges,
 } from "@/lib/group-net-balances";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useI18n } from "@/lib/i18n";
 
-const CATEGORY_LABELS: Record<number, string> = {
-  0: "Transport",
-  1: "Food",
-  2: "Accommodation",
-  3: "Entertainment",
-  4: "Utilities",
-  5: "Shopping",
-  6: "Other",
-};
+type TFn = (key: string, vars?: Record<string, string | number>) => string;
 
-function categoryLabel(c: number): string {
-  return CATEGORY_LABELS[c] ?? `Category ${c}`;
+const CATEGORY_KEYS = [
+  "Transport",
+  "Food",
+  "Accommodation",
+  "Entertainment",
+  "Utilities",
+  "Shopping",
+  "Other",
+] as const;
+
+function categoryLabel(c: number, t: TFn): string {
+  const key = CATEGORY_KEYS[c];
+  return key ? t(key) : t("Category {id}", { id: c });
 }
 
 function normalizeDetail(
@@ -49,17 +53,22 @@ function normalizeDetail(
   };
 }
 
-function rosterLabel(m: GroupMemberSummaryDto, selfId: string | undefined): string {
-  if (selfId && m.userId === selfId) return "You";
+function rosterLabel(
+  m: GroupMemberSummaryDto,
+  selfId: string | undefined,
+  t: TFn
+): string {
+  if (selfId && m.userId === selfId) return t("You");
   return m.displayName;
 }
 
 function memberNameById(
   members: GroupMemberSummaryDto[],
   userId: string,
-  selfId: string | undefined
+  selfId: string | undefined,
+  t: TFn
 ): string {
-  if (selfId && userId === selfId) return "You";
+  if (selfId && userId === selfId) return t("You");
   return members.find((m) => m.userId === userId)?.displayName ?? `${userId.slice(0, 8)}…`;
 }
 
@@ -67,14 +76,15 @@ function paidByLabel(
   paidByUserId: string,
   selfId: string | undefined,
   roster: GroupMemberSummaryDto[],
-  paidByDisplayName?: string
+  paidByDisplayName: string | undefined,
+  t: TFn
 ): string {
-  if (selfId && paidByUserId === selfId) return "you";
+  if (selfId && paidByUserId === selfId) return t("you");
   const row = roster.find((r) => r.userId === paidByUserId);
   if (row?.displayName) return row.displayName;
   const fromApi = paidByDisplayName?.trim();
   if (fromApi) return fromApi;
-  return "Member";
+  return t("Member");
 }
 
 function RosterAvatar({
@@ -115,6 +125,7 @@ export default function GroupDetailPage() {
   const params = useParams();
   const groupId = typeof params.groupId === "string" ? params.groupId : "";
   const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
+  const { t, locale } = useI18n();
 
   const [detail, setDetail] = useState<GroupDetailDto | null>(null);
   const [balances, setBalances] = useState<GroupMemberBalanceDto[]>([]);
@@ -186,10 +197,10 @@ export default function GroupDetailPage() {
     () =>
       (detail?.members ?? []).map((m) => ({
         userId: m.userId,
-        displayName: rosterLabel(m, profile?.id),
+        displayName: rosterLabel(m, profile?.id, t),
         avatarUrl: userAvatarSrc(m.profilePictureUrl ?? undefined),
       })),
-    [detail?.members, profile?.id]
+    [detail?.members, profile?.id, t]
   );
 
   const graphSplits = useMemo(() => {
@@ -461,7 +472,7 @@ export default function GroupDetailPage() {
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Confirm your email to view group details.
+        {t("Confirm your email to view group details.")}
       </div>
     );
   }
@@ -474,20 +485,21 @@ export default function GroupDetailPage() {
           className="font-label-sm text-label-sm text-secondary hover:underline w-fit inline-flex items-center gap-xs"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          All groups
+          {t("All groups")}
         </Link>
         {loading ? (
-          <p className="font-body-md text-on-surface-variant">Loading…</p>
+          <p className="font-body-md text-on-surface-variant">{t("Loading…")}</p>
         ) : detail ? (
           <>
             <h2 className="font-display-lg text-display-lg text-primary">{detail.name}</h2>
             <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">
-              Pick an expense, inspect the split map, or open the whole-group balance view to
-              see who should pay whom after every transaction and settlement.
+              {t(
+                "Pick an expense, inspect the split map, or open the whole-group balance view to see who should pay whom after every transaction and settlement."
+              )}
             </p>
           </>
         ) : (
-          <h2 className="font-display-lg text-display-lg text-primary">Group not found</h2>
+          <h2 className="font-display-lg text-display-lg text-primary">{t("Group not found")}</h2>
         )}
       </div>
 
@@ -508,27 +520,27 @@ export default function GroupDetailPage() {
                 id="group-overview-heading"
                 className="font-headline-md text-headline-md text-on-surface"
               >
-                Overview & members
+                {t("Overview & members")}
               </h2>
               <p className="font-body-md text-on-surface-variant mt-xs max-w-2xl">
-                Invite people, track shares and settlements, and jump to the group balance map
-                from a member card.
+                {t(
+                  "Invite people, track shares and settlements, and jump to the group balance map from a member card."
+                )}
               </p>
               <div className="flex flex-wrap gap-sm mt-md">
                 <span className="inline-flex items-center gap-xs rounded-full border border-outline-variant/80 bg-surface/90 px-md py-xs font-label-sm text-on-surface tabular-nums">
                   <span className="material-symbols-outlined text-[18px] text-secondary">group</span>
-                  {detail.members.length} member{detail.members.length === 1 ? "" : "s"}
+                  {detail.members.length} {t(detail.members.length === 1 ? "member" : "members")}
                 </span>
                 <span className="inline-flex items-center gap-xs rounded-full border border-outline-variant/80 bg-surface/90 px-md py-xs font-label-sm text-on-surface tabular-nums">
                   <span className="material-symbols-outlined text-[18px] text-secondary">
                     receipt_long
                   </span>
-                  {sortedTransactions.length} expense
-                  {sortedTransactions.length === 1 ? "" : "s"}
+                  {sortedTransactions.length} {t(sortedTransactions.length === 1 ? "expense" : "expenses")}
                 </span>
                 <span className="inline-flex items-center gap-xs rounded-full border border-outline-variant/80 bg-surface/90 px-md py-xs font-label-sm text-on-surface tabular-nums">
                   <span className="material-symbols-outlined text-[18px] text-secondary">payments</span>
-                  {settlements.length} settlement{settlements.length === 1 ? "" : "s"}
+                  {settlements.length} {t(settlements.length === 1 ? "settlement" : "settlements")}
                 </span>
                 <span className="inline-flex items-center gap-xs rounded-full border border-outline-variant/80 bg-surface/90 px-md py-xs font-label-sm text-on-surface tabular-nums">
                   <span className="material-symbols-outlined text-[18px] text-secondary">
@@ -543,20 +555,20 @@ export default function GroupDetailPage() {
               <div className="lg:col-span-5 space-y-lg">
                 <dl className="space-y-md font-body-md text-on-surface">
                   <div className="flex justify-between gap-md items-baseline">
-                    <dt className="text-on-surface-variant font-label-sm">Default currency</dt>
+                    <dt className="text-on-surface-variant font-label-sm">{t("Default currency")}</dt>
                     <dd className="font-semibold tabular-nums">{groupCurrencyLabel}</dd>
                   </div>
                   <div className="flex justify-between gap-md items-baseline">
-                    <dt className="text-on-surface-variant font-label-sm">Created by</dt>
+                    <dt className="text-on-surface-variant font-label-sm">{t("Created by")}</dt>
                     <dd className="text-sm font-medium text-right break-words max-w-[60%]">
                       {profile?.id === detail.createdById
-                        ? "You"
+                        ? t("You")
                         : detail.members.find((x) => x.userId === detail.createdById)
                             ?.displayName ?? "—"}
                     </dd>
                   </div>
                   <div className="rounded-xl border border-outline-variant/60 bg-surface p-md space-y-sm">
-                    <dt className="text-on-surface-variant font-label-sm mb-xs">Invite code</dt>
+                    <dt className="text-on-surface-variant font-label-sm mb-xs">{t("Invite code")}</dt>
                     <dd className="flex flex-col sm:flex-row gap-sm sm:items-stretch">
                       <code className="font-mono tabular-nums text-xs leading-5 tracking-normal bg-surface-container-high px-2 py-1.5 rounded-lg break-all min-w-0 flex-1 text-on-surface">
                         {detail.inviteToken}
@@ -574,12 +586,12 @@ export default function GroupDetailPage() {
                         {inviteCopied ? (
                           <>
                             <span className="material-symbols-outlined text-[16px]">check</span>
-                            Copied
+                            {t("Copied")}
                           </>
                         ) : (
                           <>
                             <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                            Copy
+                            {t("Copy")}
                           </>
                         )}
                       </button>
@@ -587,7 +599,7 @@ export default function GroupDetailPage() {
                   </div>
                 </dl>
                 <div className="rounded-xl border border-outline-variant/50 bg-surface-container-high/40 p-md">
-                  <p className="font-label-sm text-on-surface-variant mb-sm">Invite a friend</p>
+                  <p className="font-label-sm text-on-surface-variant mb-sm">{t("Invite a friend")}</p>
                   <InviteFriendToGroup
                     groupId={detail.id}
                     groupName={detail.name}
@@ -603,10 +615,10 @@ export default function GroupDetailPage() {
 
               <div className="lg:col-span-7 min-w-0">
                 <div className="flex items-end justify-between gap-md flex-wrap mb-md">
-                  <h3 className="font-headline-sm text-on-surface">Members</h3>
+                  <h3 className="font-headline-sm text-on-surface">{t("Members")}</h3>
                 </div>
                 {detail.members.length === 0 ? (
-                  <p className="font-body-md text-on-surface-variant">No members listed.</p>
+                  <p className="font-body-md text-on-surface-variant">{t("No members listed.")}</p>
                 ) : (
                   <>
                     {friendActionErr ? (
@@ -663,52 +675,53 @@ export default function GroupDetailPage() {
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-baseline gap-x-sm gap-y-xs">
                                   <span className="font-semibold text-on-surface truncate">
-                                    {rosterLabel(m, profile?.id)}
+                                    {rosterLabel(m, profile?.id, t)}
                                   </span>
                                   {m.isCreator ? (
                                     <span className="text-[10px] font-label-sm uppercase tracking-wider text-secondary shrink-0">
-                                      Creator
+                                      {t("Creator")}
                                     </span>
                                   ) : null}
                                 </div>
                                 <p className="text-xs text-on-surface-variant mt-px">
-                                  Joined{" "}
-                                  {new Date(m.joinedAt).toLocaleDateString(undefined, {
-                                    dateStyle: "medium",
+                                  {t("Joined {date}", {
+                                    date: new Date(m.joinedAt).toLocaleDateString(locale, {
+                                      dateStyle: "medium",
+                                    }),
                                   })}
                                 </p>
                               </div>
                             </div>
                             <div className="rounded-lg bg-surface-container-low/80 px-sm py-xs text-xs tabular-nums">
-                              <span className="text-on-surface-variant">Net in group: </span>
+                              <span className="text-on-surface-variant">{t("Net in group:")}</span>{" "}
                               {Math.abs(netRounded) < 0.01 ? (
-                                <span className="font-semibold text-on-surface">Even</span>
+                                <span className="font-semibold text-on-surface">{t("Even")}</span>
                               ) : netRounded > 0 ? (
                                 <span className={`font-semibold ${owedAmountClass(netRounded)}`}>
-                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} (owed to them)
+                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} ({t("owed to them")})
                                 </span>
                               ) : (
                                 <span className={`font-semibold ${oweAmountClass(-netRounded)}`}>
-                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} (they owe)
+                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} ({t("they owe")})
                                 </span>
                               )}
                             </div>
                             {b ? (
                               <div className="grid grid-cols-3 gap-xs text-[10px] text-on-surface-variant tabular-nums leading-tight border-t border-outline-variant/40 pt-sm">
                                 <span>
-                                  Share{" "}
+                                  {t("Share")}{" "}
                                   <span className={`block font-medium ${oweAmountClass(b.totalOwed)}`}>
                                     {b.totalOwed.toFixed(2)}
                                   </span>
                                 </span>
                                 <span>
-                                  Settled
+                                  {t("Settled")}
                                   <span className={`block font-medium ${owedAmountClass(b.settledAmount)}`}>
                                     {b.settledAmount.toFixed(2)}
                                   </span>
                                 </span>
                                 <span>
-                                  Left
+                                  {t("Left")}
                                   <span className={`block font-medium ${oweAmountClass(b.remainingOwed)}`}>
                                     {b.remainingOwed.toFixed(2)}
                                   </span>
@@ -716,14 +729,14 @@ export default function GroupDetailPage() {
                               </div>
                             ) : (
                               <p className="text-[10px] text-on-surface-variant border-t border-outline-variant/40 pt-sm">
-                                No expense splits recorded yet.
+                                {t("No expense splits recorded yet.")}
                               </p>
                             )}
                             </div>
                             {profile?.id && !isSelf ? (
                               <div className="flex flex-wrap items-center gap-sm px-md pb-md pt-0 border-t border-outline-variant/30">
                                 {isFriend ? (
-                                  <span className="text-xs font-label-sm text-secondary">Friends</span>
+                                  <span className="text-xs font-label-sm text-secondary">{t("Friends")}</span>
                                 ) : hasIncomingRequest ? (
                                   <button
                                     type="button"
@@ -731,11 +744,11 @@ export default function GroupDetailPage() {
                                     onClick={() => void acceptFriendRequestFrom(m.userId)}
                                     className="text-xs font-label-sm rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-xs hover:opacity-90 disabled:opacity-50"
                                   >
-                                    {busyThis ? "Accepting…" : "Accept request"}
+                                    {busyThis ? t("Accepting…") : t("Accept request")}
                                   </button>
                                 ) : requestSent ? (
                                   <span className="text-xs font-label-sm text-on-surface-variant">
-                                    Request sent
+                                    {t("Request sent")}
                                   </span>
                                 ) : (
                                   <button
@@ -747,7 +760,7 @@ export default function GroupDetailPage() {
                                     }}
                                     className="text-xs font-label-sm text-secondary hover:underline disabled:opacity-50"
                                   >
-                                    {busyThis ? "Sending…" : "Add friend"}
+                                    {busyThis ? t("Sending…") : t("Add friend")}
                                   </button>
                                 )}
                               </div>
@@ -763,7 +776,7 @@ export default function GroupDetailPage() {
           </section>
 
           <section
-            aria-label="Group transactions hub"
+            aria-label={t("Group transactions hub")}
             className="w-full rounded-2xl border border-outline-variant/80 bg-gradient-to-br from-surface-container-low via-surface-container-lowest to-surface-container-low p-md sm:p-lg xl:p-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] flex flex-col gap-xl xl:grid xl:grid-cols-[minmax(260px,300px)_minmax(0,1fr)_minmax(300px,400px)] xl:items-start xl:gap-2xl min-h-0"
           >
             <div className="flex w-full min-w-0 flex-col gap-sm border-b border-outline-variant/50 pb-sm -mt-xs mb-xs xl:col-span-3">
@@ -774,21 +787,26 @@ export default function GroupDetailPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <h2 className="font-headline-md text-headline-md leading-tight text-on-surface">
-                      Expense hub
+                      {t("Expense hub")}
                     </h2>
                     <p className="mt-px font-label-sm text-on-surface-variant text-pretty">
                       {graphMode === "group"
-                        ? "Member balances and transfer map"
+                        ? t("Member balances and transfer map")
                         : splitLensUserId
-                          ? `Filtered by ${detail.members.find((x) => x.userId === splitLensUserId)?.displayName ?? "member"}`
-                          : "List · split map · receipt details"}
+                          ? t("Filtered by {name}", {
+                              name:
+                                detail.members.find((x) => x.userId === splitLensUserId)
+                                  ?.displayName ?? t("member"),
+                            })
+                          : t("List · split map · receipt details")}
                     </p>
                   </div>
                 </div>
                 {graphMode === "group" ? (
                   <p className="w-full min-w-0 max-w-full text-pretty text-xs text-on-surface-variant sm:max-w-[20rem] sm:flex-none sm:text-right">
-                    Use <span className="font-semibold text-on-surface">This expense</span> to show
-                    the expense list and breakdown again.
+                    {t("Use {label} to show the expense list and breakdown again.", {
+                      label: t("This expense"),
+                    })}
                   </p>
                 ) : null}
               </div>
@@ -802,7 +820,7 @@ export default function GroupDetailPage() {
                   <span className="material-symbols-outlined text-[22px] text-on-surface-variant">
                     receipt_long
                   </span>
-                  All expenses
+                  {t("All expenses")}
                 </h3>
                 {splitLensUserId ? (
                   <button
@@ -810,47 +828,55 @@ export default function GroupDetailPage() {
                     onClick={() => setSplitLensUserId(null)}
                     className="text-xs font-label-sm text-secondary border border-outline-variant rounded-lg px-sm py-xs hover:bg-surface-container-high"
                   >
-                    Clear person filter
+                    {t("Clear person filter")}
                   </button>
                 ) : null}
               </div>
               <p className="font-label-sm text-on-surface-variant shrink-0">
                 {splitLensUserId
-                  ? `${visibleTransactions.length} of ${sortedTransactions.length} shown`
-                  : `${sortedTransactions.length} item${sortedTransactions.length === 1 ? "" : "s"}`}{" "}
-                · newest first
+                  ? t("{shown} of {total} shown", {
+                      shown: visibleTransactions.length,
+                      total: sortedTransactions.length,
+                    })
+                  : t(
+                      sortedTransactions.length === 1
+                        ? "{count} item"
+                        : "{count} items",
+                      { count: sortedTransactions.length }
+                    )}{" "}
+                · {t("newest first")}
               </p>
               {sortedTransactions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg font-body-md text-on-surface-variant">
-                  No transactions in this group yet.
+                  {t("No transactions in this group yet.")}
                 </div>
               ) : visibleTransactions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg font-body-md text-on-surface-variant space-y-sm">
-                  <p>No expenses include this person as payer or participant.</p>
+                  <p>{t("No expenses include this person as payer or participant.")}</p>
                   <button
                     type="button"
                     onClick={() => setSplitLensUserId(null)}
                     className="font-label-sm text-secondary hover:underline"
                   >
-                    Clear filter
+                    {t("Clear filter")}
                   </button>
                 </div>
               ) : (
                 <ul
                   className="rounded-2xl border border-outline-variant/90 bg-surface-container-lowest/95 divide-y divide-outline-variant/35 overflow-y-auto max-h-[70vh] xl:max-h-[min(78vh,52rem)] shadow-inner"
                   role="listbox"
-                  aria-label="Transaction list"
+                  aria-label={t("Transaction list")}
                 >
-                  {visibleTransactions.map((t) => {
-                    const selected = t.id === selectedTxId;
+                  {visibleTransactions.map((tx) => {
+                    const selected = tx.id === selectedTxId;
                     return (
-                      <li key={t.id} ref={selected ? selectedRowRef : undefined}>
+                      <li key={tx.id} ref={selected ? selectedRowRef : undefined}>
                         <button
                           type="button"
                           role="option"
                           aria-selected={selected}
                           onClick={() => {
-                            setSelectedTxId(t.id);
+                            setSelectedTxId(tx.id);
                             setGraphMode("expense");
                           }}
                           className={`w-full text-left p-md flex gap-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${
@@ -859,37 +885,38 @@ export default function GroupDetailPage() {
                               : "hover:bg-surface-container-high/80"
                           }`}
                         >
-                          <RosterAvatar members={detail.members} userId={t.paidByUserId} />
+                          <RosterAvatar members={detail.members} userId={tx.paidByUserId} />
                           <div className="min-w-0 flex-1 flex flex-col gap-xs">
                             <div className="flex flex-col gap-px">
                               <div className="flex justify-between gap-md items-baseline">
                                 <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">
-                                  Description
+                                  {t("Description")}
                                 </span>
                                 <span className="font-financial-xl text-sm text-secondary shrink-0 tabular-nums">
-                                  {currencyCode(t.currency)} {t.totalAmount.toFixed(2)}
+                                  {currencyCode(tx.currency)} {tx.totalAmount.toFixed(2)}
                                 </span>
                               </div>
                               <span className="font-body-md font-semibold text-on-surface truncate min-w-0">
-                                {t.description?.trim() || "—"}
+                                {tx.description?.trim() || "—"}
                               </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-xs">
                               <span className="rounded-full bg-primary-fixed/35 text-on-surface px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                                {categoryLabel(t.category)}
+                                {categoryLabel(tx.category, t)}
                               </span>
                               <span className="font-label-sm text-on-surface-variant">
-                                Paid by{" "}
+                                {t("Paid by")} {" "}
                                 {paidByLabel(
-                                  t.paidByUserId,
+                                  tx.paidByUserId,
                                   profile?.id,
                                   detail.members,
-                                  t.paidByDisplayName
+                                  tx.paidByDisplayName,
+                                  t
                                 )}
                               </span>
                             </div>
                             <span className="text-xs text-on-surface-variant tabular-nums">
-                              {new Date(t.createdAt).toLocaleString(undefined, {
+                              {new Date(tx.createdAt).toLocaleString(locale, {
                                 dateStyle: "medium",
                                 timeStyle: "short",
                               })}
@@ -910,7 +937,7 @@ export default function GroupDetailPage() {
             >
               <div className="flex w-full min-w-0 flex-wrap items-center gap-sm">
                 <span className="font-label-sm text-on-surface-variant uppercase tracking-wider shrink-0">
-                  Center view
+                  {t("Center view")}
                 </span>
                 <div className="inline-flex rounded-full border border-outline-variant/80 bg-surface-container-high/60 p-0.5 gap-0.5">
                   <button
@@ -922,7 +949,7 @@ export default function GroupDetailPage() {
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
-                    This expense
+                    {t("This expense")}
                   </button>
                   <button
                     type="button"
@@ -933,7 +960,7 @@ export default function GroupDetailPage() {
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
-                    Whole group
+                    {t("Whole group")}
                   </button>
                 </div>
               </div>
@@ -942,9 +969,9 @@ export default function GroupDetailPage() {
                 <>
                 <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-lg xl:flex-row xl:items-stretch xl:gap-xl">
                   <div className="w-full shrink-0 xl:w-64 rounded-2xl border border-outline-variant/70 bg-surface-container-lowest/95 p-md overflow-y-auto max-h-[min(40vh,22rem)] xl:max-h-[min(72vh,40rem)] shadow-inner">
-                    <h3 className="font-headline-sm text-on-surface mb-xs">Members</h3>
+                    <h3 className="font-headline-sm text-on-surface mb-xs">{t("Members")}</h3>
                     <p className="text-[11px] text-on-surface-variant mb-md leading-snug">
-                      Net after all expenses and settlements (positive = owed to them).
+                      {t("Net after all expenses and settlements (positive = owed to them).")}
                     </p>
                     <ul className="space-y-sm">
                       {(detail?.members ?? []).map((m) => {
@@ -963,18 +990,18 @@ export default function GroupDetailPage() {
                                   : "font-semibold text-on-surface"
                               }`}
                             >
-                              {rosterLabel(m, profile?.id)}
+                              {rosterLabel(m, profile?.id, t)}
                             </p>
                             <p className="tabular-nums mt-px">
                               {Math.abs(netRounded) < 0.01 ? (
-                                <span className="text-on-surface-variant">Even</span>
+                                <span className="text-on-surface-variant">{t("Even")}</span>
                               ) : netRounded > 0 ? (
                                 <span className={owedAmountClass(netRounded)}>
-                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} owed to them
+                                  +{groupCurrencyLabel} {netRounded.toFixed(2)} {t("owed to them")}
                                 </span>
                               ) : (
                                 <span className={oweAmountClass(-netRounded)}>
-                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} they owe
+                                  {groupCurrencyLabel} {(-netRounded).toFixed(2)} {t("they owe")}
                                 </span>
                               )}
                             </p>
@@ -997,18 +1024,18 @@ export default function GroupDetailPage() {
                 <div className="rounded-2xl border border-outline-variant/70 bg-surface-container-lowest/95 p-md shadow-inner">
                   <div className="flex flex-wrap items-center justify-between gap-sm mb-sm">
                     <div>
-                      <h3 className="font-headline-sm text-on-surface">Settlements in this group</h3>
+                      <h3 className="font-headline-sm text-on-surface">{t("Settlements in this group")}</h3>
                       <p className="text-[11px] text-on-surface-variant mt-px">
-                        Payments already recorded between members, newest first.
+                        {t("Payments already recorded between members, newest first.")}
                       </p>
                     </div>
                     <span className="rounded-full border border-outline-variant/70 bg-surface px-sm py-0.5 text-[11px] font-label-sm text-on-surface-variant tabular-nums">
-                      {sortedSettlements.length} settlement{sortedSettlements.length === 1 ? "" : "s"}
+                      {sortedSettlements.length} {t(sortedSettlements.length === 1 ? "settlement" : "settlements")}
                     </span>
                   </div>
                   {sortedSettlements.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-lg text-sm text-on-surface-variant">
-                      No settlements recorded yet.
+                      {t("No settlements recorded yet.")}
                     </div>
                   ) : (
                     <ul className="space-y-sm max-h-[18rem] overflow-y-auto pr-xs">
@@ -1021,16 +1048,16 @@ export default function GroupDetailPage() {
                           >
                             <div className="flex flex-wrap items-start justify-between gap-sm">
                               <p className="font-medium text-on-surface">
-                                {memberNameById(detail.members, s.payerUserId, profile?.id)}
+                                {memberNameById(detail.members, s.payerUserId, profile?.id, t)}
                                 <span className="mx-1 text-on-surface-variant">→</span>
-                                {memberNameById(detail.members, s.payeeUserId, profile?.id)}
+                                {memberNameById(detail.members, s.payeeUserId, profile?.id, t)}
                               </p>
                               <span className={`tabular-nums font-semibold ${owedAmountClass(s.amount)}`}>
                                 {currencyCode(sc)} {s.amount.toFixed(2)}
                               </span>
                             </div>
                             <p className="text-xs text-on-surface-variant mt-xs tabular-nums">
-                              {new Date(s.createdAt).toLocaleString(undefined, {
+                              {new Date(s.createdAt).toLocaleString(locale, {
                                 dateStyle: "medium",
                                 timeStyle: "short",
                               })}
@@ -1064,7 +1091,11 @@ export default function GroupDetailPage() {
               ) : (
                 <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest/80 p-xl min-h-[300px] flex flex-col items-center justify-center text-on-surface-variant font-body-md text-center gap-sm">
                   <span className="material-symbols-outlined text-5xl opacity-40">account_tree</span>
-                  <p>Select an expense for the per-receipt split map, or switch to Whole group.</p>
+                  <p>
+                    {t("Select an expense for the per-receipt split map, or switch to {label}.", {
+                      label: t("Whole group"),
+                    })}
+                  </p>
                 </div>
               )}
             </div>
@@ -1079,7 +1110,7 @@ export default function GroupDetailPage() {
                 roster={detail.members}
                 selfUserId={profile?.id}
                 categoryDisplay={
-                  selectedListRow ? categoryLabel(selectedListRow.category) : ""
+                  selectedListRow ? categoryLabel(selectedListRow.category, t) : ""
                 }
                 settlementsTouching={settlementsTouching}
                 showPerMemberBalances={false}

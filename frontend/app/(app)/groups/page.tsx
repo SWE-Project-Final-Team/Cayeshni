@@ -10,10 +10,12 @@ import { storePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildGroupJoinUrl } from "@/lib/group-invite";
 import { InviteFriendToGroup } from "@/components/invite-friend-to-group";
+import { useI18n } from "@/lib/i18n";
 
 export default function GroupsPage() {
   const router = useRouter();
   const { accessToken, emailConfirmed, apiErrorMessage, profile } = useAuth();
+  const { t, locale } = useI18n();
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [name, setName] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -87,12 +89,15 @@ export default function GroupsPage() {
   async function shareGroup(g: GroupDto) {
     setShareHint(null);
     const url = buildGroupJoinUrl(g.inviteToken);
-    const text = `You're invited to join "${g.name}" on Cayeshni.\n\nOpen: ${url}\n\nOr enter this invite code: ${g.inviteToken}`;
+    const text = t(
+      "You're invited to join \"{group}\" on Cayeshni.\n\nOpen: {url}\n\nOr enter this invite code: {inviteToken}",
+      { group: g.name, url, inviteToken: g.inviteToken }
+    );
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: `Join ${g.name} on Cayeshni`,
+          title: t("Join {group} on Cayeshni", { group: g.name }),
           text,
           url,
         });
@@ -108,13 +113,17 @@ export default function GroupsPage() {
 
     try {
       await navigator.clipboard.writeText(url);
-      setShareHint(`Join link copied for “${g.name}”.`);
+      setShareHint(t("Join link copied for \"{group}\".", { group: g.name }));
     } catch {
       try {
         await navigator.clipboard.writeText(g.inviteToken);
-        setShareHint(`Invite code copied for “${g.name}”.`);
+        setShareHint(
+          t("Invite code copied for \"{group}\".", { group: g.name })
+        );
       } catch {
-        setShareHint("Could not copy automatically — copy the invite code from the list.");
+        setShareHint(
+          t("Could not copy automatically — copy the invite code from the list.")
+        );
       }
     }
     window.setTimeout(() => setShareHint(null), 4000);
@@ -194,7 +203,7 @@ export default function GroupsPage() {
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Confirm your email to create and list groups.
+        {t("Confirm your email to create and list groups.")}
       </div>
     );
   }
@@ -203,11 +212,12 @@ export default function GroupsPage() {
     <div className="space-y-xl max-w-5xl">
       <div>
         <h2 className="font-display-lg text-display-lg text-primary">
-          Groups
+          {t("Groups")}
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-          Shareable groups with invite tokens — matches the settlements and
-          expense flows in the design reference.
+          {t(
+            "Shareable groups with invite tokens — matches the settlements and expense flows in the design reference."
+          )}
         </p>
       </div>
 
@@ -225,8 +235,8 @@ export default function GroupsPage() {
 
       {inviteFromLink && (
         <div className="rounded-lg border border-secondary/30 bg-secondary-fixed/30 px-md py-sm font-body-md text-on-surface">
-          You opened an invite link — the code is filled in below. Tap{" "}
-          <strong>Join group</strong> when you&apos;re ready.
+          {t("You opened an invite link — the code is filled in below. Tap")}{" "}
+          <strong>{t("Join group")}</strong> {t("when you&apos;re ready.")}
         </div>
       )}
 
@@ -238,17 +248,17 @@ export default function GroupsPage() {
               : "border-outline-variant bg-surface-container-low text-on-surface-variant"
           }`}
         >
-          {inviteActionErr ?? "Loading invitations…"}
+          {inviteActionErr ?? t("Loading invitations…")}
         </div>
       )}
 
       {!invitesLoading && pendingInvites.length > 0 ? (
         <section
           className="rounded-xl border border-secondary/35 bg-secondary-fixed/20 p-lg shadow-level-1 space-y-md"
-          aria-label="Pending group invitations"
+          aria-label={t("Pending group invitations")}
         >
           <h3 className="font-headline-md text-headline-md text-on-surface">
-            Group invitations
+            {t("Group invitations")}
           </h3>
           <ul className="space-y-md">
             {pendingInvites.map((inv) => (
@@ -261,8 +271,8 @@ export default function GroupsPage() {
                     {inv.groupName}
                   </p>
                   <p className="text-sm text-on-surface-variant mt-xs">
-                    From {inv.invitedByName} ·{" "}
-                    {new Date(inv.createdAt).toLocaleString(undefined, {
+                    {t("From {name}", { name: inv.invitedByName })} ·{" "}
+                    {new Date(inv.createdAt).toLocaleString(locale, {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
@@ -274,14 +284,14 @@ export default function GroupsPage() {
                     onClick={() => void joinFromPending(inv)}
                     className="rounded-lg bg-secondary text-on-secondary font-label-sm px-md py-sm hover:bg-secondary/90"
                   >
-                    Join group
+                    {t("Join group")}
                   </button>
                   <button
                     type="button"
                     onClick={() => void dismissPendingInvite(inv.notificationId)}
                     className="rounded-lg border border-outline-variant font-label-sm px-md py-sm text-primary hover:bg-surface-container-high"
                   >
-                    Dismiss
+                    {t("Dismiss")}
                   </button>
                 </div>
               </li>
@@ -298,7 +308,7 @@ export default function GroupsPage() {
           htmlFor="new-group-name"
           className="block font-label-sm text-label-sm text-on-surface-variant"
         >
-          New group name
+          {t("New group name")}
         </label>
         <div className="flex flex-col sm:flex-row gap-md sm:items-stretch">
           <input
@@ -308,13 +318,13 @@ export default function GroupsPage() {
             required
             minLength={2}
             className="flex-1 min-w-0 w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-            placeholder="Ski trip 2024"
+            placeholder={t("Ski trip 2024")}
           />
           <button
             type="submit"
             className="shrink-0 box-border border border-transparent bg-secondary text-on-secondary font-body-md px-lg rounded-lg hover:bg-secondary/90 w-full sm:w-auto sm:min-w-[9.5rem] py-sm flex items-center justify-center"
           >
-            Create group
+            {t("Create group")}
           </button>
         </div>
       </form>
@@ -327,11 +337,12 @@ export default function GroupsPage() {
           htmlFor="join-invite"
           className="block font-label-sm text-label-sm text-on-surface-variant"
         >
-          Join with invite code
+          {t("Join with invite code")}
         </label>
         <p className="font-body-md text-body-md text-on-surface-variant -mt-xs">
-          Paste the invite code (or open a shared link). Group UUID is not used
-          here — only the invite token from the owner.
+          {t(
+            "Paste the invite code (or open a shared link). Group UUID is not used here — only the invite token from the owner."
+          )}
         </p>
         <div className="flex flex-col sm:flex-row gap-md sm:items-stretch">
           <input
@@ -339,7 +350,7 @@ export default function GroupsPage() {
             value={joinToken}
             onChange={(e) => setJoinToken(e.target.value)}
             className="flex-1 min-w-0 w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface font-mono text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-            placeholder="Invite code from share link or group owner"
+            placeholder={t("Invite code from share link or group owner")}
             autoComplete="off"
             spellCheck={false}
           />
@@ -349,11 +360,11 @@ export default function GroupsPage() {
             className="shrink-0 box-border border border-transparent bg-primary text-on-primary font-body-md px-lg rounded-lg hover:bg-primary-container disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto sm:min-w-[9.5rem] py-sm flex items-center justify-center gap-xs"
           >
             {joinBusy ? (
-              "Joining…"
+              t("Joining…")
             ) : (
               <>
                 <span className="material-symbols-outlined text-[20px]">login</span>
-                Join group
+                {t("Join group")}
               </>
             )}
           </button>
@@ -367,15 +378,15 @@ export default function GroupsPage() {
 
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-level-1">
         <div className="px-lg py-sm bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant">
-          Your groups
+          {t("Your groups")}
         </div>
         {loading ? (
           <div className="p-lg font-body-md text-on-surface-variant">
-            Loading…
+            {t("Loading…")}
           </div>
         ) : groups.length === 0 ? (
           <div className="p-lg font-body-md text-on-surface-variant">
-            No groups yet — create one above.
+            {t("No groups yet — create one above.")}
           </div>
         ) : (
           <ul className="divide-y divide-outline-variant/40">
@@ -389,7 +400,7 @@ export default function GroupsPage() {
                     {g.name}
                   </p>
                   <p className="font-label-sm text-label-sm text-on-surface-variant mt-xs">
-                    {currencyCode(g.defaultCurrency)} · Invite:{" "}
+                    {currencyCode(g.defaultCurrency)} · {t("Invite")}:{" "}
                     <code className="text-xs bg-surface-container-high px-1 rounded break-all">
                       {g.inviteToken}
                     </code>
@@ -401,7 +412,7 @@ export default function GroupsPage() {
                     className="inline-flex items-center justify-center gap-xs rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-sm font-label-sm text-label-sm hover:bg-secondary/90 transition-colors w-full sm:w-auto"
                   >
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                    Open group
+                    {t("Open group")}
                   </Link>
                   <InviteFriendToGroup
                     groupId={g.id}
@@ -418,7 +429,7 @@ export default function GroupsPage() {
                     className="inline-flex items-center justify-center gap-xs rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container-high transition-colors w-full sm:w-auto"
                   >
                     <span className="material-symbols-outlined text-[18px]">share</span>
-                    Share invite
+                    {t("Share invite")}
                   </button>
                 </div>
               </li>

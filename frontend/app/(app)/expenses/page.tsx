@@ -12,31 +12,17 @@ import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { equalParts, toCents } from "@/lib/money-split";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ListboxSelect } from "@/components/listbox-select";
+import { useI18n } from "@/lib/i18n";
 
-const CATEGORIES: { value: number; label: string }[] = [
-  { value: 0, label: "Transport" },
-  { value: 1, label: "Food" },
-  { value: 2, label: "Accommodation" },
-  { value: 3, label: "Entertainment" },
-  { value: 4, label: "Utilities" },
-  { value: 5, label: "Shopping" },
-  { value: 6, label: "Other" },
+const CATEGORIES: { value: number; key: string }[] = [
+  { value: 0, key: "Transport" },
+  { value: 1, key: "Food" },
+  { value: 2, key: "Accommodation" },
+  { value: 3, key: "Entertainment" },
+  { value: 4, key: "Utilities" },
+  { value: 5, key: "Shopping" },
+  { value: 6, key: "Other" },
 ];
-
-function categoryLabel(c: number): string {
-  return CATEGORIES.find((x) => x.value === c)?.label ?? `Category ${c}`;
-}
-
-function expensePayerLabel(
-  paidByUserId: string,
-  paidByDisplayName: string,
-  selfId: string | undefined
-): string {
-  if (selfId && paidByUserId === selfId) return "you";
-  const name = paidByDisplayName?.trim();
-  if (name) return name;
-  return "Member";
-}
 
 function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): GroupDto {
   return {
@@ -55,11 +41,12 @@ function normalizeGroupDetail(
 }
 
 export default function ExpensesPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-          Loading expenses…
+          {t("Loading expenses…")}
         </div>
       }
     >
@@ -72,6 +59,7 @@ function ExpensesPageInner() {
   const searchParams = useSearchParams();
   const urlGroupApplied = useRef(false);
   const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
+  const { t } = useI18n();
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
   const [groupDetail, setGroupDetail] = useState<GroupDetailDto | null>(null);
@@ -96,19 +84,37 @@ function ExpensesPageInner() {
       groups.map((g) => ({
         value: g.id,
         label: g.name,
-        description: `Default currency · ${currencyCode(g.defaultCurrency)}`,
+        description: t("Default currency · {currency}", {
+          currency: currencyCode(g.defaultCurrency),
+        }),
       })),
-    [groups]
+    [groups, t]
   );
 
   const categoryOptions = useMemo(
     () =>
       CATEGORIES.map((c) => ({
         value: String(c.value),
-        label: c.label,
+        label: t(c.key),
       })),
-    []
+    [t]
   );
+
+  function categoryLabel(c: number): string {
+    const match = CATEGORIES.find((x) => x.value === c);
+    return match ? t(match.key) : t("Category {id}", { id: c });
+  }
+
+  function expensePayerLabel(
+    paidByUserId: string,
+    paidByDisplayName: string,
+    selfId: string | undefined
+  ): string {
+    if (selfId && paidByUserId === selfId) return t("you");
+    const name = paidByDisplayName?.trim();
+    if (name) return name;
+    return t("Member");
+  }
 
   const loadGroups = useCallback(async () => {
     if (!accessToken || !emailConfirmed) return;
@@ -205,11 +211,11 @@ function ExpensesPageInner() {
 
     const total = parseFloat(amount.replace(",", ".")) || 0;
     if (total <= 0) {
-      setFormErr("Enter an amount greater than zero.");
+      setFormErr(t("Enter an amount greater than zero."));
       return;
     }
     if (memberIds.length === 0) {
-      setFormErr("This group has no members to split with yet.");
+      setFormErr(t("This group has no members to split with yet."));
       return;
     }
 
@@ -230,7 +236,14 @@ function ExpensesPageInner() {
     const sumCents = splits.reduce((s, x) => s + toCents(x.amountOwed), 0);
     if (sumCents !== toCents(total)) {
       setFormErr(
-        `Splits must add up to ${total.toFixed(2)} ${currencyCode(selectedGroup.defaultCurrency)}. Current: ${(sumCents / 100).toFixed(2)}.`
+        t(
+          "Splits must add up to {total} {currency}. Current: {current}.",
+          {
+            total: total.toFixed(2),
+            currency: currencyCode(selectedGroup.defaultCurrency),
+            current: (sumCents / 100).toFixed(2),
+          }
+        )
       );
       return;
     }
@@ -265,7 +278,7 @@ function ExpensesPageInner() {
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
-        Confirm your email to load expenses from the API.
+        {t("Confirm your email to load expenses from the API.")}
       </div>
     );
   }
@@ -279,24 +292,25 @@ function ExpensesPageInner() {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-md">
         <div>
           <h2 className="font-display-lg text-display-lg text-on-surface">
-            Expenses
+            {t("Expenses")}
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-            Add transactions for a group. Amounts use the group&apos;s default
-            currency ({currencyLabel || "—"}). You are recorded as the person
-            who paid.
+            {t(
+              "Add transactions for a group. Amounts use the group&apos;s default currency ({currency}). You are recorded as the person who paid.",
+              { currency: currencyLabel || "—" }
+            )}
           </p>
         </div>
         <div className="flex flex-col gap-xs w-full sm:w-auto sm:min-w-[260px]">
           <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-            Group
+            {t("Group")}
           </span>
           <ListboxSelect
             value={groupId}
             onChange={setGroupId}
             options={groupOptions}
-            placeholder="Choose a group"
-            emptyMessage="No groups yet — create one under Groups"
+            placeholder={t("Choose a group")}
+            emptyMessage={t("No groups yet — create one under Groups")}
             leadingIcon="groups"
             className="w-full min-w-0 sm:min-w-[240px]"
             align="end"
@@ -314,17 +328,17 @@ function ExpensesPageInner() {
         <div className="xl:col-span-7 space-y-md">
           <div className="bg-surface rounded-[16px] border border-outline-variant shadow-level-1 overflow-hidden">
             <div className="bg-surface-container-low px-lg py-sm font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant">
-              Transactions
+              {t("Transactions")}
             </div>
             {txs.length === 0 ? (
               <div className="p-lg font-body-md text-on-surface-variant">
-                No transactions in this group yet.
+                {t("No transactions in this group yet.")}
               </div>
             ) : (
               <ul>
-                {txs.map((t, i) => (
+                {txs.map((tx, i) => (
                   <li
-                    key={t.id}
+                    key={tx.id}
                     className={`flex items-start p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
                       i % 2 === 1 ? "bg-surface-container-low" : ""
                     }`}
@@ -339,24 +353,24 @@ function ExpensesPageInner() {
                         <div className="flex flex-col gap-px">
                           <div className="flex justify-between items-baseline gap-md">
                             <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">
-                              Description
+                              {t("Description")}
                             </span>
                             <span className="font-financial-xl text-[20px] leading-tight text-on-surface tabular-nums shrink-0">
-                              {currencyCode(t.currency)} {t.totalAmount.toFixed(2)}
+                              {currencyCode(tx.currency)} {tx.totalAmount.toFixed(2)}
                             </span>
                           </div>
                           <div className="font-body-md text-body-md font-bold text-on-surface truncate">
-                            {t.description?.trim() || "—"}
+                            {tx.description?.trim() || "—"}
                           </div>
                         </div>
                         <div className="font-label-sm text-label-sm text-on-surface-variant mt-xs">
-                          Paid by{" "}
+                          {t("Paid by")} {" "}
                           {expensePayerLabel(
-                            t.paidByUserId,
-                            t.paidByDisplayName,
+                            tx.paidByUserId,
+                            tx.paidByDisplayName,
                             profile?.id
                           )}{" "}
-                          · {categoryLabel(t.category)}
+                          · {categoryLabel(tx.category)}
                         </div>
                       </div>
                     </div>
@@ -373,7 +387,7 @@ function ExpensesPageInner() {
             className="bg-surface rounded-[16px] border border-outline-variant shadow-level-2 p-lg sticky top-lg space-y-md"
           >
             <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-sm">
-              Add expense
+              {t("Add expense")}
             </h3>
 
             {formErr && (
@@ -384,28 +398,28 @@ function ExpensesPageInner() {
 
             {!selectedGroup ? (
               <p className="font-body-md text-on-surface-variant">
-                Select a group to add an expense.
+                {t("Select a group to add an expense.")}
               </p>
             ) : (
               <>
                 <p className="font-label-sm text-on-surface-variant">
-                  Currency:{" "}
+                  {t("Currency")}:{" "}
                   <span className="text-on-surface font-semibold">
                     {currencyLabel}
                   </span>{" "}
-                  (must match the group — set when the group was created)
+                  {t("(must match the group — set when the group was created)")}
                 </p>
 
                 <div>
                   <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                    Amount ({currencyLabel})
+                    {t("Amount ({currency})", { currency: currencyLabel })}
                   </label>
                   <input
                     type="text"
                     inputMode="decimal"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={t("0.00")}
                     className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-financial-xl text-[24px] text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     required
                   />
@@ -413,25 +427,25 @@ function ExpensesPageInner() {
 
                 <div>
                   <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                    Description (optional)
+                    {t("Description (optional)")}
                   </label>
                   <input
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Dinner, rent, taxi…"
+                    placeholder={t("Dinner, rent, taxi…")}
                     className="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                   />
                 </div>
 
                 <div>
                   <span className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                    Category
+                    {t("Category")}
                   </span>
                   <ListboxSelect
                     value={String(category)}
                     onChange={(v) => setCategory(Number(v))}
                     options={categoryOptions}
-                    placeholder="Pick a category"
+                    placeholder={t("Pick a category")}
                     leadingIcon="category"
                     className="w-full"
                   />
@@ -439,7 +453,7 @@ function ExpensesPageInner() {
 
                 <div className="border border-outline-variant/60 rounded-lg p-md space-y-sm">
                   <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-                    Split between members
+                    {t("Split between members")}
                   </p>
                   <label className="flex items-center gap-sm cursor-pointer font-body-md text-on-surface">
                     <input
@@ -449,8 +463,8 @@ function ExpensesPageInner() {
                       onChange={() => setEqualSplit(true)}
                       className="accent-secondary"
                     />
-                    Equal split ({memberIds.length} member
-                    {memberIds.length === 1 ? "" : "s"})
+                    {t("Equal split ({count} member)", { count: memberIds.length })}
+                    {memberIds.length === 1 ? "" : t("s")}
                   </label>
                   <label className="flex items-center gap-sm cursor-pointer font-body-md text-on-surface">
                     <input
@@ -471,7 +485,7 @@ function ExpensesPageInner() {
                       }}
                       className="accent-secondary"
                     />
-                    Custom amounts
+                    {t("Custom amounts")}
                   </label>
                 </div>
 
@@ -486,7 +500,7 @@ function ExpensesPageInner() {
                           className="flex items-center justify-between gap-sm"
                         >
                           <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
-                            {id === profile?.id ? "You" : displayName}
+                            {id === profile?.id ? t("You") : displayName}
                           </span>
                           <input
                             type="text"
@@ -512,13 +526,13 @@ function ExpensesPageInner() {
                   className="w-full bg-secondary text-on-secondary font-label-sm py-md rounded-lg hover:bg-secondary/90 disabled:opacity-50 flex justify-center items-center gap-sm"
                 >
                   {submitting ? (
-                    "Saving…"
+                    t("Saving…")
                   ) : (
                     <>
                       <span className="material-symbols-outlined text-[20px]">
                         add
                       </span>
-                      Add transaction
+                      {t("Add transaction")}
                     </>
                   )}
                 </button>
