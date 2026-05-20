@@ -60,14 +60,19 @@ export default function ConfirmEmailPage() {
       {done ? (
         <p className="font-body-md text-on-surface-variant">
           {t("Thanks — your email is confirmed.")}{" "}
-          <Link href={continueHref} className="text-secondary font-semibold hover:underline">
+          <Link
+            href={continueHref}
+            className="text-secondary font-semibold hover:underline"
+          >
             {t("Continue")}
           </Link>
         </p>
       ) : (
         <>
           <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
-            {t("We&apos;re confirming your email now. If needed, you can retry below.")}
+            {t(
+              "We&apos;re confirming your email now. If needed, you can retry below.",
+            )}
           </p>
           {err && (
             <div className="mb-md rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
@@ -86,7 +91,7 @@ export default function ConfirmEmailPage() {
           {!userId || !token ? (
             <p className="mt-md font-body-sm text-on-surface-variant">
               {t(
-                "This link is missing required information. Request a new confirmation email from the app banner."
+                "This link is missing required information. Request a new confirmation email from the app banner.",
               )}
             </p>
           ) : null}

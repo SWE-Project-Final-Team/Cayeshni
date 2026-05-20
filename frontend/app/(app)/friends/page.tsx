@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson, userAvatarSrc } from "@/lib/api/client";
 import type {
@@ -45,13 +39,8 @@ export default function FriendsPage() {
 function FriendsPageContent() {
   const searchParams = useSearchParams();
   const pickerRef = useRef<HTMLDivElement>(null);
-  const {
-    accessToken,
-    emailConfirmed,
-    profile,
-    loadProfile,
-    apiErrorMessage,
-  } = useAuth();
+  const { accessToken, emailConfirmed, profile, loadProfile, apiErrorMessage } =
+    useAuth();
   const { t, locale } = useI18n();
 
   const [friends, setFriends] = useState<FriendDto[]>([]);
@@ -59,12 +48,13 @@ function FriendsPageContent() {
   const [nameQuery, setNameQuery] = useState("");
   const debouncedName = useDebouncedValue(nameQuery, 380);
   const [searchResults, setSearchResults] = useState<UserProfileSearchDto[]>(
-    []
+    [],
   );
   const [searchLoading, setSearchLoading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [selectedUser, setSelectedUser] =
-    useState<UserProfileSearchDto | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfileSearchDto | null>(
+    null,
+  );
 
   const [targetEmail, setTargetEmail] = useState("");
   const [useEmailInstead, setUseEmailInstead] = useState(false);
@@ -147,7 +137,7 @@ function FriendsPageContent() {
       try {
         const data = await apiJson<UserProfileSearchDto[]>(
           `/api/users/search?q=${encodeURIComponent(q)}`,
-          { accessToken, signal: ac.signal }
+          { accessToken, signal: ac.signal },
         );
         if (!stale) setSearchResults(data ?? []);
       } catch {
@@ -226,10 +216,15 @@ function FriendsPageContent() {
     if (useEmailInstead) {
       const email = targetEmail.trim();
       if (!isValidEmail(email)) {
-        setErr(t("Enter a valid email address for your friend’s Cayeshni account."));
+        setErr(
+          t("Enter a valid email address for your friend’s Cayeshni account."),
+        );
         return;
       }
-      if (profile?.email && normalizeEmail(email) === normalizeEmail(profile.email)) {
+      if (
+        profile?.email &&
+        normalizeEmail(email) === normalizeEmail(profile.email)
+      ) {
         setErr(t("You cannot send a friend request to yourself."));
         return;
       }
@@ -251,7 +246,9 @@ function FriendsPageContent() {
       return;
     }
 
-    setErr(t("Search for someone by name and pick their profile, or use email."));
+    setErr(
+      t("Search for someone by name and pick their profile, or use email."),
+    );
   }
 
   async function acceptRequest(requesterId: string) {
@@ -296,8 +293,7 @@ function FriendsPageContent() {
   }
 
   const canSubmitSearch =
-    !!selectedUser ||
-    (useEmailInstead && isValidEmail(targetEmail.trim()));
+    !!selectedUser || (useEmailInstead && isValidEmail(targetEmail.trim()));
 
   if (!emailConfirmed) {
     return (
@@ -310,10 +306,12 @@ function FriendsPageContent() {
   return (
     <div className="space-y-xl max-w-5xl">
       <header className="border-b border-outline-variant pb-lg">
-        <h1 className="font-display-lg text-display-lg text-primary">{t("Friends")}</h1>
+        <h1 className="font-display-lg text-display-lg text-primary">
+          {t("Friends")}
+        </h1>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
           {t(
-            "Search by display name, pick the right person from the list, or send by email. Accept incoming requests below."
+            "Search by display name, pick the right person from the list, or send by email. Accept incoming requests below.",
           )}
         </p>
       </header>

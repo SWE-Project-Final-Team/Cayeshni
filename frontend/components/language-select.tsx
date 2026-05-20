@@ -8,7 +8,10 @@ export function LanguageSelect({ className = "" }: { className?: string }) {
 
   const options = LANGUAGE_OPTIONS.map((opt) => {
     const label = t(opt.label);
-    const description = opt.description && opt.description !== label ? opt.description : undefined;
+    const description =
+      opt.description && opt.description !== label
+        ? opt.description
+        : undefined;
     return {
       value: opt.value,
       label,

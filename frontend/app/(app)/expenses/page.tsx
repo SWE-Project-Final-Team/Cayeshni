@@ -1,13 +1,16 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api/client";
-import type {
-  GroupDetailDto,
-  GroupDto,
-  TransactionDto,
-} from "@/lib/api/types";
+import type { GroupDetailDto, GroupDto, TransactionDto } from "@/lib/api/types";
 import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { equalParts, toCents } from "@/lib/money-split";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -24,7 +27,9 @@ const CATEGORIES: { value: number; key: string }[] = [
   { value: 6, key: "Other" },
 ];
 
-function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): GroupDto {
+function normalizeGroup(
+  g: GroupDto & { defaultCurrency?: string | number },
+): GroupDto {
   return {
     ...g,
     defaultCurrency: currencyValueFromApi(g.defaultCurrency),
@@ -32,7 +37,7 @@ function normalizeGroup(g: GroupDto & { defaultCurrency?: string | number }): Gr
 }
 
 function normalizeGroupDetail(
-  d: GroupDetailDto & { defaultCurrency?: string | number }
+  d: GroupDetailDto & { defaultCurrency?: string | number },
 ): GroupDetailDto {
   return {
     ...d,
@@ -76,7 +81,7 @@ function ExpensesPageInner() {
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === groupId),
-    [groups, groupId]
+    [groups, groupId],
   );
 
   const groupOptions = useMemo(
@@ -88,7 +93,7 @@ function ExpensesPageInner() {
           currency: currencyCode(g.defaultCurrency),
         }),
       })),
-    [groups, t]
+    [groups, t],
   );
 
   const categoryOptions = useMemo(
@@ -97,7 +102,7 @@ function ExpensesPageInner() {
         value: String(c.value),
         label: t(c.key),
       })),
-    [t]
+    [t],
   );
 
   function categoryLabel(c: number): string {
@@ -108,7 +113,7 @@ function ExpensesPageInner() {
   function expensePayerLabel(
     paidByUserId: string,
     paidByDisplayName: string,
-    selfId: string | undefined
+    selfId: string | undefined,
   ): string {
     if (selfId && paidByUserId === selfId) return t("you");
     const name = paidByDisplayName?.trim();
@@ -138,7 +143,7 @@ function ExpensesPageInner() {
     try {
       const data = await apiJson<TransactionDto[]>(
         `/api/transactions/group/${groupId}`,
-        { accessToken }
+        { accessToken },
       );
       setTxs(data);
     } catch (e) {
@@ -153,10 +158,9 @@ function ExpensesPageInner() {
       return;
     }
     try {
-      const data = await apiJson<GroupDetailDto & { defaultCurrency?: string | number }>(
-        `/api/groups/${groupId}`,
-        { accessToken }
-      );
+      const data = await apiJson<
+        GroupDetailDto & { defaultCurrency?: string | number }
+      >(`/api/groups/${groupId}`, { accessToken });
       setGroupDetail(normalizeGroupDetail(data));
     } catch {
       setGroupDetail(null);
@@ -186,12 +190,12 @@ function ExpensesPageInner() {
 
   const memberIds = useMemo(
     () => groupDetail?.members.map((m) => m.userId).sort() ?? [],
-    [groupDetail?.members]
+    [groupDetail?.members],
   );
 
   const memberById = useMemo(
     () => new Map((groupDetail?.members ?? []).map((m) => [m.userId, m])),
-    [groupDetail?.members]
+    [groupDetail?.members],
   );
 
   useEffect(() => {
@@ -229,21 +233,19 @@ function ExpensesPageInner() {
     } else {
       splits = memberIds.map((userId) => ({
         userId,
-        amountOwed: parseFloat((customParts[userId] ?? "0").replace(",", ".")) || 0,
+        amountOwed:
+          parseFloat((customParts[userId] ?? "0").replace(",", ".")) || 0,
       }));
     }
 
     const sumCents = splits.reduce((s, x) => s + toCents(x.amountOwed), 0);
     if (sumCents !== toCents(total)) {
       setFormErr(
-        t(
-          "Splits must add up to {total} {currency}. Current: {current}.",
-          {
-            total: total.toFixed(2),
-            currency: currencyCode(selectedGroup.defaultCurrency),
-            current: (sumCents / 100).toFixed(2),
-          }
-        )
+        t("Splits must add up to {total} {currency}. Current: {current}.", {
+          total: total.toFixed(2),
+          currency: currencyCode(selectedGroup.defaultCurrency),
+          current: (sumCents / 100).toFixed(2),
+        }),
       );
       return;
     }
@@ -297,7 +299,7 @@ function ExpensesPageInner() {
           <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
             {t(
               "Add transactions for a group. Amounts use the group&apos;s default currency ({currency}). You are recorded as the person who paid.",
-              { currency: currencyLabel || "—" }
+              { currency: currencyLabel || "—" },
             )}
           </p>
         </div>
@@ -356,7 +358,8 @@ function ExpensesPageInner() {
                               {t("Description")}
                             </span>
                             <span className="font-financial-xl text-[20px] leading-tight text-on-surface tabular-nums shrink-0">
-                              {currencyCode(tx.currency)} {tx.totalAmount.toFixed(2)}
+                              {currencyCode(tx.currency)}{" "}
+                              {tx.totalAmount.toFixed(2)}
                             </span>
                           </div>
                           <div className="font-body-md text-body-md font-bold text-on-surface truncate">
@@ -364,11 +367,11 @@ function ExpensesPageInner() {
                           </div>
                         </div>
                         <div className="font-label-sm text-label-sm text-on-surface-variant mt-xs">
-                          {t("Paid by")} {" "}
+                          {t("Paid by")}{" "}
                           {expensePayerLabel(
                             tx.paidByUserId,
                             tx.paidByDisplayName,
-                            profile?.id
+                            profile?.id,
                           )}{" "}
                           · {categoryLabel(tx.category)}
                         </div>
@@ -463,7 +466,9 @@ function ExpensesPageInner() {
                       onChange={() => setEqualSplit(true)}
                       className="accent-secondary"
                     />
-                    {t("Equal split ({count} member)", { count: memberIds.length })}
+                    {t("Equal split ({count} member)", {
+                      count: memberIds.length,
+                    })}
                     {memberIds.length === 1 ? "" : t("s")}
                   </label>
                   <label className="flex items-center gap-sm cursor-pointer font-body-md text-on-surface">
@@ -493,7 +498,8 @@ function ExpensesPageInner() {
                   <div className="space-y-sm max-h-48 overflow-y-auto pr-xs">
                     {memberIds.map((id) => {
                       const memberInfo = memberById.get(id);
-                      const displayName = memberInfo?.displayName || `${id.slice(0, 8)}…`;
+                      const displayName =
+                        memberInfo?.displayName || `${id.slice(0, 8)}…`;
                       return (
                         <div
                           key={id}

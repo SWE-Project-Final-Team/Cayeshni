@@ -9,19 +9,18 @@ import {
   userAvatarSrc,
 } from "@/lib/api/client";
 import { ListboxSelect } from "@/components/listbox-select";
-import { CURRENCY_OPTIONS, currencyCode, currencyValueFromApi } from "@/lib/currency";
+import {
+  CURRENCY_OPTIONS,
+  currencyCode,
+  currencyValueFromApi,
+} from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { UserProfile } from "@/lib/auth/auth-context";
 import { useI18n } from "@/lib/i18n";
 
 export default function ProfilePage() {
-  const {
-    accessToken,
-    emailConfirmed,
-    profile,
-    loadProfile,
-    apiErrorMessage,
-  } = useAuth();
+  const { accessToken, emailConfirmed, profile, loadProfile, apiErrorMessage } =
+    useAuth();
   const { t, locale } = useI18n();
 
   const [local, setLocal] = useState<UserProfile | null>(null);
@@ -39,10 +38,9 @@ export default function ProfilePage() {
     }
     setErr(null);
     try {
-      const raw = await apiJson<UserProfile & { preferredCurrency?: string | number }>(
-        "/api/users/me",
-        { accessToken }
-      );
+      const raw = await apiJson<
+        UserProfile & { preferredCurrency?: string | number }
+      >("/api/users/me", { accessToken });
       const pic = (raw.profilePictureUrl ?? "").trim();
       const me: UserProfile = {
         ...raw,
@@ -102,7 +100,7 @@ export default function ProfilePage() {
       await apiMultipartJson<{ pictureUrl: string }>(
         "/api/users/me/picture",
         fd,
-        accessToken
+        accessToken,
       );
       setMsg(t("Photo updated."));
       await refresh();
@@ -144,7 +142,7 @@ export default function ProfilePage() {
         value: String(c.value),
         label: c.label,
       })),
-    []
+    [],
   );
 
   if (!emailConfirmed) {
@@ -155,7 +153,7 @@ export default function ProfilePage() {
         </h2>
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-level-1 font-body-md text-on-surface-variant">
           {t(
-            "Confirm your email to view and edit your profile. After you use the link in your inbox, refresh this page."
+            "Confirm your email to view and edit your profile. After you use the link in your inbox, refresh this page.",
           )}
         </div>
         <Link
@@ -224,7 +222,7 @@ export default function ProfilePage() {
             </p>
             {display?.createdAt && (
               <p className="font-label-sm text-on-surface-variant mt-md">
-                {t("Member since")} {" "}
+                {t("Member since")}{" "}
                 {new Date(display.createdAt).toLocaleDateString(locale, {
                   year: "numeric",
                   month: "long",
@@ -235,7 +233,9 @@ export default function ProfilePage() {
             <p className="font-label-sm text-on-surface-variant mt-sm">
               {t("Default currency")}:{" "}
               <span className="text-on-surface font-semibold">
-                {display != null ? currencyCode(display.preferredCurrency) : "—"}
+                {display != null
+                  ? currencyCode(display.preferredCurrency)
+                  : "—"}
               </span>
             </p>
 

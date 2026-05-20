@@ -30,7 +30,7 @@ export default function AppGroupLayout({
 
     if (!emailConfirmed) {
       router.replace(
-        `/login?pendingVerification=1&next=${encodeURIComponent(safe)}`
+        `/login?pendingVerification=1&next=${encodeURIComponent(safe)}`,
       );
     }
   }, [bootstrapping, accessToken, emailConfirmed, router]);

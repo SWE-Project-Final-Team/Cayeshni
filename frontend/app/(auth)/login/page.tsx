@@ -118,9 +118,7 @@ export default function LoginPage() {
 
   return (
     <main className="w-full max-w-[1000px] bg-surface-container-lowest rounded-[24px] shadow-level-2 border border-outline-variant/40 flex flex-col md:flex-row overflow-hidden relative">
-      <div
-        className="hidden md:flex flex-col justify-start w-5/12 p-xl relative overflow-hidden bg-gradient-to-br from-primary-container/70 via-surface-container-low to-secondary-container/55"
-      >
+      <div className="hidden md:flex flex-col justify-start w-5/12 p-xl relative overflow-hidden bg-gradient-to-br from-primary-container/70 via-surface-container-low to-secondary-container/55">
         <div className="absolute inset-0 bg-gradient-to-br from-surface/20 via-transparent to-surface/10" />
         <div className="absolute -top-16 -right-10 h-44 w-44 rounded-full bg-secondary-fixed/20 blur-3xl" />
         <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-primary-fixed/20 blur-3xl" />
@@ -154,7 +152,7 @@ export default function LoginPage() {
           >
             <p className="font-body-md text-body-md text-on-surface">
               {t(
-                "Your email is not verified yet. Open the link we sent you to unlock your account, or request a new message below."
+                "Your email is not verified yet. Open the link we sent you to unlock your account, or request a new message below.",
               )}
             </p>
             <div className="flex flex-wrap items-center gap-sm">
@@ -319,9 +317,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     aria-label={
-                      showRegPassword
-                        ? t("Hide password")
-                        : t("Show password")
+                      showRegPassword ? t("Hide password") : t("Show password")
                     }
                     aria-pressed={showRegPassword}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"

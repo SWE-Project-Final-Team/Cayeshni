@@ -87,7 +87,9 @@ export default function SettingsPage() {
           {t("Settings")}
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-          {t("Update your display name and currency, and change your password.")}
+          {t(
+            "Update your display name and currency, and change your password.",
+          )}
         </p>
       </div>
 

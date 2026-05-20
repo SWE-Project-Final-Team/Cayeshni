@@ -51,7 +51,7 @@ export default function NotFound() {
             {t("Not routes 📉")}
           </p>
           <p className="font-body-md text-on-surface italic">
-            {t("\"We underwrote this URL. The risk model said no.\"")}
+            {t('"We underwrote this URL. The risk model said no."')}
           </p>
           <p className="font-body-md text-on-surface-variant text-sm">
             {t("- your browser's CFO (probably)")}
@@ -70,7 +70,9 @@ export default function NotFound() {
             href="/dashboard"
             className="inline-flex justify-center items-center gap-xs rounded-lg border border-outline-variant bg-surface text-primary font-label-sm py-sm px-lg hover:bg-surface-container-high transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+            <span className="material-symbols-outlined text-[18px]">
+              account_balance_wallet
+            </span>
             {t("Dashboard")}
           </Link>
           <Link

@@ -13,7 +13,11 @@ import type {
 import { ListboxSelect } from "@/components/listbox-select";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
-import { currencyApiName, currencyCode, currencyValueFromApi } from "@/lib/currency";
+import {
+  currencyApiName,
+  currencyCode,
+  currencyValueFromApi,
+} from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   buildAllocationsFifo,
@@ -24,20 +28,15 @@ import { useI18n } from "@/lib/i18n";
 
 function displayName(
   members: { userId: string; displayName: string }[] | undefined,
-  userId: string
+  userId: string,
 ): string {
   const m = members?.find((x) => x.userId === userId);
   return m?.displayName ?? `${userId.slice(0, 8)}…`;
 }
 
 export default function SettlementsPage() {
-  const {
-    accessToken,
-    emailConfirmed,
-    profile,
-    loadProfile,
-    apiErrorMessage,
-  } = useAuth();
+  const { accessToken, emailConfirmed, profile, loadProfile, apiErrorMessage } =
+    useAuth();
   const { t, locale } = useI18n();
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
@@ -63,9 +62,8 @@ export default function SettlementsPage() {
     string,
     number
   > | null>(null);
-  const [settlementToDelete, setSettlementToDelete] = useState<SettlementDto | null>(
-    null
-  );
+  const [settlementToDelete, setSettlementToDelete] =
+    useState<SettlementDto | null>(null);
   const [deletePending, setDeletePending] = useState(false);
 
   const payerId = profile?.id ?? "";
@@ -99,12 +97,14 @@ export default function SettlementsPage() {
         apiJson<GroupDetailDto>(`/api/groups/${groupId}`, { accessToken }),
         apiJson<GroupMemberBalanceDto[]>(
           `/api/transactions/group/${groupId}/debts`,
-          { accessToken }
+          { accessToken },
         ),
         apiJson<TransactionDto[]>(`/api/transactions/group/${groupId}`, {
           accessToken,
         }),
-        apiJson<SettlementDto[]>(`/api/settlements/${groupId}`, { accessToken }),
+        apiJson<SettlementDto[]>(`/api/settlements/${groupId}`, {
+          accessToken,
+        }),
       ]);
       setDetail(d);
       setDebts(b);
@@ -145,7 +145,13 @@ export default function SettlementsPage() {
   }, [loadGroupContext]);
 
   useEffect(() => {
-    if (!accessToken || !emailConfirmed || !groupId || !payerId || !payeeUserId) {
+    if (
+      !accessToken ||
+      !emailConfirmed ||
+      !groupId ||
+      !payerId ||
+      !payeeUserId
+    ) {
       setPayeeDetails([]);
       return;
     }
@@ -168,8 +174,8 @@ export default function SettlementsPage() {
           ids.map((id) =>
             apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
               accessToken,
-            })
-          )
+            }),
+          ),
         );
         if (!cancelled) setPayeeDetails(details);
       } catch (e) {
@@ -182,7 +188,15 @@ export default function SettlementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, emailConfirmed, groupId, payerId, payeeUserId, txs, apiErrorMessage]);
+  }, [
+    accessToken,
+    emailConfirmed,
+    groupId,
+    payerId,
+    payeeUserId,
+    txs,
+    apiErrorMessage,
+  ]);
 
   useEffect(() => {
     if (
@@ -213,14 +227,14 @@ export default function SettlementsPage() {
               ids.map((id) =>
                 apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
                   accessToken,
-                })
-              )
+                }),
+              ),
             );
             out[m.userId] = maxSettleableTowardPayee(details, payerId);
           } catch {
             out[m.userId] = 0;
           }
-        })
+        }),
       );
       if (!cancelled) setPayeeMaxByUserId(out);
     })();
@@ -237,7 +251,7 @@ export default function SettlementsPage() {
 
   const maxTowardPayee = useMemo(
     () => maxSettleableTowardPayee(payeeDetails, payerId),
-    [payeeDetails, payerId]
+    [payeeDetails, payerId],
   );
 
   const previewAllocations = useMemo(() => {
@@ -268,8 +282,8 @@ export default function SettlementsPage() {
           {
             amount: maxTowardPayee.toFixed(2),
             currency: currencyCode(detail.defaultCurrency),
-          }
-        )
+          },
+        ),
       );
       return;
     }
@@ -277,8 +291,8 @@ export default function SettlementsPage() {
     if (allocations.length === 0) {
       setFormErr(
         t(
-          "No matching expenses to apply this payment to. Pick a payee you owe through a shared expense they paid for."
-        )
+          "No matching expenses to apply this payment to. Pick a payee you owe through a shared expense they paid for.",
+        ),
       );
       return;
     }
@@ -387,7 +401,7 @@ export default function SettlementsPage() {
 
   const groupListboxOptions = useMemo(
     () => groups.map((g) => ({ value: g.id, label: g.name })),
-    [groups]
+    [groups],
   );
 
   const payeeListboxOptions = useMemo(() => {
@@ -407,7 +421,7 @@ export default function SettlementsPage() {
         </h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
           {t(
-            "Record cash or external transfers against shared expenses. Allocations apply to the oldest matching expenses first."
+            "Record cash or external transfers against shared expenses. Allocations apply to the oldest matching expenses first.",
           )}
         </p>
         <div className="mt-md flex flex-wrap gap-sm items-end">
@@ -465,8 +479,10 @@ export default function SettlementsPage() {
                         {displayName(detail.members, b.userId)}
                       </span>
                       <span className="text-on-surface-variant">
-                        {t("Remaining owed")}: {" "}
-                        <span className={`font-medium tabular-nums ${oweAmountClass(b.remainingOwed)}`}>
+                        {t("Remaining owed")}:{" "}
+                        <span
+                          className={`font-medium tabular-nums ${oweAmountClass(b.remainingOwed)}`}
+                        >
                           {b.remainingOwed.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
                         </span>
@@ -486,7 +502,7 @@ export default function SettlementsPage() {
               </h2>
               <p className="font-body-md text-on-surface-variant text-sm">
                 {t(
-                  "You record a payment from you to someone you owe through expenses they paid for in this group."
+                  "You record a payment from you to someone you owe through expenses they paid for in this group.",
                 )}
               </p>
               {detail == null ? (
@@ -510,7 +526,9 @@ export default function SettlementsPage() {
                             ? t("No one you owe in this group")
                             : t("Select member…")
                       }
-                      emptyMessage={t("No one you currently owe through shared expenses")}
+                      emptyMessage={t(
+                        "No one you currently owe through shared expenses",
+                      )}
                       leadingIcon="person"
                       className="w-full"
                     />
@@ -535,7 +553,9 @@ export default function SettlementsPage() {
                         disabled={maxTowardPayee <= 0 || previewLoading}
                         onClick={() => setAmountStr(maxTowardPayee.toFixed(2))}
                         className={`text-sm font-label-sm border border-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high disabled:opacity-50 ${
-                          maxTowardPayee > 0 ? "text-balance-owe" : "text-on-surface-variant"
+                          maxTowardPayee > 0
+                            ? "text-balance-owe"
+                            : "text-on-surface-variant"
                         }`}
                       >
                         {t("Use max ({amount})", {
@@ -551,8 +571,11 @@ export default function SettlementsPage() {
                       <p className="text-xs text-on-surface-variant mt-xs">
                         {t("Max toward {name}", {
                           name: displayName(detail.members, payeeUserId),
-                        })}:{" "}
-                        <span className={`tabular-nums font-medium ${oweAmountClass(maxTowardPayee)}`}>
+                        })}
+                        :{" "}
+                        <span
+                          className={`tabular-nums font-medium ${oweAmountClass(maxTowardPayee)}`}
+                        >
                           {maxTowardPayee.toFixed(2)}{" "}
                           {currencyCode(detail.defaultCurrency)}
                         </span>
@@ -584,7 +607,9 @@ export default function SettlementsPage() {
                           return (
                             <li key={`${a.transactionId}-${a.allocatedAmount}`}>
                               {tx?.description?.trim() || "—"} ·{" "}
-                              <span className={`font-medium ${oweAmountClass(a.allocatedAmount)}`}>
+                              <span
+                                className={`font-medium ${oweAmountClass(a.allocatedAmount)}`}
+                              >
                                 {a.allocatedAmount.toFixed(2)}{" "}
                                 {currencyCode(detail.defaultCurrency)}
                               </span>
@@ -595,7 +620,9 @@ export default function SettlementsPage() {
                     </div>
                   )}
                   {formErr && (
-                    <div className="text-sm text-error font-body-md">{formErr}</div>
+                    <div className="text-sm text-error font-body-md">
+                      {formErr}
+                    </div>
                   )}
                   <button
                     type="submit"
@@ -618,7 +645,9 @@ export default function SettlementsPage() {
           <div className="bg-surface rounded-xl border border-outline-variant shadow-level-1 overflow-hidden">
             <div className="px-lg py-sm bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant flex justify-between items-center gap-sm">
               <span>{t("Settlement history")}</span>
-              <span className="tabular-nums text-on-surface">{rows.length}</span>
+              <span className="tabular-nums text-on-surface">
+                {rows.length}
+              </span>
             </div>
             {rows.length === 0 ? (
               <div className="p-lg font-body-md text-on-surface-variant">
@@ -655,7 +684,9 @@ export default function SettlementsPage() {
                             </p>
                           )}
                         </div>
-                        <div className={`font-financial-xl text-[20px] shrink-0 tabular-nums ${owedAmountClass(s.amount)}`}>
+                        <div
+                          className={`font-financial-xl text-[20px] shrink-0 tabular-nums ${owedAmountClass(s.amount)}`}
+                        >
                           {currencyCode(cur)} {s.amount.toFixed(2)}
                         </div>
                       </div>
@@ -723,7 +754,7 @@ export default function SettlementsPage() {
         open={settlementToDelete != null}
         title={t("Remove this settlement?")}
         description={t(
-          "Balances on the linked expenses will update to reflect that this payment no longer happened."
+          "Balances on the linked expenses will update to reflect that this payment no longer happened.",
         )}
         confirmLabel={t("Remove settlement")}
         cancelLabel={t("Keep it")}

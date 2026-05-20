@@ -28,7 +28,7 @@ export default function GroupsPage() {
   const [inviteFromLink, setInviteFromLink] = useState(false);
   const prefilledInvite = useRef(false);
   const [pendingInvites, setPendingInvites] = useState<PendingGroupInviteDto[]>(
-    []
+    [],
   );
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [inviteActionErr, setInviteActionErr] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export default function GroupsPage() {
     try {
       const data = await apiJson<PendingGroupInviteDto[]>(
         "/api/groups/pending-invites",
-        { accessToken }
+        { accessToken },
       );
       setPendingInvites(data);
       setInviteActionErr(null);
@@ -90,8 +90,8 @@ export default function GroupsPage() {
     setShareHint(null);
     const url = buildGroupJoinUrl(g.inviteToken);
     const text = t(
-      "You're invited to join \"{group}\" on Cayeshni.\n\nOpen: {url}\n\nOr enter this invite code: {inviteToken}",
-      { group: g.name, url, inviteToken: g.inviteToken }
+      'You\'re invited to join "{group}" on Cayeshni.\n\nOpen: {url}\n\nOr enter this invite code: {inviteToken}',
+      { group: g.name, url, inviteToken: g.inviteToken },
     );
 
     if (typeof navigator !== "undefined" && navigator.share) {
@@ -113,16 +113,16 @@ export default function GroupsPage() {
 
     try {
       await navigator.clipboard.writeText(url);
-      setShareHint(t("Join link copied for \"{group}\".", { group: g.name }));
+      setShareHint(t('Join link copied for "{group}".', { group: g.name }));
     } catch {
       try {
         await navigator.clipboard.writeText(g.inviteToken);
-        setShareHint(
-          t("Invite code copied for \"{group}\".", { group: g.name })
-        );
+        setShareHint(t('Invite code copied for "{group}".', { group: g.name }));
       } catch {
         setShareHint(
-          t("Could not copy automatically — copy the invite code from the list.")
+          t(
+            "Could not copy automatically — copy the invite code from the list.",
+          ),
         );
       }
     }
@@ -216,7 +216,7 @@ export default function GroupsPage() {
         </h2>
         <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
           {t(
-            "Shareable groups with invite tokens — matches the settlements and expense flows in the design reference."
+            "Shareable groups with invite tokens — matches the settlements and expense flows in the design reference.",
           )}
         </p>
       </div>
@@ -288,7 +288,9 @@ export default function GroupsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void dismissPendingInvite(inv.notificationId)}
+                    onClick={() =>
+                      void dismissPendingInvite(inv.notificationId)
+                    }
                     className="rounded-lg border border-outline-variant font-label-sm px-md py-sm text-primary hover:bg-surface-container-high"
                   >
                     {t("Dismiss")}
@@ -341,7 +343,7 @@ export default function GroupsPage() {
         </label>
         <p className="font-body-md text-body-md text-on-surface-variant -mt-xs">
           {t(
-            "Paste the invite code (or open a shared link). Group UUID is not used here — only the invite token from the owner."
+            "Paste the invite code (or open a shared link). Group UUID is not used here — only the invite token from the owner.",
           )}
         </p>
         <div className="flex flex-col sm:flex-row gap-md sm:items-stretch">
@@ -363,7 +365,9 @@ export default function GroupsPage() {
               t("Joining…")
             ) : (
               <>
-                <span className="material-symbols-outlined text-[20px]">login</span>
+                <span className="material-symbols-outlined text-[20px]">
+                  login
+                </span>
                 {t("Join group")}
               </>
             )}
@@ -411,7 +415,9 @@ export default function GroupsPage() {
                     href={`/groups/${g.id}`}
                     className="inline-flex items-center justify-center gap-xs rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-sm font-label-sm text-label-sm hover:bg-secondary/90 transition-colors w-full sm:w-auto"
                   >
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[18px]">
+                      arrow_forward
+                    </span>
                     {t("Open group")}
                   </Link>
                   <InviteFriendToGroup
@@ -428,7 +434,9 @@ export default function GroupsPage() {
                     onClick={() => void shareGroup(g)}
                     className="inline-flex items-center justify-center gap-xs rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container-high transition-colors w-full sm:w-auto"
                   >
-                    <span className="material-symbols-outlined text-[18px]">share</span>
+                    <span className="material-symbols-outlined text-[18px]">
+                      share
+                    </span>
                     {t("Share invite")}
                   </button>
                 </div>

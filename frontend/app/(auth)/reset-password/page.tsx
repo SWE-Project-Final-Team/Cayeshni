@@ -66,7 +66,9 @@ export default function ResetPasswordPage() {
             </p>
             {!hasRequiredParams && (
               <div className="mb-md rounded-lg bg-error-container/40 text-error px-md py-sm font-body-md">
-                {t("Invalid or incomplete reset link. Please request a new one.")}
+                {t(
+                  "Invalid or incomplete reset link. Please request a new one.",
+                )}
               </div>
             )}
             {err && (

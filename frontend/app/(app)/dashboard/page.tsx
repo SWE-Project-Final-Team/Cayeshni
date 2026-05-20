@@ -22,7 +22,7 @@ function displayActor(
   actorId: string | null,
   actorName: string | null,
   someoneLabel: string,
-  youLabel: string
+  youLabel: string,
 ): string {
   if (!actorName) return someoneLabel;
   if (meId && actorId && actorId === meId) return youLabel;
@@ -31,7 +31,7 @@ function displayActor(
 
 function formatActivityTime(
   iso: string,
-  locale: string
+  locale: string,
 ): { label: string; titleAttr: string } {
   const d = new Date(iso);
   return {
@@ -111,14 +111,16 @@ function DashboardActivityRow({
                     item.actorUserId,
                     item.actorName,
                     t("Someone"),
-                    t("You")
+                    t("You"),
                   )}
                 </span>{" "}
                 <span className="text-on-surface-variant">{t("paid")}</span>
                 {item.description?.trim() ? (
                   <>
                     <span className="text-on-surface-variant"> · </span>
-                    <span className="text-on-surface">{item.description.trim()}</span>
+                    <span className="text-on-surface">
+                      {item.description.trim()}
+                    </span>
                   </>
                 ) : null}
               </p>
@@ -132,7 +134,7 @@ function DashboardActivityRow({
                     item.actorUserId,
                     item.actorName,
                     t("Someone"),
-                    t("You")
+                    t("You"),
                   )}
                 </span>
                 <span className="text-on-surface-variant"> {t("paid")} </span>
@@ -142,7 +144,7 @@ function DashboardActivityRow({
                     item.counterpartyUserId,
                     item.counterpartyName,
                     t("Someone"),
-                    t("You")
+                    t("You"),
                   )}
                 </span>
               </p>
@@ -185,10 +187,10 @@ export default function DashboardPage() {
   const { accessToken, emailConfirmed, profile, apiErrorMessage } = useAuth();
   const { t, locale } = useI18n();
   const [balances, setBalances] = useState<DashboardGroupBalanceDto[] | null>(
-    null
+    null,
   );
   const [activity, setActivity] = useState<DashboardActivityItemDto[] | null>(
-    null
+    null,
   );
   const [err, setErr] = useState<string | null>(null);
 
@@ -208,7 +210,7 @@ export default function DashboardPage() {
           }),
           apiJson<DashboardActivityItemDto[]>(
             "/api/dashboard/recent-activity?limit=18",
-            { accessToken }
+            { accessToken },
           ),
         ]);
         if (!cancelled) {
@@ -273,7 +275,9 @@ export default function DashboardPage() {
       {!emailConfirmed && (
         <div className="rounded-[16px] border border-outline-variant bg-surface-container-lowest p-lg shadow-level-1">
           <p className="font-body-md text-on-surface">
-            {t("Confirm your email to load balances and activity from the API.")}
+            {t(
+              "Confirm your email to load balances and activity from the API.",
+            )}
           </p>
         </div>
       )}
@@ -304,13 +308,13 @@ export default function DashboardPage() {
               {totalsByCurrency
                 .filter((t) => t.owed > 0)
                 .map((t) => (
-                <li
-                  key={t.currency}
-                  className="font-financial-xl text-financial-xl text-balance-owed"
-                >
-                  {formatMoney(t.currency, t.owed)}
-                </li>
-              ))}
+                  <li
+                    key={t.currency}
+                    className="font-financial-xl text-financial-xl text-balance-owed"
+                  >
+                    {formatMoney(t.currency, t.owed)}
+                  </li>
+                ))}
             </ul>
           ) : (
             <h3 className="font-financial-xl text-financial-xl text-on-surface-variant mt-sm">
@@ -330,13 +334,13 @@ export default function DashboardPage() {
               {totalsByCurrency
                 .filter((t) => t.owe > 0)
                 .map((t) => (
-                <li
-                  key={t.currency}
-                  className="font-financial-xl text-financial-xl text-balance-owe"
-                >
-                  {formatMoney(t.currency, t.owe)}
-                </li>
-              ))}
+                  <li
+                    key={t.currency}
+                    className="font-financial-xl text-financial-xl text-balance-owe"
+                  >
+                    {formatMoney(t.currency, t.owe)}
+                  </li>
+                ))}
             </ul>
           ) : (
             <h3 className="font-financial-xl text-financial-xl text-on-surface-variant mt-sm">
@@ -393,7 +397,9 @@ export default function DashboardPage() {
                     <td className="p-md font-semibold">{row.groupName}</td>
                     <td
                       className={`p-md text-right tabular-nums ${
-                        row.youOwe > 0 ? oweAmountClass(row.youOwe) : "text-on-surface-variant"
+                        row.youOwe > 0
+                          ? oweAmountClass(row.youOwe)
+                          : "text-on-surface-variant"
                       }`}
                     >
                       {row.youOwe > 0
@@ -441,7 +447,9 @@ export default function DashboardPage() {
             href="/expenses"
             className="text-secondary font-label-sm text-label-sm hover:underline shrink-0 inline-flex items-center gap-xs"
           >
-            <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+            <span className="material-symbols-outlined text-[18px]">
+              open_in_new
+            </span>
             {t("All activity")}
           </Link>
         </div>
