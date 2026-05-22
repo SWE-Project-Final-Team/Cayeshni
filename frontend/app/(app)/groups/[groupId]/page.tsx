@@ -155,6 +155,7 @@ export default function GroupDetailPage() {
     undefined,
   );
   const selectedRowRef = useRef<HTMLLIElement | null>(null);
+  const groupGraphRef = useRef<HTMLDivElement | null>(null);
   const [graphMode, setGraphMode] = useState<"expense" | "group">("expense");
   const [balanceFocusUserId, setBalanceFocusUserId] = useState<string | null>(
     null,
@@ -454,13 +455,29 @@ export default function GroupDetailPage() {
   useEffect(() => {
     if (!selectedTxId) return;
     const t = window.requestAnimationFrame(() => {
-      selectedRowRef.current?.scrollIntoView({
-        block: "nearest",
-        behavior: "smooth",
-      });
+      selectedRowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     });
     return () => window.cancelAnimationFrame(t);
   }, [selectedTxId]);
+
+  useEffect(() => {
+    if (graphMode !== "group" || !balanceFocusUserId) return;
+    const t = window.requestAnimationFrame(() => {
+      groupGraphRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(t);
+  }, [balanceFocusUserId, graphMode]);
+
+  useEffect(() => {
+    if (!balanceFocusUserId) return;
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") {
+        setBalanceFocusUserId(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [balanceFocusUserId]);
 
   useEffect(() => {
     setInviteCopied(false);
@@ -704,9 +721,7 @@ export default function GroupDetailPage() {
                         const selectedCard = balanceFocusUserId === m.userId;
                         function activateMemberCard() {
                           setGraphMode("group");
-                          setBalanceFocusUserId((prev) =>
-                            prev === m.userId ? null : m.userId,
-                          );
+                          setBalanceFocusUserId((prev) => prev === m.userId ? null : m.userId);
                         }
                         function onCardKeyDown(e: React.KeyboardEvent) {
                           if (e.key === "Enter" || e.key === " ") {
@@ -717,7 +732,7 @@ export default function GroupDetailPage() {
                         return (
                           <div
                             key={m.userId}
-                            className={`rounded-2xl border bg-surface flex flex-col transition-all focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-secondary ${
+                            className={`rounded-2xl border bg-surface flex flex-col transition-all ${
                               selectedCard
                                 ? "border-secondary bg-secondary-fixed/25 ring-1 ring-secondary/35 shadow-level-1"
                                 : "border-outline-variant/70 hover:border-secondary/40 hover:bg-surface-container-high/50"
@@ -728,27 +743,27 @@ export default function GroupDetailPage() {
                               tabIndex={0}
                               onClick={activateMemberCard}
                               onKeyDown={onCardKeyDown}
-                              className="text-left p-md flex flex-col gap-sm cursor-pointer outline-none"
+                              className="text-left p-xs sm:p-sm flex flex-col gap-1 cursor-pointer outline-none rounded-2xl"
                               aria-pressed={selectedCard}
                             >
-                              <div className="flex items-start gap-md">
+                              <div className="flex items-start gap-sm">
                                 <RosterAvatar
                                   members={detail.members}
                                   userId={m.userId}
-                                  className="h-12 w-12 shrink-0"
+                                  className="h-9 w-9 sm:h-10 sm:w-10 shrink-0"
                                 />
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-baseline gap-x-sm gap-y-xs">
-                                    <span className="font-semibold text-on-surface truncate">
+                                  <div className="flex flex-wrap items-center gap-x-xs gap-y-0.5">
+                                    <span className="font-semibold text-on-surface truncate text-sm leading-tight">
                                       {rosterLabel(m, profile?.id, t)}
                                     </span>
                                     {m.isCreator ? (
-                                      <span className="text-[10px] font-label-sm uppercase tracking-wider text-secondary shrink-0">
+                                      <span className="text-[10px] font-label-sm uppercase tracking-wider text-secondary shrink-0 leading-none">
                                         {t("Creator")}
                                       </span>
                                     ) : null}
                                   </div>
-                                  <p className="text-xs text-on-surface-variant mt-px">
+                                  <p className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
                                     {t("Joined {date}", {
                                       date: new Date(
                                         m.joinedAt,
@@ -759,7 +774,7 @@ export default function GroupDetailPage() {
                                   </p>
                                 </div>
                               </div>
-                              <div className="rounded-lg bg-surface-container-low/80 px-sm py-xs text-xs tabular-nums">
+                              <div className="rounded-lg bg-surface-container-low/80 px-sm py-1 text-[11px] tabular-nums leading-tight">
                                 <span className="text-on-surface-variant">
                                   {t("Net in group:")}
                                 </span>{" "}
@@ -1123,7 +1138,7 @@ export default function GroupDetailPage() {
                         })}
                       </ul>
                     </div>
-                    <div className="flex min-h-[min(40vh,320px)] w-full min-w-0 flex-1 flex-col">
+                    <div ref={groupGraphRef} className="flex min-h-[min(40vh,320px)] w-full min-w-0 flex-1 flex-col scroll-mt-6">
                       <GroupBalanceFlowGraph
                         members={graphMembers}
                         edges={globalTransferEdges}
