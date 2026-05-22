@@ -379,7 +379,7 @@ function ExpensesPageInner() {
               </div>
             ) : (
               <ul>
-                {sortedTxs.map((t, i) => (
+                {sortedTxs.map((tx, i) => (
                   <li
                     key={tx.id}
                     className={`flex items-start p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
@@ -416,16 +416,16 @@ function ExpensesPageInner() {
                           )}{" "}
                           · {categoryLabel(tx.category)}
                         </div>
-                        {profile?.id === t.paidByUserId && (
+                        {profile?.id === tx.paidByUserId && (
                           <div className="mt-sm flex gap-sm">
-                            {editingTxId !== t.id ? (
+                            {editingTxId !== tx.id ? (
                               <>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setEditingTxId(t.id);
-                                    setEditDescription(t.description ?? "");
-                                    setEditCategory(t.category ?? 6);
+                                    setEditingTxId(tx.id);
+                                    setEditDescription(tx.description ?? "");
+                                    setEditCategory(tx.category ?? 6);
                                   }}
                                   className="text-xs font-label-sm text-primary hover:underline"
                                 >
@@ -435,14 +435,14 @@ function ExpensesPageInner() {
                             ) : null}
                             <button
                               type="button"
-                              onClick={() => setTransactionToDelete(t)}
+                              onClick={() => setTransactionToDelete(tx)}
                               className="text-xs font-label-sm text-error hover:underline"
                             >
                               Delete
                             </button>
                           </div>
                         )}
-                        {editingTxId === t.id && (
+                        {editingTxId === tx.id && (
                           <div className="mt-sm pt-sm border-t border-outline-variant/30 w-full">
                             <div className="flex flex-col gap-sm">
                               <input
@@ -470,7 +470,7 @@ function ExpensesPageInner() {
                                           method: "PUT",
                                           accessToken,
                                           json: {
-                                            id: t.id,
+                                            id: tx.id,
                                             description: editDescription.trim() || null,
                                             category: editCategory,
                                           },
