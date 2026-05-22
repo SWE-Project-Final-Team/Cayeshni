@@ -1,8 +1,0 @@
-namespace Cayeshni.API.Application.Common.Interfaces;
-
-public interface IJwtService
-{
-    string GenerateAccessToken(Guid userId, bool emailConfirmed);
-    string GenerateRefreshToken(Guid userId);
-    Guid? ValidateRefreshToken(string refreshToken);
-}

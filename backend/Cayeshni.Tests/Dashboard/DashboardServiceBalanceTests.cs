@@ -1,8 +1,9 @@
-using Cayeshni.API.Application.Features.Dashboard;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Features.Dashboard;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cayeshni.Tests.Dashboard;
@@ -81,7 +82,7 @@ public class DashboardServiceBalanceTests
 
         await ctx.SaveChangesAsync();
 
-        var sut = new DashboardService(ctx);
+        var sut = new DashboardService(new FakeDashboardRepository(ctx));
 
         var bobRow = (await sut.GetGroupBalancesAsync(bobId)).Single();
         Assert.Equal(0m, bobRow.YouOwe);
@@ -92,3 +93,4 @@ public class DashboardServiceBalanceTests
         Assert.Equal(0m, aliceRow.YouAreOwed);
     }
 }
+

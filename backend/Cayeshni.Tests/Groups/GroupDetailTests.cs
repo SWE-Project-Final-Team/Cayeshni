@@ -1,7 +1,7 @@
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Features.Groups;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Features.Groups;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,7 +42,7 @@ public class GroupDetailTests
         SeedUser(ctx, creatorId, "c@test.com", "Creator");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Group One"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
@@ -59,7 +59,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "Joiner Name");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var group = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Trip"));
         await service.JoinGroupAsync(joinerId, new JoinGroupDto(group.InviteToken));
 
@@ -74,8 +74,8 @@ public class GroupDetailTests
         var joinerRow = detail.Members.Single(m => m.UserId == joinerId);
         Assert.Equal("Joiner Name", joinerRow.DisplayName);
         Assert.False(joinerRow.IsCreator);
-        Assert.Null(creatorRow.ProfilePictureUrl);
-        Assert.Null(joinerRow.ProfilePictureUrl);
+        Assert.Equal("https://files.test/defaults/avatar.webp", creatorRow.ProfilePictureUrl);
+        Assert.Equal("https://files.test/defaults/avatar.webp", joinerRow.ProfilePictureUrl);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class GroupDetailTests
         SeedUser(ctx, joinerId, "j@test.com", "J");
         await ctx.SaveChangesAsync();
 
-        var service = new GroupService(ctx, new FakeFileStorageService());
+        var service = new GroupService(new FakeGroupRepository(ctx), new FakeFileStorageService());
         var created = await service.CreateGroupAsync(creatorId, new CreateGroupDto("Join Return"));
 
         var joined = await service.JoinGroupAsync(joinerId, new JoinGroupDto(created.InviteToken));
@@ -100,3 +100,4 @@ public class GroupDetailTests
         Assert.Equal(created.DefaultCurrency, joined.DefaultCurrency);
     }
 }
+

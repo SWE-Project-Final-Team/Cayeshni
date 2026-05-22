@@ -5,12 +5,12 @@ import { apiJson } from "@/lib/api/client";
 import type {
   GroupDetailDto,
   GroupDto,
-  GroupMemberBalanceDto,
   SettlementDto,
   TransactionDetailDto,
   TransactionDto,
 } from "@/lib/api/types";
 import { ListboxSelect } from "@/components/listbox-select";
+import ErrorBoundary from "@/components/error-boundary";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { owedAmountClass, oweAmountClass } from "@/lib/balance-tone";
 import {
@@ -25,6 +25,10 @@ import {
   maxSettleableTowardPayee,
 } from "@/lib/settlements/build-allocations";
 import { useI18n } from "@/lib/i18n";
+import {
+  computeMemberNetBalances,
+  simplifyToTransferEdges,
+} from "@/lib/group-net-balances";
 
 function displayName(
   members: { userId: string; displayName: string }[] | undefined,
@@ -41,7 +45,6 @@ export default function SettlementsPage() {
   const [groups, setGroups] = useState<GroupDto[]>([]);
   const [groupId, setGroupId] = useState("");
   const [detail, setDetail] = useState<GroupDetailDto | null>(null);
-  const [debts, setDebts] = useState<GroupMemberBalanceDto[]>([]);
   const [txs, setTxs] = useState<TransactionDto[]>([]);
   const [rows, setRows] = useState<SettlementDto[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -58,13 +61,12 @@ export default function SettlementsPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const [notePending, setNotePending] = useState(false);
 
-  const [payeeMaxByUserId, setPayeeMaxByUserId] = useState<Record<
-    string,
-    number
-  > | null>(null);
-  const [settlementToDelete, setSettlementToDelete] =
-    useState<SettlementDto | null>(null);
+  const [settlementToDelete, setSettlementToDelete] = useState<SettlementDto | null>(
+    null
+  );
   const [deletePending, setDeletePending] = useState(false);
+  const [visibleAllocationsBySettlement, setVisibleAllocationsBySettlement] =
+    useState<Record<string, boolean>>({});
 
   const payerId = profile?.id ?? "";
 
@@ -86,19 +88,14 @@ export default function SettlementsPage() {
   const loadGroupContext = useCallback(async () => {
     if (!accessToken || !emailConfirmed || !groupId) {
       setDetail(null);
-      setDebts([]);
       setTxs([]);
       setRows([]);
       return;
     }
     setErr(null);
     try {
-      const [d, b, t, s] = await Promise.all([
+      const [d, t, s] = await Promise.all([
         apiJson<GroupDetailDto>(`/api/groups/${groupId}`, { accessToken }),
-        apiJson<GroupMemberBalanceDto[]>(
-          `/api/transactions/group/${groupId}/debts`,
-          { accessToken },
-        ),
         apiJson<TransactionDto[]>(`/api/transactions/group/${groupId}`, {
           accessToken,
         }),
@@ -107,18 +104,15 @@ export default function SettlementsPage() {
         }),
       ]);
       setDetail(d);
-      setDebts(b);
       setTxs(t);
       setRows(s);
       setPayeeUserId("");
       setAmountStr("");
       setNote("");
-      setPayeeDetails([]);
       setFormErr(null);
     } catch (e) {
       setErr(apiErrorMessage(e));
       setDetail(null);
-      setDebts([]);
       setTxs([]);
       setRows([]);
     }
@@ -145,24 +139,22 @@ export default function SettlementsPage() {
   }, [loadGroupContext]);
 
   useEffect(() => {
-    if (
-      !accessToken ||
-      !emailConfirmed ||
-      !groupId ||
-      !payerId ||
-      !payeeUserId
-    ) {
+    if (!accessToken || !emailConfirmed || !groupId || !payerId) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
-    if (payeeUserId === payerId) {
+
+    if (!payeeUserId || payeeUserId === payerId) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
 
     const ids = candidateTransactionIds(txs, payerId, payeeUserId);
     if (ids.length === 0) {
       setPayeeDetails([]);
+      setPreviewLoading(false);
       return;
     }
 
@@ -171,7 +163,7 @@ export default function SettlementsPage() {
     void (async () => {
       try {
         const details = await Promise.all(
-          ids.map((id) =>
+          ids.map((id: string) =>
             apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
               accessToken,
             }),
@@ -198,61 +190,41 @@ export default function SettlementsPage() {
     apiErrorMessage,
   ]);
 
-  useEffect(() => {
-    if (
-      !accessToken ||
-      !emailConfirmed ||
-      !groupId ||
-      !payerId ||
-      !detail ||
-      txs.length === 0
-    ) {
-      setPayeeMaxByUserId({});
-      return;
+  const owedToMemberById = useMemo(() => {
+    if (!detail) return new Map<string, number>();
+    const memberIdsOrdered = detail.members.map((m) => m.userId);
+    const netByMember = computeMemberNetBalances(memberIdsOrdered, txs, rows);
+    const transferEdges = simplifyToTransferEdges(netByMember);
+    const owed = new Map<string, number>();
+    for (const edge of transferEdges) {
+      if (edge.from === payerId) {
+        owed.set(edge.to, edge.amount);
+      }
     }
-    const payees = detail.members.filter((m) => m.userId !== payerId);
-    let cancelled = false;
-    setPayeeMaxByUserId(null);
-    void (async () => {
-      const out: Record<string, number> = {};
-      await Promise.all(
-        payees.map(async (m) => {
-          const ids = candidateTransactionIds(txs, payerId, m.userId);
-          if (ids.length === 0) {
-            out[m.userId] = 0;
-            return;
-          }
-          try {
-            const details = await Promise.all(
-              ids.map((id) =>
-                apiJson<TransactionDetailDto>(`/api/transactions/${id}`, {
-                  accessToken,
-                }),
-              ),
-            );
-            out[m.userId] = maxSettleableTowardPayee(details, payerId);
-          } catch {
-            out[m.userId] = 0;
-          }
-        }),
-      );
-      if (!cancelled) setPayeeMaxByUserId(out);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [accessToken, emailConfirmed, groupId, payerId, detail, txs]);
+    return owed;
+  }, [detail, payerId, rows, txs]);
 
-  useEffect(() => {
-    if (!payeeMaxByUserId || !payeeUserId) return;
-    const max = payeeMaxByUserId[payeeUserId];
-    if (max !== undefined && max <= 0.005) setPayeeUserId("");
-  }, [payeeMaxByUserId, payeeUserId]);
+  const balanceRows = useMemo(() => {
+    if (!detail) return [];
+    return (detail.members ?? [])
+      .filter((m) => m.userId !== payerId)
+      .map((m) => ({
+        userId: m.userId,
+        displayName: m.displayName,
+        remainingOwed: owedToMemberById.get(m.userId) ?? 0,
+      }))
+      .filter((row) => row.remainingOwed > 0.005)
+      .sort((a, b) => b.remainingOwed - a.remainingOwed);
+  }, [detail, payerId, owedToMemberById]);
 
-  const maxTowardPayee = useMemo(
-    () => maxSettleableTowardPayee(payeeDetails, payerId),
-    [payeeDetails, payerId],
-  );
+  const maxTowardPayee = useMemo(() => {
+    if (!payeeUserId || payeeUserId === payerId) return 0;
+    const remainingForThisPayee = owedToMemberById.get(payeeUserId) ?? 0;
+    const detailedRemaining = maxSettleableTowardPayee(payeeDetails, payerId);
+    return Math.min(remainingForThisPayee, detailedRemaining);
+  }, [owedToMemberById, payeeDetails, payerId, payeeUserId]);
+
+  const hasSelectedPayee = Boolean(payeeUserId && payeeUserId !== payerId);
 
   const previewAllocations = useMemo(() => {
     const n = Number.parseFloat(amountStr.replace(",", "."));
@@ -260,6 +232,28 @@ export default function SettlementsPage() {
       return [];
     return buildAllocationsFifo(payeeDetails, payerId, n);
   }, [amountStr, payerId, payeeDetails]);
+
+  const groupListboxOptions = useMemo(
+    () => groups.map((g) => ({ value: g.id, label: g.name })),
+    [groups]
+  );
+
+  const payeeListboxOptions = useMemo(() => {
+    return (detail?.members ?? [])
+      .filter((m) => m.userId !== payerId)
+      .map((m) => ({
+        value: m.userId,
+        label: m.displayName,
+        description: (() => {
+          const owed = owedToMemberById.get(m.userId) ?? 0;
+          return owed > 0.005
+            ? `You still owe ${currencyCode(detail?.defaultCurrency ?? 0)} ${owed.toFixed(2)}`
+            : "No remaining balance";
+        })(),
+      }))
+        .filter((o) => (owedToMemberById.get(o.value) ?? 0) > 0.005)
+        .sort((a, b) => (owedToMemberById.get(b.value) ?? 0) - (owedToMemberById.get(a.value) ?? 0));
+  }, [detail?.members, detail?.defaultCurrency, owedToMemberById, payerId]);
 
   async function submitSettlement(e: React.FormEvent) {
     e.preventDefault();
@@ -277,13 +271,7 @@ export default function SettlementsPage() {
     }
     if (amount > maxTowardPayee + 0.005) {
       setFormErr(
-        t(
-          "Amount cannot exceed what you still owe this member on shared expenses ({amount} {currency}).",
-          {
-            amount: maxTowardPayee.toFixed(2),
-            currency: currencyCode(detail.defaultCurrency),
-          },
-        ),
+        `Amount cannot exceed what you still owe this member on their shared expenses (${maxTowardPayee.toFixed(2)} ${currencyCode(detail.defaultCurrency)}).`
       );
       return;
     }
@@ -396,25 +384,9 @@ export default function SettlementsPage() {
     );
   }
 
-  const payeeOptions =
-    detail?.members.filter((m) => m.userId !== payerId) ?? [];
-
-  const groupListboxOptions = useMemo(
-    () => groups.map((g) => ({ value: g.id, label: g.name })),
-    [groups],
-  );
-
-  const payeeListboxOptions = useMemo(() => {
-    const base = payeeOptions.map((m) => ({
-      value: m.userId,
-      label: m.displayName,
-    }));
-    if (payeeMaxByUserId === null) return [];
-    return base.filter((o) => (payeeMaxByUserId[o.value] ?? 0) > 0.005);
-  }, [payeeOptions, payeeMaxByUserId]);
-
   return (
-    <div className="space-y-xl max-w-5xl">
+    <ErrorBoundary>
+      <div className="space-y-xl max-w-5xl">
       <header className="border-b border-outline-variant pb-lg">
         <h1 className="font-display-lg text-display-lg text-primary">
           {t("Settlements")}
@@ -458,25 +430,23 @@ export default function SettlementsPage() {
           <div className="space-y-lg">
             <div className="bg-surface rounded-xl border border-outline-variant shadow-level-1 p-lg">
               <h2 className="font-headline-md text-headline-md text-primary mb-md">
-                {t("Balances")}
+                Members you still owe
               </h2>
               {detail == null ? (
+                <p className="font-body-md text-on-surface-variant">Loading…</p>
+              ) : balanceRows.length === 0 ? (
                 <p className="font-body-md text-on-surface-variant">
-                  {t("Loading…")}
-                </p>
-              ) : debts.length === 0 ? (
-                <p className="font-body-md text-on-surface-variant">
-                  {t("No members or debt data.")}
+                  No members you currently owe.
                 </p>
               ) : (
                 <ul className="divide-y divide-outline-variant/40 max-h-80 overflow-y-auto tabular-nums">
-                  {debts.map((b) => (
+                  {balanceRows.map((b) => (
                     <li
                       key={b.userId}
                       className="py-sm flex flex-wrap justify-between gap-sm text-sm"
                     >
                       <span className="text-on-surface font-medium">
-                        {displayName(detail.members, b.userId)}
+                        {b.displayName}
                       </span>
                       <span className="text-on-surface-variant">
                         {t("Remaining owed")}:{" "}
@@ -501,9 +471,8 @@ export default function SettlementsPage() {
                 {t("Record payment")}
               </h2>
               <p className="font-body-md text-on-surface-variant text-sm">
-                {t(
-                  "You record a payment from you to someone you owe through expenses they paid for in this group.",
-                )}
+                Choose a member you still owe in this group. The payment will
+                apply to your oldest unsettled expenses with that person.
               </p>
               {detail == null ? (
                 <p className="text-sm text-on-surface-variant">
@@ -520,13 +489,13 @@ export default function SettlementsPage() {
                       onChange={setPayeeUserId}
                       options={payeeListboxOptions}
                       placeholder={
-                        payeeMaxByUserId === null
-                          ? "Loading payees…"
+                        previewLoading
+                          ? "Loading members…"
                           : payeeListboxOptions.length === 0
-                            ? "No one you owe in this group"
+                            ? "No members you still owe"
                             : "Select member…"
                       }
-                      emptyMessage="No one you currently owe through shared expenses"
+                      emptyMessage="No members you still owe"
                       leadingIcon="person"
                       className="w-full"
                     />
@@ -548,7 +517,7 @@ export default function SettlementsPage() {
                       />
                       <button
                         type="button"
-                        disabled={maxTowardPayee <= 0 || previewLoading}
+                        disabled={maxTowardPayee <= 0 || previewLoading || !hasSelectedPayee}
                         onClick={() => setAmountStr(maxTowardPayee.toFixed(2))}
                         className={`text-sm font-label-sm border border-outline-variant rounded-lg px-md py-sm hover:bg-surface-container-high disabled:opacity-50 ${
                           maxTowardPayee > 0
@@ -556,16 +525,14 @@ export default function SettlementsPage() {
                             : "text-on-surface-variant"
                         }`}
                       >
-                        {t("Use max ({amount})", {
-                          amount: maxTowardPayee.toFixed(2),
-                        })}
+                        {hasSelectedPayee ? `Use max (${maxTowardPayee.toFixed(2)})` : "Select a member first"}
                       </button>
                     </div>
                     {previewLoading ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
                         {t("Loading expense breakdown…")}
                       </p>
-                    ) : payeeUserId && payeeUserId !== payerId ? (
+                    ) : hasSelectedPayee ? (
                       <p className="text-xs text-on-surface-variant mt-xs">
                         {t("Max toward {name}", {
                           name: displayName(detail.members, payeeUserId),
@@ -629,7 +596,7 @@ export default function SettlementsPage() {
                       !payeeUserId ||
                       previewLoading ||
                       maxTowardPayee <= 0 ||
-                      payeeMaxByUserId === null
+                      payeeListboxOptions.length === 0
                     }
                     className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
                   >
@@ -671,15 +638,26 @@ export default function SettlementsPage() {
                             {s.note ? ` · ${s.note}` : ""}
                           </p>
                           {s.allocations.length > 0 && (
-                            <p className="text-xs text-on-surface-variant mt-xs">
-                              {s.allocations.length === 1
-                                ? t("{count} expense allocation", {
-                                    count: s.allocations.length,
-                                  })
-                                : t("{count} expense allocations", {
-                                    count: s.allocations.length,
-                                  })}
-                            </p>
+                            <div className="mt-xs">
+                              <p className="text-xs text-on-surface-variant">
+                                {s.allocations.length} expense allocation
+                                {s.allocations.length === 1 ? "" : "s"}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setVisibleAllocationsBySettlement((prev) => ({
+                                    ...prev,
+                                    [s.id]: !prev[s.id],
+                                  }))
+                                }
+                                className="text-xs font-label-sm text-primary hover:underline"
+                              >
+                                {visibleAllocationsBySettlement[s.id]
+                                  ? "Hide allocations"
+                                  : "Show allocations"}
+                              </button>
+                            </div>
                           )}
                         </div>
                         <div
@@ -740,6 +718,26 @@ export default function SettlementsPage() {
                           )}
                         </div>
                       )}
+                        {visibleAllocationsBySettlement[s.id] && s.allocations.length > 0 && (
+                          <div className="mt-sm border-t border-outline-variant/30 pt-sm">
+                            <ul className="text-sm space-y-xs">
+                              {s.allocations.map((a) => {
+                                const tx = txs.find((t) => t.id === a.transactionId);
+                                return (
+                                  <li key={a.transactionId} className="flex justify-between">
+                                    <div className="text-on-surface-variant">
+                                      {tx?.description?.trim() || "—"}
+                                      {tx ? ` · ${new Date(tx.createdAt).toLocaleDateString()}` : ""}
+                                    </div>
+                                    <div className={`font-medium ${oweAmountClass(a.allocatedAmount)}`}>
+                                      {a.allocatedAmount.toFixed(2)} {currencyCode(detail?.defaultCurrency ?? 0)}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
                     </li>
                   );
                 })}
@@ -761,6 +759,7 @@ export default function SettlementsPage() {
         onClose={() => !deletePending && setSettlementToDelete(null)}
         onConfirm={() => void deleteSettlementConfirmed()}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

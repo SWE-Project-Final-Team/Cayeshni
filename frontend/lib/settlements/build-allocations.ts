@@ -30,6 +30,17 @@ export function candidateTransactionIds(
     .map((t) => t.id);
 }
 
+/** Expenses where the payer still owes somebody in the group, oldest first. */
+export function candidateTransactionIdsForPayer(
+  txs: TransactionDto[],
+  payerId: string
+): string[] {
+  return txs
+    .filter((t) => t.members.some((m) => m.userId === payerId && (m.amountOwed ?? 0) > 0))
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .map((t) => t.id);
+}
+
 export function maxSettleableTowardPayee(
   details: TransactionDetailDto[],
   payerId: string

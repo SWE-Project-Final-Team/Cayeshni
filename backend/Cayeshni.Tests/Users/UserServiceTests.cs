@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Users;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
+using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Users;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
 using Xunit;
 
 namespace Cayeshni.Tests.Users;
@@ -242,15 +241,16 @@ public class UserServiceTests
 
         public string GetBaseUrl() => _baseUrl;
 
-        public string? GetUrl(string? profilePicturePath)
+        public string GetUrl(string? profilePicturePath, string? defaultName = "avatar")
         {
             if (string.IsNullOrWhiteSpace(profilePicturePath))
-            {
-                return null;
-            }
+                return $"{_baseUrl}/defaults/{defaultName}.webp";
+            profilePicturePath = string.IsNullOrWhiteSpace(profilePicturePath)
+                ? Path.Combine("profiles", "avatar.png")
+                : profilePicturePath;
 
             var normalized = Normalize(profilePicturePath);
-            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null;
+            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null!;
         }
 
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');
@@ -267,4 +267,5 @@ public class UserServiceTests
         }
     }
 }
+
 

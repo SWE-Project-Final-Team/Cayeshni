@@ -10,12 +10,18 @@ import {
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api/client";
-import type { GroupDetailDto, GroupDto, TransactionDto } from "@/lib/api/types";
+import type {
+  GroupDetailDto,
+  GroupDto,
+  TransactionDto,
+} from "@/lib/api/types";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { currencyCode, currencyValueFromApi } from "@/lib/currency";
 import { equalParts, toCents } from "@/lib/money-split";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ListboxSelect } from "@/components/listbox-select";
 import { useI18n } from "@/lib/i18n";
+import ErrorBoundary from "@/components/error-boundary";
 
 const CATEGORIES: { value: number; key: string }[] = [
   { value: 0, key: "Transport" },
@@ -55,7 +61,9 @@ export default function ExpensesPage() {
         </div>
       }
     >
-      <ExpensesPageInner />
+      <ErrorBoundary>
+        <ExpensesPageInner />
+      </ErrorBoundary>
     </Suspense>
   );
 }
@@ -72,6 +80,12 @@ function ExpensesPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [formErr, setFormErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<TransactionDto | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState<number>(6);
+  const [editPending, setEditPending] = useState(false);
 
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -198,6 +212,14 @@ function ExpensesPageInner() {
     [groupDetail?.members],
   );
 
+  const sortedTxs = useMemo(
+    () =>
+      [...txs].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [txs]
+  );
+
   useEffect(() => {
     const total = parseFloat(amount.replace(",", ".")) || 0;
     if (!equalSplit || memberIds.length === 0 || total <= 0) return;
@@ -277,6 +299,25 @@ function ExpensesPageInner() {
     }
   }
 
+  async function deleteTransactionConfirmed() {
+    const tx = transactionToDelete;
+    if (!accessToken || !tx) return;
+    setDeletePending(true);
+    setFormErr(null);
+    try {
+      await apiJson(`/api/transactions/${tx.id}`, {
+        method: "DELETE",
+        accessToken,
+      });
+      setTransactionToDelete(null);
+      await loadTx();
+    } catch (e) {
+      setFormErr(apiErrorMessage(e));
+    } finally {
+      setDeletePending(false);
+    }
+  }
+
   if (!emailConfirmed) {
     return (
       <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg font-body-md text-on-surface-variant">
@@ -332,13 +373,13 @@ function ExpensesPageInner() {
             <div className="bg-surface-container-low px-lg py-sm font-label-sm text-label-sm text-on-surface-variant border-b border-outline-variant">
               {t("Transactions")}
             </div>
-            {txs.length === 0 ? (
+            {sortedTxs.length === 0 ? (
               <div className="p-lg font-body-md text-on-surface-variant">
                 {t("No transactions in this group yet.")}
               </div>
             ) : (
               <ul>
-                {txs.map((tx, i) => (
+                {sortedTxs.map((t, i) => (
                   <li
                     key={tx.id}
                     className={`flex items-start p-lg border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors ${
@@ -375,6 +416,89 @@ function ExpensesPageInner() {
                           )}{" "}
                           · {categoryLabel(tx.category)}
                         </div>
+                        {profile?.id === t.paidByUserId && (
+                          <div className="mt-sm flex gap-sm">
+                            {editingTxId !== t.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingTxId(t.id);
+                                    setEditDescription(t.description ?? "");
+                                    setEditCategory(t.category ?? 6);
+                                  }}
+                                  className="text-xs font-label-sm text-primary hover:underline"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => setTransactionToDelete(t)}
+                              className="text-xs font-label-sm text-error hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                        {editingTxId === t.id && (
+                          <div className="mt-sm pt-sm border-t border-outline-variant/30 w-full">
+                            <div className="flex flex-col gap-sm">
+                              <input
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                placeholder="Description"
+                                className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm text-sm"
+                              />
+                              <div className="flex gap-sm items-center">
+                                <ListboxSelect
+                                  value={String(editCategory)}
+                                  onChange={(v) => setEditCategory(Number(v))}
+                                  options={categoryOptions}
+                                  className="w-40"
+                                />
+                                <div className="flex gap-sm ml-auto">
+                                  <button
+                                    type="button"
+                                    disabled={editPending}
+                                    onClick={async () => {
+                                      if (!accessToken) return;
+                                      setEditPending(true);
+                                      try {
+                                        await apiJson<TransactionDto>("/api/transactions", {
+                                          method: "PUT",
+                                          accessToken,
+                                          json: {
+                                            id: t.id,
+                                            description: editDescription.trim() || null,
+                                            category: editCategory,
+                                          },
+                                        });
+                                        setEditingTxId(null);
+                                        await loadTx();
+                                      } catch (e) {
+                                        setFormErr(apiErrorMessage(e));
+                                      } finally {
+                                        setEditPending(false);
+                                      }
+                                    }}
+                                    className="text-sm font-label-sm bg-secondary text-on-secondary px-md py-xs rounded-lg disabled:opacity-60"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingTxId(null)}
+                                    className="text-sm font-label-sm text-primary border border-outline-variant px-md py-xs rounded-lg"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </li>
@@ -495,7 +619,7 @@ function ExpensesPageInner() {
                 </div>
 
                 {!equalSplit && memberIds.length > 0 && (
-                  <div className="space-y-sm max-h-48 overflow-y-auto pr-xs">
+                  <div className="space-y-sm max-h-56 overflow-y-auto pr-3 [scrollbar-gutter:stable]">
                     {memberIds.map((id) => {
                       const memberInfo = memberById.get(id);
                       const displayName =
@@ -503,7 +627,7 @@ function ExpensesPageInner() {
                       return (
                         <div
                           key={id}
-                          className="flex items-center justify-between gap-sm"
+                          className="flex items-center justify-between gap-sm rounded-lg border border-outline-variant/40 bg-surface px-sm py-xs"
                         >
                           <span className="font-label-sm text-on-surface-variant truncate max-w-[50%]">
                             {id === profile?.id ? t("You") : displayName}
@@ -518,7 +642,7 @@ function ExpensesPageInner() {
                                 [id]: e.target.value,
                               }))
                             }
-                            className="w-28 bg-surface border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
+                            className="w-28 bg-surface-container-lowest border border-outline-variant rounded-lg px-sm py-xs font-body-md text-right text-on-surface"
                           />
                         </div>
                       );
@@ -547,6 +671,18 @@ function ExpensesPageInner() {
           </form>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={transactionToDelete != null}
+        title="Delete this expense?"
+        description="This will remove the transaction. If it already has settlements, the API may reject the delete until those are removed first."
+        confirmLabel="Delete expense"
+        cancelLabel="Keep it"
+        danger
+        pending={deletePending}
+        onClose={() => !deletePending && setTransactionToDelete(null)}
+        onConfirm={() => void deleteTransactionConfirmed()}
+      />
     </div>
   );
 }

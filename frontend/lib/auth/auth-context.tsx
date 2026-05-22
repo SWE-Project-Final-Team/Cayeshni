@@ -129,6 +129,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setAccessTokenRefreshHandler(null);
   }, [refreshSession]);
 
+  // Global client-side error handlers to prevent unhandled exceptions from
+  // bubbling to the Next router and showing the "This page couldn’t load" UI.
+  useEffect(() => {
+    const onError = (ev: ErrorEvent) => {
+      console.error("Unhandled error:", ev.error ?? ev.message, ev);
+      // swallow to avoid Next.js full-page crash; ErrorBoundary will show retry UI.
+      // Note: still surface to telemetry if available.
+      ev.preventDefault();
+    };
+
+    const onRejection = (ev: PromiseRejectionEvent) => {
+      console.error("Unhandled promise rejection:", ev.reason);
+      ev.preventDefault();
+    };
+
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection as EventListener);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     setSessionInvalidationHandler(() => {
       clearToken();

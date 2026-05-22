@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Cayeshni.API.Application.Common.Exceptions;
-using Cayeshni.API.Application.Common.Interfaces;
-using Cayeshni.API.Application.Features.Users.Friends;
-using Cayeshni.API.Domain.Entities;
-using Cayeshni.API.Domain.Enums;
-using Cayeshni.API.Infrastructure.Identity;
-using Cayeshni.API.Infrastructure.Persistence;
+using Cayeshni.Application.Common.Exceptions;
+using Cayeshni.Application.Common.Interfaces;
+using Cayeshni.Application.Features.Friends;
+using Cayeshni.Domain.Entities;
+using Cayeshni.Domain.Enums;
+using Cayeshni.Infrastructure.Identity;
+using Cayeshni.Infrastructure.Persistence;
+using Cayeshni.Tests.TestDoubles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -22,7 +23,7 @@ public class FriendServiceTests
     private readonly FakeFileStorageService _fileStorage = new();
 
     private FriendService CreateService()
-        => new FriendService(_db, _emailNormalizer, _fileStorage);
+        => new FriendService(new FakeFriendRepository(_db), _emailNormalizer.NormalizeEmail, _fileStorage);
 
     #region SendRequestAsync Tests
 
@@ -378,7 +379,7 @@ public class FriendServiceTests
         };
 
         _db.Friendships.Add(friendship);
-
+        await _db.SaveChangesAsync();
         var service = CreateService();
 
         // Act
@@ -427,6 +428,7 @@ public class FriendServiceTests
         };
 
         _db.Friendships.Add(friendship);
+        await _db.SaveChangesAsync();
         var service = CreateService();
 
         // Act
@@ -625,7 +627,7 @@ public class FriendServiceTests
 
         // Assert
         Assert.Single(pending);
-        Assert.Null(pending[0].ProfilePictureUrl);
+        Assert.Equal("https://cdn.example.com/defaults/avatar.webp", pending[0].ProfilePictureUrl);
     }
 
     #endregion
@@ -820,7 +822,7 @@ public class FriendServiceTests
 
         // Assert
         Assert.Single(friends);
-        Assert.Null(friends[0].ProfilePictureUrl);
+        Assert.Equal("https://cdn.example.com/defaults/avatar.webp", friends[0].ProfilePictureUrl);
     }
 
     #endregion
@@ -839,7 +841,7 @@ public class FriendServiceTests
         public new DbSet<AppUser> Users => Set<AppUser>();
     }
 
-    private sealed class FakeEmailNormalizer : ILookupNormalizer
+    private sealed class FakeEmailNormalizer
     {
         public string? InvalidEmail { get; set; }
 
@@ -909,15 +911,17 @@ public class FriendServiceTests
 
         public string GetBaseUrl() => _baseUrl;
 
-        public string? GetUrl(string? profilePicturePath)
+        public string GetUrl(string? profilePicturePath, string? defaultName = "avatar")
         {
             if (string.IsNullOrWhiteSpace(profilePicturePath))
             {
-                return null;
+                // Remove "/uploads" suffix if present for default URLs
+                var baseUrl = _baseUrl.EndsWith("/uploads") ? _baseUrl[..^8] : _baseUrl;
+                return $"{baseUrl}/defaults/{defaultName}.webp";
             }
 
             var normalized = Normalize(profilePicturePath);
-            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : null;
+            return _existing.Contains(normalized) ? $"{_baseUrl}/{normalized}" : $"{_baseUrl}/defaults/{defaultName}.webp";
         }
 
         private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');
@@ -925,3 +929,4 @@ public class FriendServiceTests
 
     #endregion
 }
+
