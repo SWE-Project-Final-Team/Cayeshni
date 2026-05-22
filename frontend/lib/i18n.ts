@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-type Locale = "en" | "ar" | "fr" | "de" | "es";
+type Locale = "en" | "ar" | "fr" | "de" | "es" | "it";
 
 type Messages = Record<string, string>;
 
@@ -33,6 +33,7 @@ const MESSAGES: Record<Locale, Messages> = {
     French: "French",
     German: "German",
     Spanish: "Spanish",
+    Italian: "Italian",
     "Select…": "Select…",
     "No options": "No options",
     Confirm: "Confirm",
@@ -439,6 +440,7 @@ const MESSAGES: Record<Locale, Messages> = {
     French: "الفرنسية",
     German: "الألمانية",
     Spanish: "الإسبانية",
+    Italian: "الإيطالية",
     "Select…": "اختر…",
     "No options": "لا توجد خيارات",
     Confirm: "تأكيد",
@@ -792,6 +794,7 @@ const MESSAGES: Record<Locale, Messages> = {
     French: "Français",
     German: "Allemand",
     Spanish: "Espagnol",
+    Italian: "Italien",
     "Select…": "Sélectionner…",
     "No options": "Aucune option",
     Confirm: "Confirmer",
@@ -1148,6 +1151,7 @@ const MESSAGES: Record<Locale, Messages> = {
     French: "Französisch",
     German: "Deutsch",
     Spanish: "Spanisch",
+    Italian: "Italienisch",
     "Select…": "Auswählen…",
     "No options": "Keine Optionen",
     Confirm: "Bestätigen",
@@ -1498,12 +1502,91 @@ const MESSAGES: Record<Locale, Messages> = {
       "- der CFO deines Browsers (wahrscheinlich)",
     Home: "Startseite",
   },
+  it: {
+    English: "Inglese",
+    Arabic: "Arabo",
+    French: "Francese",
+    German: "Tedesco",
+    Spanish: "Spagnolo",
+    Italian: "Italiano",
+    "Select…": "Seleziona…",
+    "No options": "Nessuna opzione",
+    Confirm: "Conferma",
+    Cancel: "Annulla",
+    "Please wait…": "Attendere…",
+    "Light mode": "Modalità chiara",
+    "Dark mode": "Modalità scura",
+    "Switch to light mode": "Passa alla modalità chiara",
+    "Switch to dark mode": "Passa alla modalità scura",
+    "Close menu": "Chiudi menu",
+    "Open menu": "Apri menu",
+    "Dismiss menu": "Chiudi menu",
+    "Add expense": "Aggiungi spesa",
+    "Sign out": "Esci",
+    "Counting the coins…": "Contando le monete…",
+    "Loading…": "Caricamento…",
+    "Saving…": "Salvataggio…",
+    "Confirming…": "Conferma in corso…",
+    "A friend": "Un amico",
+    Dashboard: "Dashboard",
+    Expenses: "Spese",
+    Groups: "Gruppi",
+    Friends: "Amici",
+    Settlements: "Liquidazioni",
+    Settings: "Impostazioni",
+    Email: "Email",
+    Password: "Password",
+    "Clarity in shared finances.": "Chiarezza nelle finanze condivise.",
+    "Forgot?": "Password dimenticata?",
+    "How should we call you?": "Come dobbiamo chiamarti?",
+    "Sign In": "Accedi",
+    "Create Account": "Crea account",
+    Account: "Account",
+    Profile: "Profilo",
+    "Display name": "Nome visualizzato",
+    "Default currency": "Valuta predefinita",
+    "Preferred currency": "Valuta preferita",
+    "Select currency": "Seleziona valuta",
+    "Reset password": "Reimposta password",
+    "Send reset link": "Invia link di reimpostazione",
+    "Back to sign in": "Torna ad accedere",
+    "New password": "Nuova password",
+    "Update password": "Aggiorna password",
+    "Confirm email": "Conferma email",
+    Continue: "Continua",
+    "Almost there…": "Quasi fatto…",
+    "Thanks — your email is confirmed.":
+      "Grazie — la tua email è stata confermata.",
+    "We&apos;re confirming your email now. If needed, you can retry below.":
+      "Stiamo confermando la tua email ora. Se necessario, puoi riprovare qui sotto.",
+    "This link is missing required information. Request a new confirmation email from the app banner.":
+      "Questo link non contiene le informazioni richieste. Richiedi una nuova email di conferma dal banner dell'app.",
+    "Enter your email and we&apos;ll send a link when the account exists.":
+      "Inserisci la tua email e invieremo un link se l'account esiste.",
+    "If that email exists, a reset link has been sent.":
+      "Se quell'email esiste, è stato inviato un link di reimpostazione.",
+    "Securing your session and balances…":
+      "Proteggiamo la tua sessione e i tuoi saldi…",
+    "Update your display name and currency, and change your password.":
+      "Aggiorna il tuo nome visualizzato e la valuta, e cambia la password.",
+    "Loading your account…": "Caricamento del tuo account…",
+    "Profile updated.": "Profilo aggiornato.",
+    "Password updated.": "Password aggiornata.",
+    "Save profile": "Salva profilo",
+    "Change password": "Cambia password",
+    "Current password": "Password attuale",
+    "Sign out everywhere on this device":
+      "Disconnetti ovunque su questo dispositivo",
+    "Save changes": "Salva modifiche",
+    "Opening the ledger…": "Apertura del registro…",
+  },
   es: {
     English: "Inglés",
     Arabic: "Árabe",
     French: "Francés",
     German: "Alemán",
     Spanish: "Español",
+    Italian: "Italiano",
     "Select…": "Seleccionar…",
     "No options": "Sin opciones",
     Confirm: "Confirmar",
@@ -1870,6 +1953,7 @@ function normalizeLocale(input: string | null): Locale | null {
   if (lower.startsWith("fr")) return "fr";
   if (lower.startsWith("de")) return "de";
   if (lower.startsWith("es")) return "es";
+  if (lower.startsWith("it")) return "it";
   if (lower.startsWith("en")) return "en";
   return null;
 }
@@ -1934,5 +2018,6 @@ export const LANGUAGE_OPTIONS: {
   { value: "ar", label: "Arabic", description: "العربية" },
   { value: "fr", label: "French", description: "Français" },
   { value: "de", label: "German", description: "Deutsch" },
+  { value: "it", label: "Italian", description: "Italiano" },
   { value: "es", label: "Spanish", description: "Español" },
 ];
