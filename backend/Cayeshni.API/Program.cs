@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -54,7 +54,7 @@ if (app.Environment.IsDevelopment())
 // Serve files in the uploads directory at the /uploads URL path
 app.UseUploads();
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -62,5 +62,6 @@ app.UseRateLimiter();
 app.MapControllers();
 
 app.MapGet("/", () => "Cayeshni API");
+app.MapGet("/health", () => Results.Ok("healthy"));
 
 app.Run();

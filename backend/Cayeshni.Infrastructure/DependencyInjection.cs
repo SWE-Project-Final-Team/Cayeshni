@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString, x => 
             {
-                x.MigrationsAssembly("Cayeshni.API");
+                x.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name); // Cayeshni.Infrastructure
                 x.EnableRetryOnFailure(5);
             }));
     
@@ -87,7 +87,8 @@ public static class DependencyInjection
                 else if (!Path.IsPathRooted(opts.BasePath))
                     opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.BasePath));
             });
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        // services.AddScoped<IFileStorageService, LocalFileStorageService>(); // for local filesystem storage
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>(); // for Cloudinary storage
         
         // Profile image processor
         services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
