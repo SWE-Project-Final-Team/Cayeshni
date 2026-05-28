@@ -26,7 +26,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins(builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000")
+            .WithOrigins(
+                builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000",
+                "https://cayeshni-git-develop-seifmaazouz-projects.vercel.app"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
