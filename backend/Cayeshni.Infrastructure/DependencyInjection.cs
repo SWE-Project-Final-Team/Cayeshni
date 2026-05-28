@@ -24,14 +24,15 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure database connection string
-        // try "DefaultConnection" first, then fall back to individual settings if not found
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        // Prefer explicit Database:* settings (e.g., docker env), fallback to DefaultConnection.
+        var dbOptions = configuration.GetSection(DatabaseOptions.Section).Get<DatabaseOptions>();
+        var connectionString = !string.IsNullOrWhiteSpace(dbOptions?.Host)
+            ? dbOptions.ToConnectionString()
+            : configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var dbOptions = configuration.GetSection(DatabaseOptions.Section).Get<DatabaseOptions>()
-                ?? throw new InvalidOperationException("Database configuration is missing.");
-            connectionString = dbOptions.ToConnectionString();
+            throw new InvalidOperationException("Database configuration is missing.");
         }
         // Register AppDbContext with Npgsql provider
         services.AddDbContext<AppDbContext>(options => 
