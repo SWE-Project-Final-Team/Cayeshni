@@ -87,8 +87,15 @@ public static class DependencyInjection
                 else if (!Path.IsPathRooted(opts.BasePath))
                     opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.BasePath));
             });
-        // services.AddScoped<IFileStorageService, LocalFileStorageService>(); // for local filesystem storage
-        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>(); // for Cloudinary storage
+
+        if (configuration.GetValue<string>("FileStorage:Provider") == "Local")
+        {
+            services.AddScoped<IFileStorageService, LocalFileStorageService>(); // for local filesystem storage in development
+        }
+        else
+        {
+            services.AddScoped<IFileStorageService, CloudinaryFileStorageService>(); // for Cloudinary storage in production
+        }
         
         // Profile image processor
         services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
