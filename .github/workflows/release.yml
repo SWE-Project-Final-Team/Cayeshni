@@ -45,3 +45,38 @@ jobs:
         run: npm run release
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+  sync:
+    name: Sync main to develop
+    runs-on: ubuntu-latest
+    needs: release
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Generate GitHub App token
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.token.outputs.token }}
+
+      - name: Configure git
+        run: |
+          git config user.name "cayeshni-release-app[bot]"
+          git config user.email "${{ steps.token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+      - name: Sync main into develop
+        run: |
+          git fetch origin
+          git checkout develop
+          git reset --hard origin/develop
+          git merge origin/main --no-edit
+          git push origin develop
