@@ -26,6 +26,11 @@
     &nbsp;·&nbsp;
     <a href="https://github.com/SWE-Project-Final-Team/Cayeshni/issues/new?template=feature.yml">✨ Request Feature</a>
   </p>
+
+  <br />
+
+  [![Frontend](https://img.shields.io/badge/Frontend-Live-brightgreen?style=for-the-badge&logo=vercel&logoColor=white)](https://cayeshni-app.vercel.app)
+  [![Backend](https://img.shields.io/badge/Backend-Live-brightgreen?style=for-the-badge&logo=railway&logoColor=white)](https://cayeshni-production.up.railway.app/health)
 </div>
 
 ---
@@ -36,8 +41,8 @@
   <ol>
     <li><a href="#about-the-project">About The Project</a></li>
     <li><a href="#tech-stack">Tech Stack</a></li>
+    <li><a href="#demo">Demo & Live Deployment</a></li>
     <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#demo">Demo</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
@@ -58,7 +63,7 @@ Cayeshni is a secure full-stack platform for splitting expenses, managing group 
 - Group creation and invite-based membership
 - Transactions, balances, and settlements
 - Friend management and notifications
-- File uploads with validation
+- File uploads with cloud storage
 
 ---
 
@@ -82,6 +87,33 @@ Cayeshni is a secure full-stack platform for splitting expenses, managing group 
 
 [![docker][docker-badge]][docker-url]
 [![ghactions][ghactions-badge]][ghactions-url]
+
+**Deployment**
+
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cayeshni-app.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://cayeshni-production.up.railway.app/health)
+[![Database](https://img.shields.io/badge/Database-Neon-00E599?style=for-the-badge&logo=postgresql&logoColor=black)](https://neon.tech)
+[![Storage](https://img.shields.io/badge/Storage-Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com)
+
+---
+
+<!-- DEMO -->
+<a id="demo"></a>
+## 🎬 Demo & Live Deployment
+
+### 🌐 Live URLs
+
+| Service | URL |
+|---|---|
+| 🖥️ Frontend | [cayeshni-app.vercel.app](https://cayeshni-app.vercel.app) |
+| ⚙️ Backend API | [cayeshni-production.up.railway.app](https://cayeshni-production.up.railway.app) |
+| 🏥 Health Check | [/health](https://cayeshni-production.up.railway.app/health) |
+
+> Demo video coming soon.
+
+### Screenshots
+
+> Screenshots coming soon.
 
 ---
 
@@ -109,8 +141,8 @@ docker compose up --build
 ```
 
 The stack exposes:
-| Service    | URL                         |
-|------------|-----------------------------|
+| Service    | URL                          |
+|------------|------------------------------|
 | API        | http://localhost:8080        |
 | Web        | http://localhost:3000        |
 | PostgreSQL | localhost:5432               |
@@ -147,23 +179,11 @@ Helper scripts are available in the `backend/` folder:
 
 When running in Development mode, the API exposes:
 
-| Interface   | URL                                        |
-|-------------|--------------------------------------------|
-| OpenAPI JSON | http://localhost:8080/openapi/v1.json     |
-| Scalar UI   | http://localhost:8080/scalar/v1            |
-| Swagger UI  | http://localhost:8080/swagger              |
-
----
-
-<!-- DEMO -->
-<a id="demo"></a>
-## 🎬 Demo
-
-> Demo video coming soon.
-
-### Screenshots
-
-> Screenshots coming soon.
+| Interface    | URL                                        |
+|--------------|--------------------------------------------|
+| OpenAPI JSON | http://localhost:8080/openapi/v1.json      |
+| Scalar UI    | http://localhost:8080/scalar/v1            |
+| Swagger UI   | http://localhost:8080/swagger              |
 
 ---
 
@@ -192,6 +212,9 @@ Detailed documentation for each feature lives in [`docs/features/`](docs/feature
 - [x] Core authentication and identity management
 - [x] Group and transaction management
 - [x] Settlement calculations and automation
+- [x] Cloud file storage with Cloudinary
+- [x] Containerized deployment with Docker
+- [x] CI/CD with GitHub Actions and Semantic Release
 - [ ] Mobile app support
 - [ ] Real-time notifications
 - [ ] Advanced analytics and reporting

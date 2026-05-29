@@ -11,5 +11,7 @@ public class FileStorageOptions
 
     // Public base URL returned to clients
     public string BaseUrl  { get; set; } = "http://localhost:8080";
+
+    public string Provider { get; set; } = "Local"; // "Local" or "Cloudinary"
 }
 

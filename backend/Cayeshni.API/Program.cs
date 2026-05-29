@@ -8,6 +8,10 @@ DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel to listen on all interfaces and use PORT env variable (for production compatibility)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Add layer services
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
@@ -22,7 +26,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000",
+                "https://cayeshni-git-develop-seifmaazouz-projects.vercel.app"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -54,7 +61,7 @@ if (app.Environment.IsDevelopment())
 // Serve files in the uploads directory at the /uploads URL path
 app.UseUploads();
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -62,5 +69,6 @@ app.UseRateLimiter();
 app.MapControllers();
 
 app.MapGet("/", () => "Cayeshni API");
+app.MapGet("/health", () => Results.Ok("healthy"));
 
 app.Run();
