@@ -1,0 +1,47 @@
+name: Sync main to develop
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    branches: [main]
+    types: [completed] # Only trigger when the workflow run is completed (prevent race condition)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-main-develop
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Generate GitHub App token
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.token.outputs.token }}
+
+      - name: Configure git
+        run: |
+          git config user.name "cayeshni-release-app[bot]"
+          git config user.email "${{ steps.token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+      - name: Sync main into develop
+        run: |
+          git fetch origin
+          git checkout develop
+          git reset --hard origin/develop
+          git merge origin/main --no-edit
+          git push origin develop
