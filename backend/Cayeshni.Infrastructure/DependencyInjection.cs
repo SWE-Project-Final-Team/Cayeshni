@@ -23,16 +23,22 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure database options from configuration
-        var dbOptions = configuration.GetSection(DatabaseOptions.Section).Get<DatabaseOptions>()
-            ?? throw new InvalidOperationException("Database configuration is missing.");
+        // Configure database connection string
+        // Prefer explicit Database:* settings (e.g., docker env), fallback to DefaultConnection.
+        var dbOptions = configuration.GetSection(DatabaseOptions.Section).Get<DatabaseOptions>();
+        var connectionString = !string.IsNullOrWhiteSpace(dbOptions?.Host)
+            ? dbOptions.ToConnectionString()
+            : configuration.GetConnectionString("DefaultConnection");
 
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Database configuration is missing.");
+        }
         // Register AppDbContext with Npgsql provider
-        var connectionString = dbOptions.ToConnectionString();
         services.AddDbContext<AppDbContext>(options => 
             options.UseNpgsql(connectionString, x => 
             {
-                x.MigrationsAssembly("Cayeshni.API");
+                x.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name); // Cayeshni.Infrastructure
                 x.EnableRetryOnFailure(5);
             }));
     
@@ -87,7 +93,15 @@ public static class DependencyInjection
                 else if (!Path.IsPathRooted(opts.BasePath))
                     opts.BasePath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.BasePath));
             });
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        if (configuration.GetValue<string>("FileStorage:Provider") == "Local")
+        {
+            services.AddScoped<IFileStorageService, LocalFileStorageService>(); // for local filesystem storage in development
+        }
+        else
+        {
+            services.AddScoped<IFileStorageService, CloudinaryFileStorageService>(); // for Cloudinary storage in production
+        }
         
         // Profile image processor
         services.AddScoped<IProfileImageProcessor, ProfileImageProcessor>();
