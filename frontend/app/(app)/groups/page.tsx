@@ -9,6 +9,10 @@ import { currencyCode } from "@/lib/currency";
 import { storePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildGroupJoinUrl } from "@/lib/group-invite";
+import {
+  storePendingGroupInvite,
+  consumePendingGroupInvite,
+} from "@/lib/group-pending-invite";
 import { InviteFriendToGroup } from "@/components/invite-friend-to-group";
 
 export default function GroupsPage() {
@@ -23,8 +27,8 @@ export default function GroupsPage() {
   const [joinErr, setJoinErr] = useState<string | null>(null);
   const [joinBusy, setJoinBusy] = useState(false);
   const [shareHint, setShareHint] = useState<string | null>(null);
-  const [inviteFromLink, setInviteFromLink] = useState(false);
-  const prefilledInvite = useRef(false);
+  const [autoJoining, setAutoJoining] = useState(false);
+  const autoJoinAttempted = useRef(false);
   const [pendingInvites, setPendingInvites] = useState<PendingGroupInviteDto[]>(
     []
   );
@@ -71,18 +75,66 @@ export default function GroupsPage() {
     void load();
   }, [load]);
 
+  /**
+   * Handle invite link for unauthenticated users.
+   * If user is not yet authenticated, redirect to login with a return path.
+   * If already authenticated, the other useEffect handles auto-join.
+   */
   useEffect(() => {
-    if (prefilledInvite.current) return;
     if (typeof window === "undefined") return;
     const inv = new URLSearchParams(window.location.search).get("invite");
     if (!inv) return;
-    prefilledInvite.current = true;
-    const returnPath = `/groups?invite=${encodeURIComponent(inv)}`;
-    storePostAuthRedirect(returnPath);
-    setInviteFromLink(true);
-    setJoinToken(inv);
-    router.replace("/groups", { scroll: false });
-  }, [router]);
+
+    if (accessToken && emailConfirmed) {
+      // Already authenticated: the other useEffect will handle auto-join
+      return;
+    }
+
+    if (!accessToken) {
+      // Not authenticated: store token and redirect to login
+      storePendingGroupInvite(inv);
+      const returnPath = `/groups?invite=${encodeURIComponent(inv)}`;
+      storePostAuthRedirect(returnPath);
+      router.replace("/login", { scroll: false });
+    }
+  }, [router, accessToken, emailConfirmed]);
+
+  /**
+   * Auto-join when user is authenticated and has a pending invite.
+   * Handles both:
+   * - Invite link opened while already authenticated
+   * - Return from auth flow with stored invite token
+   */
+  useEffect(() => {
+    if (!accessToken || !emailConfirmed) return;
+    if (autoJoinAttempted.current) return;
+
+    // Check session storage for stored token from unauthenticated invite link
+    let pendingToken = consumePendingGroupInvite();
+
+    // Also check URL in case we were redirected here after login with ?invite=TOKEN
+    if (!pendingToken && typeof window !== "undefined") {
+      const inv = new URLSearchParams(window.location.search).get("invite");
+      if (inv) {
+        pendingToken = inv;
+      }
+    }
+
+    if (!pendingToken) return;
+
+    autoJoinAttempted.current = true;
+    setAutoJoining(true);
+
+    void autoJoinGroup(pendingToken).finally(() => {
+      // Clean URL parameter if auto-join succeeded
+      if (typeof window !== "undefined") {
+        const current = new URLSearchParams(window.location.search).get("invite");
+        if (current === pendingToken) {
+          router.replace("/groups", { scroll: false });
+        }
+      }
+    });
+  }, [accessToken, emailConfirmed, router]);
 
   async function shareGroup(g: GroupDto) {
     setShareHint(null);
@@ -118,6 +170,30 @@ export default function GroupsPage() {
       }
     }
     window.setTimeout(() => setShareHint(null), 4000);
+  }
+
+  /**
+   * Auto-join a group from an invite token.
+   * Used when user arrives via invite link and is already authenticated.
+   * Falls back to manual join if it fails.
+   */
+  async function autoJoinGroup(token: string): Promise<void> {
+    if (!accessToken || !token.trim()) return;
+
+    try {
+      const joined = await apiJson<GroupDto>("/api/groups/join", {
+        method: "POST",
+        accessToken,
+        json: { inviteToken: token },
+      });
+      await Promise.all([load(), loadInvites()]);
+      router.push(`/groups/${joined.id}`);
+    } catch (e) {
+      // Auto-join failed: show error and let user manually join as fallback
+      setJoinErr(apiErrorMessage(e));
+      setJoinToken(token);
+      setAutoJoining(false);
+    }
   }
 
   async function joinGroup(e: React.FormEvent) {
@@ -223,10 +299,9 @@ export default function GroupsPage() {
         </div>
       )}
 
-      {inviteFromLink && (
+      {autoJoining && (
         <div className="rounded-lg border border-secondary/30 bg-secondary-fixed/30 px-md py-sm font-body-md text-on-surface">
-          You opened an invite link — the code is filled in below. Tap{" "}
-          <strong>Join group</strong> when you&apos;re ready.
+          Joining group…
         </div>
       )}
 
