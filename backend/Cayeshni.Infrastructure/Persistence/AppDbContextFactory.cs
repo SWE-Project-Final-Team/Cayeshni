@@ -17,7 +17,16 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var dbOptions = configuration.GetSection(Options.DatabaseOptions.Section)
+            .Get<Options.DatabaseOptions>();
+        var connectionString = !string.IsNullOrWhiteSpace(dbOptions?.Host)
+            ? dbOptions.ToConnectionString()
+            : configuration.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Database configuration is missing.");
+        }
 
         optionsBuilder.UseNpgsql(connectionString);
 

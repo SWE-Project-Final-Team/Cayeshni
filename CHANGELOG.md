@@ -1,3 +1,33 @@
+## [1.1.0](https://github.com/SWE-Project-Final-Team/Cayeshni/compare/v1.0.0...v1.1.0) (2026-05-29)
+
+### Features
+
+* **backend:** replace local file storage with Cloudinary ([cf138e7](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/cf138e7854c146442d40b4bc086f7f9112e3f0e7))
+* **storage:** add support for local and Cloudinary file storage options ([d97bfd4](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/d97bfd43cf1f92d4e64aad1c001e814310b80fdb))
+
+### Bug Fixes
+
+* **compose:** correct service names and container names in Docker Compose configuration ([516333b](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/516333b826d7286e045f3d4d5224f6d714e54681))
+* **config:** update production settings for frontend URL, file storage base URL, and email confirmation requirement ([e2722d2](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/e2722d21111d513fce97af1f5ba155643f8d3de2))
+* **database:** prefer database env over DefaultConnection ([ca1ad8b](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/ca1ad8b056113262387c353d91cf253988ab3f1a))
+* **ui:** adjust layout and styling in TransactionDetailPanel for better responsiveness ([5905220](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/590522043e9cd71ecae981083a8a2fccb82dec79))
+
+### Documentation
+
+* **readme:** enhance documentation with live deployment links and demo section ([572338d](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/572338dfa9c3a08c9201cb6e77fd1a576fbabc5e))
+
+### Refactoring
+
+* **options:** correct file names of BrevoOptions and DatabaseOptions classes ([10b9b4b](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/10b9b4bb8c2ba45c368f91c4efc9af7ecc05ec47))
+* update database connection string configuration logic ([5d65541](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/5d65541300ca27a9d15b1ac5d685f26700bf41da))
+
+### Chores
+
+* allow Vercel preview origin in CORS ([9302ec0](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/9302ec0e1a0c3c9c8f18f02bc3dcd9186a465466))
+* **ci:** auto-sync main to develop via GitHub App ([#36](https://github.com/SWE-Project-Final-Team/Cayeshni/issues/36)) ([ed0a566](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/ed0a56602ceeebfcf23bc4839436a76d0dec1176))
+* **release:** replace PAT with GitHub App authentication ([09e70e2](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/09e70e2aac90bd9101f5841118e0b36616210ad9))
+* **server:** configure Kestrel to listen on all interfaces with PORT env variable ([5abd2cb](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/5abd2cba872f37751c23085b65a6e492db4b956e))
+
 ## 1.0.0 (2026-05-18)
 
 ### Features

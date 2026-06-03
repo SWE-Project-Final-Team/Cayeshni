@@ -46,14 +46,12 @@ export function TransactionDetailPanel({
   const youLabel = t("You");
   if (!listRow) {
     return (
-      <div className="rounded-2xl border border-outline-variant/90 bg-surface-container-lowest p-xl shadow-[0_8px_28px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.3)] min-h-[220px] flex flex-col items-center justify-center gap-sm text-center">
-        <span className="material-symbols-outlined text-4xl text-on-surface-variant/50">
+      <div className="rounded-2xl border border-outline-variant/90 bg-surface-container-lowest p-xl shadow-[0_8px_28px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.3)] min-h-[220px] w-full flex flex-col items-stretch justify-center gap-sm text-center">
+        <span className="material-symbols-outlined text-4xl text-on-surface-variant/50 self-center">
           info
         </span>
-        <p className="font-body-md text-on-surface-variant max-w-xs">
-          {t(
-            "Select an expense from the list to see the full breakdown and settlements."
-          )}
+        <p className="font-body-md text-on-surface-variant w-full max-w-none">
+          {t("Select an expense from the list to see the full breakdown and settlements.")}
         </p>
       </div>
     );

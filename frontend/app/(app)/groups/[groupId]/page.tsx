@@ -434,7 +434,6 @@ export default function GroupDetailPage() {
     }
     let cancelled = false;
     setTxDetailLoading(true);
-    setTxDetail(null);
     void apiJson<TransactionDetailDto>(`/api/transactions/${selectedTxId}`, {
       accessToken,
     })

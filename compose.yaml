@@ -3,10 +3,11 @@
 # https://docs.docker.com/go/compose-spec-reference/
 
 # Docker Compose configuration for Cayeshni API with PostgreSQL
-name: cayeshni-backend
+name: cayeshni
 
 services:
   db:
+    container_name: db
     image: postgres:16-alpine
     restart: always
     user: postgres
@@ -32,6 +33,7 @@ services:
         max-file: "3"
 
   server:
+    container_name: server
     build:
       context: backend/
       target: final
@@ -52,9 +54,9 @@ services:
         max-file: "3"
     
   frontend:
+    container_name: frontend
     build:
       context: frontend/
-    container_name: frontend
     restart: unless-stopped
     depends_on:
       - server
