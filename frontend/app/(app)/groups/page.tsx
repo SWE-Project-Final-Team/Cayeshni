@@ -125,16 +125,8 @@ export default function GroupsPage() {
     autoJoinAttempted.current = true;
     setAutoJoining(true);
 
-    void autoJoinGroup(pendingToken).finally(() => {
-      // Clean URL parameter if auto-join succeeded
-      if (typeof window !== "undefined") {
-        const current = new URLSearchParams(window.location.search).get("invite");
-        if (current === pendingToken) {
-          router.replace("/groups", { scroll: false });
-        }
-      }
-    });
-  }, [accessToken, emailConfirmed, router]);
+    autoJoinGroup(pendingToken);
+  }, [accessToken, emailConfirmed]);
 
   async function shareGroup(g: GroupDto) {
     setShareHint(null);
@@ -187,12 +179,18 @@ export default function GroupsPage() {
         json: { inviteToken: token },
       });
       await Promise.all([load(), loadInvites()]);
+      // Navigate to group detail on success (after join completes)
       router.push(`/groups/${joined.id}`);
     } catch (e) {
       // Auto-join failed: show error and let user manually join as fallback
       setJoinErr(apiErrorMessage(e));
       setJoinToken(token);
       setAutoJoining(false);
+      
+      // Clean up URL parameter on error
+      if (typeof window !== "undefined") {
+        router.replace("/groups", { scroll: false });
+      }
     }
   }
 
