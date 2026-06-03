@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Cayeshni.Domain.Enums;
+using Cayeshni.Domain.Utilities;
 
 namespace Cayeshni.Domain.Entities;
 public class Group
@@ -11,7 +12,13 @@ public class Group
     public Currency DefaultCurrency { get; set; } = Currency.USD;
 
     [Required, MaxLength(64)]
-    public string InviteToken { get; set; } = Guid.NewGuid().ToString("N"); // N format for compact representation without hyphens
+    public string InviteToken { get; set; } = string.Empty;
+
+    public Group()
+    {
+        // Generate token based on the group ID (hash + base58, first 8 chars)
+        InviteToken = InviteTokenGenerator.GenerateToken(Id);
+    }
 
     public Guid CreatedById { get; set; }
 
