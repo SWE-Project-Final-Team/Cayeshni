@@ -2,6 +2,7 @@ using Cayeshni.Application.Features.Transactions;
 using Cayeshni.Application.Common.Exceptions;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
+using Cayeshni.Domain.Utilities;
 using Cayeshni.Infrastructure.Identity;
 using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
@@ -48,7 +49,7 @@ public class TransactionServiceTests
             Name = "Test Group",
             DefaultCurrency = Currency.USD,
             CreatedById = userId,
-            InviteToken = Guid.NewGuid().ToString("N")
+            InviteToken = InviteTokenGenerator.GenerateToken(groupId)
         };
 
         var member = new GroupMember { GroupId = groupId, UserId = userId };
@@ -170,7 +171,7 @@ public class TransactionServiceTests
             Name = "Test Group",
             DefaultCurrency = Currency.USD,
             CreatedById = Guid.NewGuid(),
-            InviteToken = Guid.NewGuid().ToString("N")
+            InviteToken = InviteTokenGenerator.GenerateToken(groupId)
         };
         context.Groups.Add(group);
         await context.SaveChangesAsync();

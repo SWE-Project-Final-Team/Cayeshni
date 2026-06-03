@@ -55,7 +55,7 @@ public class GroupCreationTests
 
         // Assert
         Assert.NotEmpty(result.InviteToken);
-        Assert.Equal(32, result.InviteToken.Length); // GUID in N format is 32 chars
+        Assert.Equal(8, result.InviteToken.Length); // Base58 encoded hash is 8 chars
     }
 
     [Fact]
