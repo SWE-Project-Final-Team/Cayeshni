@@ -8,10 +8,6 @@ DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel to listen on all interfaces and use PORT env variable (for production compatibility)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
 // Add layer services
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
