@@ -25,14 +25,28 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy
-            .WithOrigins(
-                builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000",
-                "https://cayeshni-git-develop-seifmaazouz-projects.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin))
+                return false;
+
+            // localhost (dev)
+            if (origin.StartsWith("http://localhost"))
+                return true;
+
+            // production frontend
+            if (origin == (builder.Configuration["App:FrontendUrl"] ?? "https://cayeshni-app.vercel.app"))
+                return true;
+
+            // all Vercel preview deployments for this project
+            if (origin.StartsWith("https://cayeshni-") && origin.EndsWith(".vercel.app"))
+                return true;
+
+            return false;
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 
