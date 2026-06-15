@@ -8,33 +8,18 @@ DotNetEnv.Env.TraversePath().Load(); // Load .env file from project root
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel to listen on all interfaces and use PORT env variable (for production compatibility)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
 // Add layer services
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
 // Add authentication and authorization services (JWT, cookie handling, etc.)
 builder.Services.AddAuthenticationServices(builder.Configuration);
-// Register API surface services (JSON, CORS, rate limiting, OpenAPI)
-builder.Services.AddApiServices(builder.Configuration); //(after auth to ensure policies are registered)
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("FrontendPolicy", policy =>
-    {
-        policy
-            .WithOrigins(
-                builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000",
-                "https://cayeshni-git-develop-seifmaazouz-projects.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
+// Register API services
+builder.Services.AddJsonApiServices();
+builder.Services.AddFrontendCors(builder.Configuration);
+builder.Services.AddApiRateLimiting();
+builder.Services.AddApiDocumentation();
 
 var app = builder.Build();
 

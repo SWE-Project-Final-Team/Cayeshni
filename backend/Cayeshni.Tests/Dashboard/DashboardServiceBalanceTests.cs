@@ -1,6 +1,7 @@
 using Cayeshni.Application.Features.Dashboard;
 using Cayeshni.Domain.Entities;
 using Cayeshni.Domain.Enums;
+using Cayeshni.Domain.Utilities;
 using Cayeshni.Infrastructure.Identity;
 using Cayeshni.Infrastructure.Persistence;
 using Cayeshni.Tests.TestDoubles;
@@ -46,7 +47,7 @@ public class DashboardServiceBalanceTests
             Name = "Trip",
             CreatedById = aliceId,
             DefaultCurrency = Currency.USD,
-            InviteToken = "testinvitetoken123",
+            InviteToken = InviteTokenGenerator.GenerateToken(groupId),
         };
         group.Members.Add(new GroupMember { GroupId = groupId, UserId = aliceId });
         group.Members.Add(new GroupMember { GroupId = groupId, UserId = bobId });
