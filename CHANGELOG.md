@@ -1,3 +1,28 @@
+## [1.2.0](https://github.com/SWE-Project-Final-Team/Cayeshni/compare/v1.1.0...v1.2.0) (2026-06-15)
+
+### Features
+
+* changed group invites to autojoin when using an invite link ([63f9d92](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/63f9d92547fa48419407cd287f0cb26067460526))
+* implement invite token generation using base58 encoding for groups ([9de09a5](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/9de09a57c519e2f65622cd2702f085adb715ff4b))
+
+### Bug Fixes
+
+* **cors:** support Vercel preview deployments for cayeshni-* domains ([6ec59e1](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/6ec59e1c96a187407e091a7f51d8dae8b672fd1d))
+* User already joing this group error caused by incorrect router config ([14c7cfd](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/14c7cfdf372f9cbfd6901bff398662267538ed1c))
+
+### Refactoring
+
+* group invites frontend autojoin and cleaner link generation ([#46](https://github.com/SWE-Project-Final-Team/Cayeshni/issues/46)) ([960a10f](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/960a10f45da56cbef8458df3ca9ebe7d311337f2))
+* make allowed origins configuration-driven and split API extensions ([3799d65](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/3799d659f4c13f87c5ba84fac5d34e2441494dc8))
+
+### Chores
+
+* **server:** remove redundant PORT-based Kestrel configuration since Docker handles ASPNETCORE_URLS ([0fd4c51](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/0fd4c51846ed9c965cf816f91ae03d021f497ab7))
+
+### CI/CD
+
+* fix sync main to develop race condition ([#45](https://github.com/SWE-Project-Final-Team/Cayeshni/issues/45)) ([06b07ec](https://github.com/SWE-Project-Final-Team/Cayeshni/commit/06b07ecfd971fd3da7d3b791c8ab8b343d854747))
+
 ## [1.1.0](https://github.com/SWE-Project-Final-Team/Cayeshni/compare/v1.0.0...v1.1.0) (2026-05-29)
 
 ### Features
