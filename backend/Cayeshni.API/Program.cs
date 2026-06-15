@@ -14,37 +14,12 @@ builder.Services.AddApplication();
 
 // Add authentication and authorization services (JWT, cookie handling, etc.)
 builder.Services.AddAuthenticationServices(builder.Configuration);
-// Register API surface services (JSON, CORS, rate limiting, OpenAPI)
-builder.Services.AddApiServices(builder.Configuration); //(after auth to ensure policies are registered)
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("FrontendPolicy", policy =>
-    {
-        policy.SetIsOriginAllowed(origin =>
-        {
-            if (string.IsNullOrEmpty(origin))
-                return false;
-
-            // localhost (dev)
-            if (origin.StartsWith("http://localhost"))
-                return true;
-
-            // production frontend
-            if (origin == (builder.Configuration["App:FrontendUrl"] ?? "https://cayeshni-app.vercel.app"))
-                return true;
-
-            // all Vercel preview deployments for this project
-            if (origin.StartsWith("https://cayeshni-") && origin.EndsWith(".vercel.app"))
-                return true;
-
-            return false;
-        })
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
-    });
-});
+// Register API services
+builder.Services.AddJsonApiServices();
+builder.Services.AddFrontendCors(builder.Configuration);
+builder.Services.AddApiRateLimiting();
+builder.Services.AddApiDocumentation();
 
 var app = builder.Build();
 
