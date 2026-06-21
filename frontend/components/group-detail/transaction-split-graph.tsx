@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export type GraphMember = {
   userId: string;
@@ -32,8 +33,15 @@ function shortenLine(
   x2: number,
   y2: number,
   r1: number,
-  r2: number
-): { sx1: number; sy1: number; sx2: number; sy2: number; mx: number; my: number } {
+  r2: number,
+): {
+  sx1: number;
+  sy1: number;
+  sx2: number;
+  sy2: number;
+  mx: number;
+  my: number;
+} {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const len = Math.hypot(dx, dy) || 1;
@@ -59,19 +67,20 @@ export function TransactionSplitGraph({
   onMemberClick,
   compact,
 }: Props) {
+  const { t } = useI18n();
   const reactId = useId().replace(/:/g, "");
   const markerId = `${reactId}-split-arrow`;
   const markerOwedId = `${reactId}-split-arrow-owed`;
   const [hoverUser, setHoverUser] = useState<string | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
-  const [avatarFailed, setAvatarFailed] = useState<ReadonlySet<string>>(() => new Set());
+  const [avatarFailed, setAvatarFailed] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   const { W, H, NODE_R } = useMemo(
     () =>
-      compact
-        ? { W: 520, H: 364, NODE_R: 32 }
-        : { W: 680, H: 468, NODE_R: 40 },
-    [compact]
+      compact ? { W: 520, H: 364, NODE_R: 32 } : { W: 680, H: 468, NODE_R: 40 },
+    [compact],
   );
 
   const { positions, edges } = useMemo(() => {
@@ -92,7 +101,7 @@ export function TransactionSplitGraph({
     });
 
     const debtors = splits.filter(
-      (s) => s.userId !== paidByUserId && s.amountOwed > 0
+      (s) => s.userId !== paidByUserId && s.amountOwed > 0,
     );
 
     const edgeList: {
@@ -119,7 +128,7 @@ export function TransactionSplitGraph({
         p1.x,
         p1.y,
         NODE_R,
-        NODE_R
+        NODE_R,
       );
       const path = `M ${sx1} ${sy1} Q ${mx} ${my} ${sx2} ${sy2}`;
       edgeList.push({
@@ -164,7 +173,11 @@ export function TransactionSplitGraph({
   }
 
   function nodeOpacity(uid: string): number {
-    if (!hoverUser && !hoverEdge && (!activeUserIds || activeUserIds.size === 0)) {
+    if (
+      !hoverUser &&
+      !hoverEdge &&
+      (!activeUserIds || activeUserIds.size === 0)
+    ) {
       if (lensUserId) {
         const rel = new Set<string>([paidByUserId, lensUserId]);
         for (const ed of edges) {
@@ -217,7 +230,7 @@ export function TransactionSplitGraph({
   const payerSplit =
     payerShareAmount != null
       ? payerShareAmount
-      : splits.find((s) => s.userId === paidByUserId)?.amountOwed ?? 0;
+      : (splits.find((s) => s.userId === paidByUserId)?.amountOwed ?? 0);
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-outline-variant/90 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
@@ -239,9 +252,11 @@ export function TransactionSplitGraph({
 
       <div className="relative z-[1] px-md pt-md pb-0 sm:px-lg">
         <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-          Split flow
+          {t("Split flow")}
         </p>
-        <p className="font-headline-sm text-on-surface mt-xs tabular-nums">{currencyLabel}</p>
+        <p className="font-headline-sm text-on-surface mt-xs tabular-nums">
+          {currencyLabel}
+        </p>
       </div>
 
       <svg
@@ -249,7 +264,7 @@ export function TransactionSplitGraph({
         className="relative z-[1] w-full h-auto block select-none"
         style={{ minHeight: compact ? 232 : 308 }}
         role="img"
-        aria-label="Expense split from payer to members"
+        aria-label={t("Expense split from payer to members")}
       >
         <defs>
           <marker
@@ -274,7 +289,13 @@ export function TransactionSplitGraph({
           >
             <path d="M0,0 L0,9 L9,4.5 z" fill="var(--color-balance-owed)" />
           </marker>
-          <filter id={`${reactId}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+          <filter
+            id={`${reactId}-glow`}
+            x="-50%"
+            y="-50%"
+            width="200%"
+            height="200%"
+          >
             <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -355,7 +376,14 @@ export function TransactionSplitGraph({
               }}
             >
               <defs>
-                <mask id={maskId} maskUnits="userSpaceOnUse" x={-NODE_R - 2} y={-NODE_R - 2} width={(NODE_R + 2) * 2} height={(NODE_R + 2) * 2}>
+                <mask
+                  id={maskId}
+                  maskUnits="userSpaceOnUse"
+                  x={-NODE_R - 2}
+                  y={-NODE_R - 2}
+                  width={(NODE_R + 2) * 2}
+                  height={(NODE_R + 2) * 2}
+                >
                   <circle cx={0} cy={0} r={NODE_R} fill="white" />
                 </mask>
               </defs>
@@ -377,7 +405,11 @@ export function TransactionSplitGraph({
               ) : (
                 <circle
                   r={NODE_R}
-                  fill={isPayer ? "var(--color-secondary)" : "var(--color-primary-fixed)"}
+                  fill={
+                    isPayer
+                      ? "var(--color-secondary)"
+                      : "var(--color-primary-fixed)"
+                  }
                   className="pointer-events-none"
                 />
               )}
@@ -387,7 +419,11 @@ export function TransactionSplitGraph({
                   y={6}
                   textAnchor="middle"
                   className="font-bold text-[14px] pointer-events-none"
-                  fill={isPayer ? "var(--color-on-secondary)" : "var(--color-on-surface)"}
+                  fill={
+                    isPayer
+                      ? "var(--color-on-secondary)"
+                      : "var(--color-on-surface)"
+                  }
                 >
                   {initials}
                 </text>
@@ -429,7 +465,7 @@ export function TransactionSplitGraph({
                   className="text-[10px] font-bold uppercase tracking-wide pointer-events-none"
                   fill="var(--color-secondary)"
                 >
-                  Paid
+                  {t("Paid")}
                 </text>
               ) : null}
               {isPayer && payerSplit > 0 ? (
@@ -439,7 +475,10 @@ export function TransactionSplitGraph({
                   className="text-[10px] pointer-events-none"
                   fill="var(--color-on-surface-variant)"
                 >
-                  Own share {currencyLabel} {payerSplit.toFixed(2)}
+                  {t("Own share {amount} {currency}", {
+                    amount: payerSplit.toFixed(2),
+                    currency: currencyLabel,
+                  })}
                 </text>
               ) : null}
               <circle
@@ -462,11 +501,15 @@ export function TransactionSplitGraph({
             ? (() => {
                 const e = edges.find((x) => x.key === hoverEdge);
                 return e
-                  ? `Owed ${e.amount.toFixed(2)} from ${nameFor(e.from)} to ${nameFor(e.to)}`
+                  ? t("Owed {amount} from {from} to {to}", {
+                      amount: e.amount.toFixed(2),
+                      from: nameFor(e.from),
+                      to: nameFor(e.to),
+                    })
                   : "";
               })()
             : hoverUser
-              ? `Member ${nameFor(hoverUser)}`
+              ? t("Member {name}", { name: nameFor(hoverUser) })
               : ""}
         </div>
       )}

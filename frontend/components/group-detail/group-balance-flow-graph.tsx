@@ -3,6 +3,7 @@
 import { useCallback, useId, useMemo, useState } from "react";
 import type { GraphMember } from "@/components/group-detail/transaction-split-graph";
 import type { TransferEdge } from "@/lib/group-net-balances";
+import { useI18n } from "@/lib/i18n";
 
 const W_FULL = 960;
 const H_FULL = 720;
@@ -51,6 +52,7 @@ export function GroupBalanceFlowGraph({
   onFocusUser,
   compact,
 }: Props) {
+  const { t } = useI18n();
   const reactId = useId().replace(/:/g, "");
   const markerId = `${reactId}-flow-arrow`;
   const markerOwedId = `${reactId}-flow-arrow-owed`;
@@ -236,18 +238,21 @@ export function GroupBalanceFlowGraph({
       <div className="relative z-[1] flex w-full min-w-0 flex-col gap-sm px-md pt-md pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-md sm:px-xl pointer-events-none">
         <div className="min-w-0 flex-1 pr-0 sm:pr-md">
           <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-            Whole group
+            {t("Whole group")}
           </p>
           <p className="font-headline-sm text-on-surface mt-xs tabular-nums">{currencyLabel}</p>
           <p className="font-body-md text-on-surface-variant mt-xs w-full max-w-full text-pretty sm:max-w-[42rem]">
-            Net balances from every expense and settlement. Arrows point to who is owed. Press
-            Esc to clear focus.
+            {t(
+              "Net balances from every expense and settlement. Arrows point to who is owed. Press Esc to clear focus."
+            )}
           </p>
         </div>
         <div className="rounded-full border border-outline-variant/70 bg-surface/85 backdrop-blur-sm px-sm py-xs font-label-sm text-on-surface-variant shrink-0 self-start sm:self-auto pointer-events-auto">
           {edges.length === 0
-            ? "Everyone settled up"
-            : `${edges.length} transfer${edges.length === 1 ? "" : "s"}`}
+            ? t("Everyone settled up")
+            : edges.length === 1
+              ? t("{count} transfer", { count: edges.length })
+              : t("{count} transfers", { count: edges.length })}
         </div>
       </div>
 
@@ -258,7 +263,7 @@ export function GroupBalanceFlowGraph({
         className="relative z-[1] block h-auto w-full min-w-0 max-w-full select-none"
         style={{ minHeight: compact ? 280 : 360 }}
         role="img"
-        aria-label="Group balance flow between members"
+        aria-label={t("Group balance flow between members")}
       >
         <rect
           x={0}
@@ -458,11 +463,16 @@ export function GroupBalanceFlowGraph({
             ? (() => {
                 const e = drawnEdges.find((x) => x.key === hoverEdge);
                 return e
-                  ? `${nameFor(e.from)} owes ${nameFor(e.to)} ${e.amount.toFixed(2)} ${currencyLabel}`
+                  ? t("{from} owes {to} {amount} {currency}", {
+                      from: nameFor(e.from),
+                      to: nameFor(e.to),
+                      amount: e.amount.toFixed(2),
+                      currency: currencyLabel,
+                    })
                   : "";
               })()
             : hoverUser
-              ? `Member ${nameFor(hoverUser)}`
+              ? t("Member {name}", { name: nameFor(hoverUser) })
               : ""}
         </div>
       )}

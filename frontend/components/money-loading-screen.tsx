@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n";
+
 type MoneyLoadingScreenProps = {
   /** Shown under the Cayeshni title */
   message?: string;
@@ -10,9 +12,11 @@ type MoneyLoadingScreenProps = {
 const DECOR_ICONS = ["payments", "account_balance_wallet", "savings"] as const;
 
 export function MoneyLoadingScreen({
-  message = "Counting the coins…",
+  message,
   variant = "fullscreen",
 }: MoneyLoadingScreenProps) {
+  const { t } = useI18n();
+  const resolvedMessage = message ?? t("Counting the coins…");
   const isFull = variant === "fullscreen";
 
   return (
@@ -61,7 +65,7 @@ export function MoneyLoadingScreen({
             Cayeshni
           </p>
           <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-            {message}
+            {resolvedMessage}
           </p>
         </div>
 

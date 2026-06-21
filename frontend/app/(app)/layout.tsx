@@ -6,6 +6,7 @@ import { MoneyLoadingScreen } from "@/components/money-loading-screen";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/lib/auth/auth-context";
 import { sanitizePostAuthPath } from "@/lib/auth/post-auth-redirect";
+import { useI18n } from "@/lib/i18n";
 
 export default function AppGroupLayout({
   children,
@@ -14,6 +15,7 @@ export default function AppGroupLayout({
 }) {
   const { accessToken, emailConfirmed, bootstrapping } = useAuth();
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (bootstrapping) return;
@@ -28,14 +30,14 @@ export default function AppGroupLayout({
 
     if (!emailConfirmed) {
       router.replace(
-        `/login?pendingVerification=1&next=${encodeURIComponent(safe)}`
+        `/login?pendingVerification=1&next=${encodeURIComponent(safe)}`,
       );
     }
   }, [bootstrapping, accessToken, emailConfirmed, router]);
 
   if (bootstrapping) {
     return (
-      <MoneyLoadingScreen message="Securing your session and balances…" />
+      <MoneyLoadingScreen message={t("Securing your session and balances…")} />
     );
   }
 

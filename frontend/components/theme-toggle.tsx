@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/theme-provider";
+import { useI18n } from "@/lib/i18n";
 
 export function ThemeToggle({
   className = "",
@@ -10,13 +11,16 @@ export function ThemeToggle({
   compact?: boolean;
 }) {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
   const isDark = theme === "dark";
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={
+        isDark ? t("Switch to light mode") : t("Switch to dark mode")
+      }
       className={`inline-flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container-low px-md py-xs text-on-surface-variant transition-colors hover:bg-surface-container-high ${
         compact ? "px-sm" : ""
       } ${className}`}
@@ -26,7 +30,7 @@ export function ThemeToggle({
       </span>
       {!compact && (
         <span className="font-label-sm text-label-sm">
-          {isDark ? "Light mode" : "Dark mode"}
+          {isDark ? t("Light mode") : t("Dark mode")}
         </span>
       )}
     </button>

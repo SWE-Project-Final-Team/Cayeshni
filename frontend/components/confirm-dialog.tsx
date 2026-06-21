@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 
 type Props = {
   open: boolean;
@@ -19,13 +20,17 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   danger,
   pending,
   onConfirm,
   onClose,
 }: Props) {
+  const { t } = useI18n();
+  const resolvedConfirmLabel = confirmLabel ?? t("Confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("Cancel");
+  const resolvedPendingLabel = t("Please wait…");
   if (!open) return null;
 
   return (
@@ -65,7 +70,7 @@ export function ConfirmDialog({
             onClick={onClose}
             className="sm:min-w-[7rem] rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-sm text-primary hover:bg-surface-container-high disabled:opacity-50"
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             type="button"
@@ -77,7 +82,7 @@ export function ConfirmDialog({
                 : "bg-secondary hover:bg-secondary/90"
             }`}
           >
-            {pending ? "Please wait…" : confirmLabel}
+            {pending ? resolvedPendingLabel : resolvedConfirmLabel}
           </button>
         </div>
       </div>

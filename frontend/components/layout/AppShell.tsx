@@ -6,22 +6,24 @@ import { type ReactNode, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { userAvatarSrc } from "@/lib/api/client";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-  { href: "/expenses", label: "Expenses", icon: "receipt_long" },
-  { href: "/groups", label: "Groups", icon: "group" },
-  { href: "/friends", label: "Friends", icon: "diversity_3" },
-  { href: "/settlements", label: "Settlements", icon: "payments" },
-  { href: "/settings", label: "Settings", icon: "settings" },
-] as const;
+import { LanguageSelect } from "@/components/language-select";
+import { useI18n } from "@/lib/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { profile, logout } = useAuth();
+  const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const avatar = userAvatarSrc(profile?.profilePictureUrl);
+  const nav = [
+    { href: "/dashboard", label: t("Dashboard"), icon: "dashboard" },
+    { href: "/expenses", label: t("Expenses"), icon: "receipt_long" },
+    { href: "/groups", label: t("Groups"), icon: "group" },
+    { href: "/friends", label: t("Friends"), icon: "diversity_3" },
+    { href: "/settlements", label: t("Settlements"), icon: "payments" },
+    { href: "/settings", label: t("Settings"), icon: "settings" },
+  ] as const;
 
   return (
     <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
@@ -38,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               className="md:hidden text-on-surface-variant"
-              aria-label="Close menu"
+              aria-label={t("Close menu")}
               onClick={() => setMobileOpen(false)}
             >
               <span className="material-symbols-outlined">close</span>
@@ -47,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <Link
             href="/profile"
-            aria-label="Open profile"
+            aria-label={t("Profile")}
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-md mb-lg px-xs rounded-lg -mx-xs py-xs hover:bg-surface-container-high transition-colors outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
           >
@@ -78,8 +80,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <ThemeToggle />
           </div>
 
+          <div className="mb-md px-xs">
+            <LanguageSelect />
+          </div>
+
           <nav className="flex flex-col gap-xs flex-grow">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
@@ -109,14 +115,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMobileOpen(false)}
             className="w-full mt-md bg-secondary text-on-secondary font-label-sm text-label-sm py-sm px-md rounded-lg hover:shadow-md transition-shadow text-center"
           >
-            Add expense
+            {t("Add expense")}
           </Link>
           <button
             type="button"
             onClick={() => void logout()}
             className="w-full mt-sm border border-outline-variant text-primary font-label-sm text-label-sm py-sm px-md rounded-lg hover:bg-surface-container-high transition-colors"
           >
-            Sign out
+            {t("Sign out")}
           </button>
         </aside>
 
@@ -124,7 +130,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <header className="md:hidden flex justify-between items-center w-full px-container-margin py-md bg-surface border-b border-outline-variant sticky top-0 z-10">
             <button
               type="button"
-              aria-label="Open menu"
+              aria-label={t("Open menu")}
               className="text-on-surface-variant p-sm"
               onClick={() => setMobileOpen(true)}
             >
@@ -142,7 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               className="md:hidden fixed inset-0 bg-inverse-surface/40 z-10"
-              aria-label="Dismiss menu"
+              aria-label={t("Dismiss menu")}
               onClick={() => setMobileOpen(false)}
             />
           )}

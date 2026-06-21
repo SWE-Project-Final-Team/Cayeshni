@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiJson } from "@/lib/api/client";
 import type { FriendDto } from "@/lib/api/types";
 import { buildGroupJoinUrl } from "@/lib/group-invite";
+import { useI18n } from "@/lib/i18n";
 
 type Props = {
   groupId: string;
@@ -29,6 +30,7 @@ export function InviteFriendToGroup({
   inviterName,
   memberUserIds,
 }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [friends, setFriends] = useState<FriendDto[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,12 +90,22 @@ export function InviteFriendToGroup({
   }
 
   const joinUrl = buildGroupJoinUrl(inviteToken);
-  const fromLine = inviterName?.trim() ? inviterName.trim() : "A friend";
+  const fromLine = inviterName?.trim() ? inviterName.trim() : t("A friend");
 
   function mailtoForFriend(friend: FriendDto) {
-    const subject = encodeURIComponent(`Join “${groupName}” on Cayeshni`);
+    const subject = encodeURIComponent(
+      t("Join “{group}” on Cayeshni", { group: groupName })
+    );
     const body = encodeURIComponent(
-      `${fromLine} invited you to split expenses in “${groupName}” on Cayeshni.\n\nOpen this link to join (log in or sign up first):\n${joinUrl}\n\nOr in Cayeshni go to Groups → Join with invite code and paste:\n${inviteToken}\n`
+      t(
+        "{from} invited you to split expenses in “{group}” on Cayeshni.\n\nOpen this link to join (log in or sign up first):\n{joinUrl}\n\nOr in Cayeshni go to Groups → Join with invite code and paste:\n{inviteToken}\n",
+        {
+          from: fromLine,
+          group: groupName,
+          joinUrl,
+          inviteToken,
+        }
+      )
     );
     const addr = encodeURIComponent(friend.email).replace(/%20/g, "");
     window.location.href = `mailto:${addr}?subject=${subject}&body=${body}`;
@@ -109,7 +121,11 @@ export function InviteFriendToGroup({
         accessToken,
         json: { friendUserId: friend.userId },
       });
-      setInAppMsg(`Invite sent to ${friend.name}. They’ll see it under Groups.`);
+      setInAppMsg(
+        t("Invite sent to {name}. They’ll see it under Groups.", {
+          name: friend.name,
+        })
+      );
     } catch (e) {
       setErr(apiErrorMessage(e));
     } finally {
@@ -130,7 +146,7 @@ export function InviteFriendToGroup({
       } catch {
         setLinkCopied(false);
         setCopyFailMessage(
-          "Could not copy — select the invite code from the group."
+          t("Could not copy — select the invite code from the group.")
         );
         return;
       }
@@ -143,11 +159,19 @@ export function InviteFriendToGroup({
 
   async function shareLink() {
     setCopyFailMessage(null);
-    const text = `${fromLine} invited you to “${groupName}” on Cayeshni.\n\n${joinUrl}\n\nInvite code: ${inviteToken}`;
+    const text = t(
+      "{from} invited you to “{group}” on Cayeshni.\n\n{joinUrl}\n\nInvite code: {inviteToken}",
+      {
+        from: fromLine,
+        group: groupName,
+        joinUrl,
+        inviteToken,
+      }
+    );
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: `Join ${groupName} on Cayeshni`,
+          title: t("Join {group} on Cayeshni", { group: groupName }),
           text,
           url: joinUrl,
         });
@@ -183,7 +207,7 @@ export function InviteFriendToGroup({
         className="inline-flex items-center justify-center gap-xs rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container-high transition-colors w-full sm:w-auto"
       >
         <span className="material-symbols-outlined text-[18px]">person_add</span>
-        Invite friend
+        {t("Invite friend")}
       </button>
 
       {open ? (
@@ -204,12 +228,12 @@ export function InviteFriendToGroup({
                 id="invite-friend-title"
                 className="font-headline-md text-headline-md text-on-surface pr-md"
               >
-                Invite a friend
+                {t("Invite a friend")}
               </h3>
               <button
                 type="button"
                 className="shrink-0 text-on-surface-variant hover:text-on-surface p-xs rounded-lg hover:bg-surface-container-high"
-                aria-label="Close"
+                aria-label={t("Close")}
                 onClick={close}
               >
                 <span className="material-symbols-outlined text-[22px]">close</span>
@@ -217,8 +241,9 @@ export function InviteFriendToGroup({
             </div>
             <p className="font-body-md text-on-surface-variant mb-md">
               <span className="font-semibold text-on-surface">{groupName}</span>{" "}
-              — send an in-app invite to a Cayeshni friend, open email with the join link, or
-              copy / share the link yourself.
+              {t(
+                "— send an in-app invite to a Cayeshni friend, open email with the join link, or copy / share the link yourself."
+              )}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-sm mb-lg">
@@ -236,14 +261,14 @@ export function InviteFriendToGroup({
                     <span className="material-symbols-outlined text-[18px]">
                       check
                     </span>
-                    Copied
+                    {t("Copied")}
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-[18px]">
                       link
                     </span>
-                    Copy join link
+                    {t("Copy join link")}
                   </>
                 )}
               </button>
@@ -253,7 +278,7 @@ export function InviteFriendToGroup({
                 className="flex-1 inline-flex items-center justify-center gap-xs rounded-lg border border-secondary bg-secondary text-on-secondary px-md py-sm font-label-sm hover:bg-secondary/90"
               >
                 <span className="material-symbols-outlined text-[18px]">share</span>
-                Share…
+                {t("Share…")}
               </button>
             </div>
             {copyFailMessage ? (
@@ -269,23 +294,27 @@ export function InviteFriendToGroup({
             ) : null}
 
             <p className="font-label-sm text-label-sm text-on-surface-variant mb-sm">
-              Your Cayeshni friends
+              {t("Your Cayeshni friends")}
             </p>
             {loading ? (
-              <p className="font-body-md text-on-surface-variant py-md">Loading…</p>
+              <p className="font-body-md text-on-surface-variant py-md">
+                {t("Loading…")}
+              </p>
             ) : friendsFiltered && friendsFiltered.length === 0 ? (
               <div className="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md space-y-sm">
                 <p className="font-body-md text-on-surface-variant">
                   {friends && friends.length > 0
-                    ? "Everyone here is already in this group, or add more friends first."
-                    : "You don&apos;t have friends on Cayeshni yet. Add friends first, or use copy / share above."}
+                    ? t("Everyone here is already in this group, or add more friends first.")
+                    : t(
+                        "You don&apos;t have friends on Cayeshni yet. Add friends first, or use copy / share above."
+                      )}
                 </p>
                 <Link
                   href="/friends"
                   className="inline-flex font-label-sm text-secondary hover:underline"
                   onClick={close}
                 >
-                  Go to Friends
+                  {t("Go to Friends")}
                 </Link>
               </div>
             ) : (
@@ -313,7 +342,9 @@ export function InviteFriendToGroup({
                         <span className="material-symbols-outlined text-[18px]">
                           notifications
                         </span>
-                        {inAppBusyId === f.userId ? "Sending…" : "In-app invite"}
+                        {inAppBusyId === f.userId
+                          ? t("Sending…")
+                          : t("In-app invite")}
                       </button>
                       <button
                         type="button"
@@ -323,7 +354,7 @@ export function InviteFriendToGroup({
                         <span className="material-symbols-outlined text-[18px]">
                           mail
                         </span>
-                        Email
+                        {t("Email")}
                       </button>
                     </div>
                   </li>

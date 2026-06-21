@@ -9,18 +9,19 @@ import {
   userAvatarSrc,
 } from "@/lib/api/client";
 import { ListboxSelect } from "@/components/listbox-select";
-import { CURRENCY_OPTIONS, currencyCode, currencyValueFromApi } from "@/lib/currency";
+import {
+  CURRENCY_OPTIONS,
+  currencyCode,
+  currencyValueFromApi,
+} from "@/lib/currency";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { UserProfile } from "@/lib/auth/auth-context";
+import { useI18n } from "@/lib/i18n";
 
 export default function ProfilePage() {
-  const {
-    accessToken,
-    emailConfirmed,
-    profile,
-    loadProfile,
-    apiErrorMessage,
-  } = useAuth();
+  const { accessToken, emailConfirmed, profile, loadProfile, apiErrorMessage } =
+    useAuth();
+  const { t, locale } = useI18n();
 
   const [local, setLocal] = useState<UserProfile | null>(null);
   const [name, setName] = useState("");
@@ -37,10 +38,9 @@ export default function ProfilePage() {
     }
     setErr(null);
     try {
-      const raw = await apiJson<UserProfile & { preferredCurrency?: string | number }>(
-        "/api/users/me",
-        { accessToken }
-      );
+      const raw = await apiJson<
+        UserProfile & { preferredCurrency?: string | number }
+      >("/api/users/me", { accessToken });
       const pic = (raw.profilePictureUrl ?? "").trim();
       const me: UserProfile = {
         ...raw,
@@ -80,7 +80,7 @@ export default function ProfilePage() {
         accessToken,
         json: { name, preferredCurrency: currency },
       });
-      setMsg("Profile updated.");
+      setMsg(t("Profile updated."));
       await refresh();
     } catch (e) {
       setErr(apiErrorMessage(e));
@@ -100,9 +100,9 @@ export default function ProfilePage() {
       await apiMultipartJson<{ pictureUrl: string }>(
         "/api/users/me/picture",
         fd,
-        accessToken
+        accessToken,
       );
-      setMsg("Photo updated.");
+      setMsg(t("Photo updated."));
       await refresh();
     } catch (e) {
       setErr(apiErrorMessage(e));
@@ -122,7 +122,7 @@ export default function ProfilePage() {
         method: "DELETE",
         accessToken,
       });
-      setMsg("Photo removed.");
+      setMsg(t("Photo removed."));
       await refresh();
     } catch (e) {
       setErr(apiErrorMessage(e));
@@ -142,22 +142,25 @@ export default function ProfilePage() {
         value: String(c.value),
         label: c.label,
       })),
-    []
+    [],
   );
 
   if (!emailConfirmed) {
     return (
       <div className="w-full space-y-lg max-w-2xl">
-        <h2 className="font-display-lg text-display-lg text-on-surface">Profile</h2>
+        <h2 className="font-display-lg text-display-lg text-on-surface">
+          {t("Profile")}
+        </h2>
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-level-1 font-body-md text-on-surface-variant">
-          Confirm your email to view and edit your profile. After you use the
-          link in your inbox, refresh this page.
+          {t(
+            "Confirm your email to view and edit your profile. After you use the link in your inbox, refresh this page.",
+          )}
         </div>
         <Link
           href="/login"
           className="inline-flex text-secondary font-label-sm hover:underline"
         >
-          Back to sign in
+          {t("Back to sign in")}
         </Link>
       </div>
     );
@@ -167,16 +170,18 @@ export default function ProfilePage() {
     <div className="w-full space-y-xl">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-md">
         <div>
-          <h2 className="font-display-lg text-display-lg text-on-surface">Profile</h2>
+          <h2 className="font-display-lg text-display-lg text-on-surface">
+            {t("Profile")}
+          </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-xs">
-            Manage your photo, display name, and default currency.
+            {t("Manage your photo, display name, and default currency.")}
           </p>
         </div>
         <Link
           href="/settings"
           className="font-label-sm text-secondary hover:underline shrink-0"
         >
-          Password &amp; security →
+          {t("Password &amp; security →")}
         </Link>
       </div>
 
@@ -217,8 +222,8 @@ export default function ProfilePage() {
             </p>
             {display?.createdAt && (
               <p className="font-label-sm text-on-surface-variant mt-md">
-                Member since{" "}
-                {new Date(display.createdAt).toLocaleDateString(undefined, {
+                {t("Member since")}{" "}
+                {new Date(display.createdAt).toLocaleDateString(locale, {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -226,9 +231,11 @@ export default function ProfilePage() {
               </p>
             )}
             <p className="font-label-sm text-on-surface-variant mt-sm">
-              Default currency:{" "}
+              {t("Default currency")}:{" "}
               <span className="text-on-surface font-semibold">
-                {display != null ? currencyCode(display.preferredCurrency) : "—"}
+                {display != null
+                  ? currencyCode(display.preferredCurrency)
+                  : "—"}
               </span>
             </p>
 
@@ -246,7 +253,7 @@ export default function ProfilePage() {
                 onClick={() => fileRef.current?.click()}
                 className="bg-secondary text-on-secondary font-label-sm py-sm px-md rounded-lg hover:bg-secondary/90 disabled:opacity-60"
               >
-                Change photo
+                {t("Change photo")}
               </button>
               {hasCustomPhoto && (
                 <button
@@ -255,7 +262,7 @@ export default function ProfilePage() {
                   onClick={() => void removePhoto()}
                   className="border border-outline-variant text-primary font-label-sm py-sm px-md rounded-lg hover:bg-surface-container-high disabled:opacity-60"
                 >
-                  Remove photo
+                  {t("Remove photo")}
                 </button>
               )}
             </div>
@@ -268,11 +275,11 @@ export default function ProfilePage() {
             className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-lg shadow-level-1 space-y-md"
           >
             <h3 className="font-headline-md text-headline-md text-primary">
-              Edit details
+              {t("Edit details")}
             </h3>
             <div>
               <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Display name
+                {t("Display name")}
               </label>
               <input
                 value={name}
@@ -284,7 +291,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="block font-label-sm text-label-sm text-on-surface-variant mb-xs">
-                Preferred currency
+                {t("Preferred currency")}
               </label>
               <ListboxSelect
                 value={String(currency)}
@@ -300,7 +307,7 @@ export default function ProfilePage() {
               disabled={pending}
               className="bg-primary text-on-primary font-label-sm py-sm px-md rounded-lg hover:bg-primary-container disabled:opacity-60"
             >
-              Save changes
+              {t("Save changes")}
             </button>
           </form>
         </div>
